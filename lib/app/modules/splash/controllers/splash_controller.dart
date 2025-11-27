@@ -163,7 +163,7 @@ class SplashController extends GetxController {
   }
 
   /// Tải TKB tất cả học kỳ (dùng cho lần đầu login)
-  /// Returns: Map<semesterId, scheduleData>
+  /// Returns: `Map<semesterId, scheduleData>`
   Future<Map<String, dynamic>?> _loadAllSchedules(String mssv) async {
     try {
       final semestersResponse = await _apiService.getSemesters();

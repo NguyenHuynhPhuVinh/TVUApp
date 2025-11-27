@@ -32,7 +32,7 @@ class ScheduleView extends GetView<ScheduleController> {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
       child: Obx(() => DropdownButtonFormField<int>(
-        value: controller.selectedSemester.value,
+        initialValue: controller.selectedSemester.value,
         decoration: InputDecoration(
           labelText: 'Học kỳ',
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.r)),

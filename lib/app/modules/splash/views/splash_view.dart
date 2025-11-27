@@ -1,127 +1,48 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:animated_text_kit/animated_text_kit.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_styles.dart';
+import '../../../core/widgets/widgets.dart';
 import '../controllers/splash_controller.dart';
 
 class SplashView extends GetView<SplashController> {
   const SplashView({super.key});
 
-  // Duolingo-style colors (blue theme)
-  static const Color _primaryBlue = Color(0xFF1CB0F6);
-  static const Color _darkBlue = Color(0xFF1899D6);
-  static const Color _backgroundColor = Color(0xFF1CB0F6);
-
   @override
   Widget build(BuildContext context) {
-    // Access controller to ensure it's initialized
     final _ = controller;
 
     return Scaffold(
-      backgroundColor: _backgroundColor,
+      backgroundColor: AppColors.primary,
       body: SafeArea(
-        child: Column(
+        child: Stack(
           children: [
-            const Spacer(flex: 2),
-            Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Icon container với style Duolingo
-                  Container(
-                    width: 140.w,
-                    height: 140.w,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(28.r),
-                      border: Border(
-                        bottom: BorderSide(
-                          color: const Color(0xFFE5E5E5),
-                          width: 4.h,
-                        ),
-                      ),
-                    ),
-                    child: Center(
-                      child: Icon(
-                        Icons.school_rounded,
-                        size: 80.sp,
-                        color: _primaryBlue,
-                      ),
-                    ),
+            ..._buildFloatingParticles(),
+            Column(
+              children: [
+                const Spacer(flex: 2),
+                Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _buildAnimatedLogo(),
+                      SizedBox(height: AppStyles.space8),
+                      _buildAnimatedTitle(),
+                      SizedBox(height: AppStyles.space2),
+                      _buildAnimatedSubtitle(),
+                      SizedBox(height: AppStyles.space12),
+                      Obx(() => controller.isFirstTimeSync.value
+                          ? _buildSyncProgress()
+                          : const DuoLoadingDots()),
+                    ],
                   ),
-                  SizedBox(height: 32.h),
-                  // Title
-                  Text(
-                    'TVU Sinh Viên',
-                    style: TextStyle(
-                      fontSize: 36.sp,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                  SizedBox(height: 8.h),
-                  // Subtitle
-                  Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 16.w,
-                      vertical: 8.h,
-                    ),
-                    decoration: BoxDecoration(
-                      color: _darkBlue,
-                      borderRadius: BorderRadius.circular(20.r),
-                    ),
-                    child: Text(
-                      'Cổng thông tin Sinh viên',
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 48.h),
-                  // Loading indicator - hiển thị progress nếu đang sync
-                  Obx(() => controller.isFirstTimeSync.value
-                      ? _buildSyncProgress()
-                      : _buildLoadingDots()),
-                ],
-              ),
-            ),
-            const Spacer(flex: 2),
-            // Footer
-            Padding(
-              padding: EdgeInsets.only(bottom: 24.h),
-              child: Column(
-                children: [
-                  Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 12.w,
-                      vertical: 6.h,
-                    ),
-                    decoration: BoxDecoration(
-                      color: _darkBlue,
-                      borderRadius: BorderRadius.circular(12.r),
-                    ),
-                    child: Text(
-                      'v1.0',
-                      style: TextStyle(
-                        fontSize: 12.sp,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 8.h),
-                  Text(
-                    'Tạo bởi TomiSakae',
-                    style: TextStyle(
-                      fontSize: 12.sp,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white.withValues(alpha: 0.8),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+                const Spacer(flex: 2),
+                _buildFooter(),
+              ],
             ),
           ],
         ),
@@ -129,71 +50,121 @@ class SplashView extends GetView<SplashController> {
     );
   }
 
-  Widget _buildLoadingDots() {
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0, end: 1),
-      duration: const Duration(milliseconds: 1500),
-      builder: (context, value, child) {
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(3, (index) {
-            final delay = index * 0.2;
-            final animValue = ((value + delay) % 1.0);
-            final scale = 0.5 + (animValue < 0.5 ? animValue : 1 - animValue);
-            return Container(
-              margin: EdgeInsets.symmetric(horizontal: 6.w),
-              child: Transform.scale(
-                scale: scale,
-                child: Container(
-                  width: 16.w,
-                  height: 16.w,
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ),
-            );
-          }),
-        );
-      },
-      onEnd: () {},
-    );
+  List<Widget> _buildFloatingParticles() {
+    final colors = [AppColors.green, AppColors.orange, AppColors.purple, Colors.white];
+    final sizes = [8.0, 12.0, 16.0, 10.0];
+    final positions = [
+      Offset(30.w, 100.h),
+      Offset(320.w, 150.h),
+      Offset(50.w, 400.h),
+      Offset(300.w, 500.h),
+      Offset(80.w, 600.h),
+      Offset(280.w, 300.h),
+      Offset(150.w, 200.h),
+      Offset(200.w, 550.h),
+    ];
+
+    return List.generate(8, (index) {
+      return Positioned(
+        left: positions[index].dx,
+        top: positions[index].dy,
+        child: Container(
+          width: sizes[index % 4].w,
+          height: sizes[index % 4].w,
+          decoration: BoxDecoration(
+            color: AppColors.withAlpha(colors[index % 4], 0.6),
+            shape: BoxShape.circle,
+          ),
+        )
+            .animate(onPlay: (c) => c.repeat(reverse: true))
+            .fadeIn(duration: 600.ms, delay: (index * 100).ms)
+            .then()
+            .moveY(begin: 0, end: -20, duration: (1500 + index * 200).ms, curve: Curves.easeInOut)
+            .scale(begin: const Offset(1, 1), end: const Offset(1.3, 1.3), duration: (1800 + index * 150).ms),
+      );
+    });
+  }
+
+  Widget _buildAnimatedLogo() {
+    return DuoCard(
+      padding: EdgeInsets.all(AppStyles.space8),
+      backgroundColor: AppColors.backgroundWhite,
+      shadowColor: AppColors.primaryDark,
+      shadowOffset: AppStyles.shadowLg,
+      borderRadius: AppStyles.rounded4xl,
+      hasBorder: false,
+      child: Icon(Icons.school_rounded, size: AppStyles.icon3xl * 1.5, color: AppColors.primary),
+    )
+        .animate()
+        .scale(begin: const Offset(0, 0), end: const Offset(1, 1), duration: 600.ms, curve: Curves.elasticOut)
+        .then()
+        .shimmer(duration: 2000.ms, color: AppColors.withAlpha(Colors.white, 0.3));
+  }
+
+  Widget _buildAnimatedTitle() {
+    return Text(
+      'TVU Sinh Viên',
+      style: TextStyle(
+        fontSize: AppStyles.text5xl,
+        fontWeight: AppStyles.fontExtrabold,
+        color: Colors.white,
+        letterSpacing: -0.5,
+      ),
+    ).animate().fadeIn(duration: 500.ms, delay: 300.ms).slideY(begin: 0.3, end: 0, duration: 500.ms, curve: Curves.easeOut);
+  }
+
+  Widget _buildAnimatedSubtitle() {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: AppStyles.space4, vertical: AppStyles.space2),
+      decoration: BoxDecoration(
+        color: AppColors.primaryDark,
+        borderRadius: AppStyles.roundedFull,
+      ),
+      child: DefaultTextStyle(
+        style: TextStyle(fontSize: AppStyles.textSm, fontWeight: AppStyles.fontSemibold, color: Colors.white),
+        child: AnimatedTextKit(
+          animatedTexts: [TypewriterAnimatedText('Cổng thông tin Sinh viên', speed: const Duration(milliseconds: 80))],
+          isRepeatingAnimation: false,
+          displayFullTextOnTap: true,
+        ),
+      ),
+    ).animate().fadeIn(duration: 400.ms, delay: 500.ms).scale(begin: const Offset(0.8, 0.8), end: const Offset(1, 1));
   }
 
   Widget _buildSyncProgress() {
     return Column(
       children: [
-        // Progress bar
-        Container(
+        SizedBox(
           width: 200.w,
-          height: 8.h,
-          decoration: BoxDecoration(
-            color: _darkBlue,
-            borderRadius: BorderRadius.circular(4.r),
-          ),
-          child: Obx(() => FractionallySizedBox(
-                alignment: Alignment.centerLeft,
-                widthFactor: controller.syncProgress.value,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(4.r),
-                  ),
-                ),
+          child: Obx(() => DuoProgressBar(
+                progress: controller.syncProgress.value,
+                backgroundColor: AppColors.primaryDark,
+                progressColor: Colors.white,
+                shadowColor: AppColors.withAlpha(Colors.white, 0.3),
               )),
-        ),
-        SizedBox(height: 16.h),
-        // Status text
+        ).animate().fadeIn(duration: 400.ms).slideX(begin: -0.2, end: 0, duration: 400.ms),
+        SizedBox(height: AppStyles.space4),
         Obx(() => Text(
               controller.syncStatus.value,
-              style: TextStyle(
-                fontSize: 14.sp,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
-            )),
+              style: TextStyle(fontSize: AppStyles.textSm, fontWeight: AppStyles.fontSemibold, color: Colors.white),
+            ).animate().fadeIn(duration: 300.ms)),
       ],
     );
+  }
+
+  Widget _buildFooter() {
+    return Padding(
+      padding: EdgeInsets.only(bottom: AppStyles.space6),
+      child: Column(
+        children: [
+          DuoSolidBadge(text: 'v1.0', variant: DuoBadgeVariant.primary),
+          SizedBox(height: AppStyles.space2),
+          Text(
+            'Tạo bởi TomiSakae',
+            style: TextStyle(fontSize: AppStyles.textXs, fontWeight: AppStyles.fontSemibold, color: AppColors.withAlpha(Colors.white, 0.8)),
+          ),
+        ],
+      ),
+    ).animate().fadeIn(duration: 500.ms, delay: 1000.ms).slideY(begin: 0.5, end: 0, duration: 500.ms);
   }
 }
