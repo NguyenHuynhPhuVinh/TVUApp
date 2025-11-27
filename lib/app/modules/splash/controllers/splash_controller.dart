@@ -179,19 +179,28 @@ class SplashController extends GetxController {
         }
       }
 
-      // TKB học kỳ hiện tại - check thay đổi trước khi đẩy Firebase
+      // TKB học kỳ hiện tại - lấy từ API để so sánh với local
       if (currentSemester > 0) {
-        final currentSchedule = _localStorage.getSchedule(currentSemester);
         final oldSchedule = _localStorage.getSchedule(currentSemester);
-        if (currentSchedule != null && _isDataChanged(currentSchedule, oldSchedule)) {
-          await _firebaseService.saveSchedule(mssv, currentSemester, currentSchedule);
+        final scheduleResponse = await _apiService.getSchedule(currentSemester);
+        if (scheduleResponse != null && scheduleResponse['data'] != null) {
+          final newSchedule = scheduleResponse['data'];
+          if (_isDataChanged(newSchedule, oldSchedule)) {
+            await _localStorage.saveSchedule(currentSemester, newSchedule);
+            await _firebaseService.saveSchedule(mssv, currentSemester, newSchedule);
+          }
         }
       }
 
-      // Semesters - check thay đổi
+      // Semesters - lấy từ API để so sánh với local
       final oldSemesters = _localStorage.getSemesters();
-      if (_isDataChanged(semestersData, oldSemesters)) {
-        await _firebaseService.saveSemesters(mssv, semestersData);
+      final semestersResponse = await _apiService.getSemesters();
+      if (semestersResponse != null && semestersResponse['data'] != null) {
+        final newSemestersData = {'data': semestersResponse['data']};
+        if (_isDataChanged(newSemestersData, oldSemesters)) {
+          await _localStorage.saveSemesters(newSemestersData);
+          await _firebaseService.saveSemesters(mssv, newSemestersData);
+        }
       }
     } catch (e) {
       print('Sync remaining schedules error: $e');
