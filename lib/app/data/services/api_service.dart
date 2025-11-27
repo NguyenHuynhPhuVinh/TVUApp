@@ -75,14 +75,35 @@ class ApiService extends GetxService {
     return response.data;
   }
 
+  // Get Semesters API
+  Future<Map<String, dynamic>?> getSemesters() async {
+    try {
+      final response = await _dio.post(
+        ApiConstants.semesters,
+        data: {
+          'filter': {'is_tieng_anh': null},
+          'additional': {
+            'paging': {'limit': 100, 'page': 1},
+            'ordering': [{'name': 'hoc_ky', 'order_type': 1}]
+          }
+        },
+        options: Options(contentType: 'application/json'),
+      );
+      return response.data;
+    } catch (e) {
+      print('Error getSemesters: $e');
+      return null;
+    }
+  }
+
   // Schedule API
-  Future<Map<String, dynamic>?> getSchedule(String semester) async {
+  Future<Map<String, dynamic>?> getSchedule(int semester) async {
     try {
       final response = await _dio.post(
         ApiConstants.schedule,
         data: {
           'filter': {'hoc_ky': semester, 'ten_hoc_ky': ''},
-          'additional': {'paging': {'limit': 100, 'page': 1}, 'ordering': []}
+          'additional': {'paging': {'limit': 100, 'page': 1}, 'ordering': [{'name': null, 'order_type': null}]}
         },
         options: Options(contentType: 'application/json'),
       );

@@ -7,6 +7,7 @@ class ApiConstants {
 
   // Schedule
   static const String schedule = '/api/sch/w-locdstkbtuanusertheohocky';
+  static const String semesters = '/api/sch/w-locdshockytkbuser';
 
   // Grades
   static const String grades = '/api/srm/w-locdsdiemsinhvien';

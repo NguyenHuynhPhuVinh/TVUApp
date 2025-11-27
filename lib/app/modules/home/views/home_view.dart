@@ -216,6 +216,10 @@ class HomeView extends GetView<HomeController> {
   }
 
   Widget _buildScheduleItem(Map<String, dynamic> item) {
+    final tietBatDau = item['tiet_bat_dau'] ?? 0;
+    final soTiet = item['so_tiet'] ?? 0;
+    final tietKetThuc = tietBatDau + soTiet - 1;
+    
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
@@ -225,23 +229,35 @@ class HomeView extends GetView<HomeController> {
       ),
       child: Row(
         children: [
-          Container(width: 4.w, height: 60.h, decoration: BoxDecoration(color: Get.theme.primaryColor, borderRadius: BorderRadius.circular(2.r))),
+          Container(width: 4.w, height: 70.h, decoration: BoxDecoration(color: Get.theme.primaryColor, borderRadius: BorderRadius.circular(2.r))),
           SizedBox(width: 12.w),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(item['ten_mon'] ?? 'N/A', style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600), maxLines: 2, overflow: TextOverflow.ellipsis),
+                SizedBox(height: 6.h),
+                Row(
+                  children: [
+                    Icon(Iconsax.clock, size: 14.sp, color: Colors.grey),
+                    SizedBox(width: 4.w),
+                    Text('Tiết $tietBatDau - $tietKetThuc', style: TextStyle(fontSize: 12.sp, color: Colors.grey[600])),
+                  ],
+                ),
                 SizedBox(height: 4.h),
                 Row(
                   children: [
                     Icon(Iconsax.location, size: 14.sp, color: Colors.grey),
                     SizedBox(width: 4.w),
-                    Text(item['phong'] ?? 'N/A', style: TextStyle(fontSize: 12.sp, color: Colors.grey[600])),
-                    SizedBox(width: 12.w),
-                    Icon(Iconsax.clock, size: 14.sp, color: Colors.grey),
+                    Expanded(child: Text(item['ma_phong'] ?? 'N/A', style: TextStyle(fontSize: 12.sp, color: Colors.grey[600]), overflow: TextOverflow.ellipsis)),
+                  ],
+                ),
+                SizedBox(height: 4.h),
+                Row(
+                  children: [
+                    Icon(Iconsax.teacher, size: 14.sp, color: Colors.grey),
                     SizedBox(width: 4.w),
-                    Text('Tiết ${item['tiet_bat_dau'] ?? 'N/A'}', style: TextStyle(fontSize: 12.sp, color: Colors.grey[600])),
+                    Expanded(child: Text(item['ten_giang_vien'] ?? 'N/A', style: TextStyle(fontSize: 12.sp, color: Colors.grey[600]), overflow: TextOverflow.ellipsis)),
                   ],
                 ),
               ],
