@@ -53,7 +53,7 @@ class SplashView extends GetView<SplashController> {
                     ),
                     SizedBox(height: 24.h),
                     Text(
-                      'TVU Student',
+                      'TVU Sinh Viên',
                       style: TextStyle(
                         fontSize: 32.sp,
                         fontWeight: FontWeight.bold,
