@@ -13,13 +13,12 @@ class FirebaseService extends GetxService {
     return this;
   }
 
-  /// Lưu toàn bộ data học tập lên Firebase theo MSSV
+  /// Lưu data học tập lên Firebase theo MSSV (CHỈ điểm, CTDT, học phí - KHÔNG lưu info cá nhân)
   Future<bool> syncAllStudentData({
     required String mssv,
     Map<String, dynamic>? grades,
     Map<String, dynamic>? curriculum,
     Map<String, dynamic>? tuition,
-    Map<String, dynamic>? studentInfo,
   }) async {
     if (mssv.isEmpty) return false;
     
@@ -28,38 +27,28 @@ class FirebaseService extends GetxService {
       syncProgress.value = 0;
       
       final studentRef = _firestore.collection('students').doc(mssv);
-      
-      // 1. Lưu thông tin sinh viên
-      if (studentInfo != null) {
-        syncStatus.value = 'Đang lưu thông tin sinh viên...';
-        await studentRef.set({
-          'info': studentInfo,
-          'lastUpdated': FieldValue.serverTimestamp(),
-        }, SetOptions(merge: true));
-        syncProgress.value = 0.25;
-      }
 
-      // 2. Lưu điểm
+      // 1. Lưu điểm
       if (grades != null) {
         syncStatus.value = 'Đang lưu điểm học tập...';
         await studentRef.set({
           'grades': grades,
           'lastUpdated': FieldValue.serverTimestamp(),
         }, SetOptions(merge: true));
-        syncProgress.value = 0.5;
+        syncProgress.value = 0.33;
       }
 
-      // 3. Lưu CTDT
+      // 2. Lưu CTDT
       if (curriculum != null) {
         syncStatus.value = 'Đang lưu chương trình đào tạo...';
         await studentRef.set({
           'curriculum': curriculum,
           'lastUpdated': FieldValue.serverTimestamp(),
         }, SetOptions(merge: true));
-        syncProgress.value = 0.75;
+        syncProgress.value = 0.66;
       }
 
-      // 4. Lưu học phí
+      // 3. Lưu học phí
       if (tuition != null) {
         syncStatus.value = 'Đang lưu thông tin học phí...';
         await studentRef.set({

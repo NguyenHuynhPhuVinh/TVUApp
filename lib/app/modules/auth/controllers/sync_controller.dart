@@ -29,26 +29,17 @@ class SyncController extends GetxController {
       Map<String, dynamic>? gradesData;
       Map<String, dynamic>? curriculumData;
       Map<String, dynamic>? tuitionData;
-      Map<String, dynamic>? studentInfoData;
 
-      // 1. Tải thông tin sinh viên
-      currentStatus.value = 'Đang tải thông tin sinh viên...';
-      progress.value = 0.1;
-      final infoResponse = await _apiService.getStudentInfo();
-      if (infoResponse != null && infoResponse['data'] != null) {
-        studentInfoData = {'data': infoResponse['data']};
-      }
-      progress.value = 0.2;
-
-      // 2. Tải điểm
+      // 1. Tải điểm
       currentStatus.value = 'Đang tải điểm học tập...';
+      progress.value = 0.2;
       final gradesResponse = await _apiService.getGrades();
       if (gradesResponse != null && gradesResponse['data'] != null) {
         gradesData = {'data': gradesResponse['data']};
       }
       progress.value = 0.4;
 
-      // 3. Tải CTDT
+      // 2. Tải CTDT
       currentStatus.value = 'Đang tải chương trình đào tạo...';
       final curriculumResponse = await _apiService.getCurriculum();
       if (curriculumResponse != null && curriculumResponse['data'] != null) {
@@ -56,7 +47,7 @@ class SyncController extends GetxController {
       }
       progress.value = 0.6;
 
-      // 4. Tải học phí
+      // 3. Tải học phí
       currentStatus.value = 'Đang tải thông tin học phí...';
       final tuitionResponse = await _apiService.getTuition();
       if (tuitionResponse != null && tuitionResponse['data'] != null) {
@@ -64,14 +55,13 @@ class SyncController extends GetxController {
       }
       progress.value = 0.8;
 
-      // 5. Đẩy lên Firebase
+      // 4. Đẩy lên Firebase (CHỈ điểm, CTDT, học phí - KHÔNG lưu info cá nhân)
       currentStatus.value = 'Đang đồng bộ lên Firebase...';
       await _firebaseService.syncAllStudentData(
         mssv: mssv,
         grades: gradesData,
         curriculum: curriculumData,
         tuition: tuitionData,
-        studentInfo: studentInfoData,
       );
       progress.value = 1.0;
 
