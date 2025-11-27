@@ -10,4 +10,6 @@ abstract class Routes {
   static const curriculum = '/curriculum';
   static const news = '/news';
   static const settings = '/settings';
+  static const gameSetup = '/game-setup';
+  static const gameStats = '/game-stats';
 }

@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../../data/services/api_service.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../data/services/firebase_service.dart';
+import '../../../data/services/game_service.dart';
 import '../../../data/services/local_storage_service.dart';
 import '../../../routes/app_routes.dart';
 
@@ -10,6 +11,7 @@ class SplashController extends GetxController {
   final AuthService _authService = Get.find<AuthService>();
   final ApiService _apiService = Get.find<ApiService>();
   final FirebaseService _firebaseService = Get.find<FirebaseService>();
+  final GameService _gameService = Get.find<GameService>();
   final LocalStorageService _localStorage = Get.find<LocalStorageService>();
 
   // Progress cho UI
@@ -51,7 +53,14 @@ class SplashController extends GetxController {
       } else {
         // Đã có data -> load nhanh TKB hiện tại, sync nền
         final currentScheduleData = await _loadCurrentSemesterSchedule(mssv);
-        Get.offAllNamed(Routes.main);
+        
+        // Check game setup
+        await _gameService.syncFromFirebase(mssv);
+        if (!_gameService.isInitialized) {
+          Get.offAllNamed(Routes.gameSetup);
+        } else {
+          Get.offAllNamed(Routes.main);
+        }
         _syncInBackground(mssv, currentScheduleData);
       }
     } catch (e) {
@@ -147,7 +156,14 @@ class SplashController extends GetxController {
       syncStatus.value = 'Hoàn tất!';
       
       await Future.delayed(const Duration(milliseconds: 300));
-      Get.offAllNamed(Routes.main);
+      
+      // Check game setup - nếu chưa init thì vào trang setup
+      await _gameService.syncFromFirebase(mssv);
+      if (!_gameService.isInitialized) {
+        Get.offAllNamed(Routes.gameSetup);
+      } else {
+        Get.offAllNamed(Routes.main);
+      }
     } catch (e) {
       print('Full sync error: $e');
       // Vẫn vào main dù có lỗi

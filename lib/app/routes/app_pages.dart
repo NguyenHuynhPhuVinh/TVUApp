@@ -4,6 +4,10 @@ import '../modules/auth/bindings/auth_binding.dart';
 import '../modules/auth/views/login_view.dart';
 import '../modules/curriculum/bindings/curriculum_binding.dart';
 import '../modules/curriculum/views/curriculum_view.dart';
+import '../modules/game_setup/bindings/game_setup_binding.dart';
+import '../modules/game_setup/views/game_setup_view.dart';
+import '../modules/game_stats/bindings/game_stats_binding.dart';
+import '../modules/game_stats/views/game_stats_view.dart';
 import '../modules/grades/bindings/grades_binding.dart';
 import '../modules/grades/views/grades_view.dart';
 import '../modules/home/bindings/home_binding.dart';
@@ -75,6 +79,16 @@ class AppPages {
       name: Routes.news,
       page: () => const NewsView(),
       binding: NewsBinding(),
+    ),
+    GetPage(
+      name: Routes.gameSetup,
+      page: () => const GameSetupView(),
+      binding: GameSetupBinding(),
+    ),
+    GetPage(
+      name: Routes.gameStats,
+      page: () => const GameStatsView(),
+      binding: GameStatsBinding(),
     ),
   ];
 }
