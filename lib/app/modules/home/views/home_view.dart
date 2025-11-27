@@ -19,12 +19,9 @@ class HomeView extends GetView<HomeController> {
           ),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: controller.refreshData,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: EdgeInsets.all(16.w),
-          child: Column(
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(16.w),
+        child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildWelcomeCard(),
@@ -35,10 +32,8 @@ class HomeView extends GetView<HomeController> {
             ],
           ),
         ),
-      ),
     );
   }
-
 
   Widget _buildWelcomeCard() {
     return Obx(() => Container(
@@ -187,7 +182,6 @@ class HomeView extends GetView<HomeController> {
         ),
         SizedBox(height: 12.h),
         Obx(() {
-          if (controller.isLoading.value) return const Center(child: CircularProgressIndicator());
           if (controller.todaySchedule.isEmpty) {
             return Container(
               padding: EdgeInsets.all(24.w),

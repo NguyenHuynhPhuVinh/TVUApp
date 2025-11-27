@@ -1,10 +1,9 @@
 import 'package:get/get.dart';
-import '../../../data/services/api_service.dart';
+import '../../../data/services/local_storage_service.dart';
 
 class GradesController extends GetxController {
-  final ApiService _apiService = Get.find<ApiService>();
+  final LocalStorageService _localStorage = Get.find<LocalStorageService>();
 
-  final isLoading = false.obs;
   final gradesBySemester = <Map<String, dynamic>>[].obs;
   final selectedSemesterIndex = 0.obs;
 
@@ -28,19 +27,12 @@ class GradesController extends GetxController {
     loadGrades();
   }
 
-  Future<void> loadGrades() async {
-    isLoading.value = true;
-    try {
-      final response = await _apiService.getGrades();
-      if (response != null && response['data'] != null) {
-        final data = response['data'];
-        final semesters = data['ds_diem_hocky'] as List? ?? [];
-        gradesBySemester.value = semesters.map((e) => Map<String, dynamic>.from(e)).toList();
-      }
-    } catch (e) {
-      print('Error loading grades: $e');
-    } finally {
-      isLoading.value = false;
+  void loadGrades() {
+    final gradesData = _localStorage.getGrades();
+    if (gradesData != null && gradesData['data'] != null) {
+      final data = gradesData['data'];
+      final semesters = data['ds_diem_hocky'] as List? ?? [];
+      gradesBySemester.value = semesters.map((e) => Map<String, dynamic>.from(e)).toList();
     }
   }
 

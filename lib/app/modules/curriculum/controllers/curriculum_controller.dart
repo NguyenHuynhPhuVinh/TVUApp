@@ -1,10 +1,9 @@
 import 'package:get/get.dart';
-import '../../../data/services/api_service.dart';
+import '../../../data/services/local_storage_service.dart';
 
 class CurriculumController extends GetxController {
-  final ApiService _apiService = Get.find<ApiService>();
+  final LocalStorageService _localStorage = Get.find<LocalStorageService>();
 
-  final isLoading = false.obs;
   final semesters = <Map<String, dynamic>>[].obs;
   final selectedSemesterIndex = 0.obs;
   final majorName = ''.obs;
@@ -60,27 +59,20 @@ class CurriculumController extends GetxController {
     loadCurriculum();
   }
 
-  Future<void> loadCurriculum() async {
-    isLoading.value = true;
-    try {
-      final response = await _apiService.getCurriculum();
-      if (response != null && response['data'] != null) {
-        final data = response['data'];
-        
-        // Lấy tên ngành
-        final majors = data['ds_nganh_sinh_vien'] as List? ?? [];
-        if (majors.isNotEmpty) {
-          majorName.value = majors[0]['ten_nganh'] ?? '';
-        }
-        
-        // Lấy danh sách học kỳ
-        final semList = data['ds_CTDT_hocky'] as List? ?? [];
-        semesters.value = semList.map((e) => Map<String, dynamic>.from(e)).toList();
+  void loadCurriculum() {
+    final curriculumData = _localStorage.getCurriculum();
+    if (curriculumData != null && curriculumData['data'] != null) {
+      final data = curriculumData['data'];
+
+      // Lấy tên ngành
+      final majors = data['ds_nganh_sinh_vien'] as List? ?? [];
+      if (majors.isNotEmpty) {
+        majorName.value = majors[0]['ten_nganh'] ?? '';
       }
-    } catch (e) {
-      print('Error loading curriculum: $e');
-    } finally {
-      isLoading.value = false;
+
+      // Lấy danh sách học kỳ
+      final semList = data['ds_CTDT_hocky'] as List? ?? [];
+      semesters.value = semList.map((e) => Map<String, dynamic>.from(e)).toList();
     }
   }
 

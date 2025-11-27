@@ -12,14 +12,8 @@ class CurriculumView extends GetView<CurriculumController> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Chương trình đào tạo'),
-        actions: [
-          IconButton(icon: const Icon(Iconsax.refresh), onPressed: controller.loadCurriculum),
-        ],
       ),
       body: Obx(() {
-        if (controller.isLoading.value) {
-          return const Center(child: CircularProgressIndicator());
-        }
         if (controller.semesters.isEmpty) {
           return Center(
             child: Column(

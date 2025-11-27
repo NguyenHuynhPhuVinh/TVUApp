@@ -12,14 +12,8 @@ class NewsView extends GetView<NewsController> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Thông báo'),
-        actions: [
-          IconButton(icon: const Icon(Iconsax.refresh), onPressed: controller.loadNotifications),
-        ],
       ),
       body: Obx(() {
-        if (controller.isLoading.value) {
-          return const Center(child: CircularProgressIndicator());
-        }
         if (controller.notificationList.isEmpty) {
           return Center(
             child: Column(
@@ -32,13 +26,10 @@ class NewsView extends GetView<NewsController> {
             ),
           );
         }
-        return RefreshIndicator(
-          onRefresh: controller.loadNotifications,
-          child: ListView.builder(
-            padding: EdgeInsets.all(16.w),
-            itemCount: controller.notificationList.length,
-            itemBuilder: (context, index) => _buildNotificationItem(controller.notificationList[index]),
-          ),
+        return ListView.builder(
+          padding: EdgeInsets.all(16.w),
+          itemCount: controller.notificationList.length,
+          itemBuilder: (context, index) => _buildNotificationItem(controller.notificationList[index]),
         );
       }),
     );

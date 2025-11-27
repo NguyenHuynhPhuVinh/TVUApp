@@ -2,12 +2,14 @@ import 'package:get/get.dart';
 import '../../../data/services/api_service.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../data/services/firebase_service.dart';
+import '../../../data/services/local_storage_service.dart';
 import '../../../routes/app_routes.dart';
 
 class SyncController extends GetxController {
   final ApiService _apiService = Get.find<ApiService>();
   final AuthService _authService = Get.find<AuthService>();
   final FirebaseService _firebaseService = Get.find<FirebaseService>();
+  final LocalStorageService _localStorage = Get.find<LocalStorageService>();
 
   final progress = 0.0.obs;
   final currentStatus = 'Đang chuẩn bị...'.obs;
@@ -30,33 +32,52 @@ class SyncController extends GetxController {
       Map<String, dynamic>? curriculumData;
       Map<String, dynamic>? tuitionData;
 
-      // 1. Tải điểm
+      // 1. Tải thông tin sinh viên (chỉ lưu local)
+      currentStatus.value = 'Đang tải thông tin sinh viên...';
+      progress.value = 0.05;
+      final studentInfoResponse = await _apiService.getStudentInfo();
+      if (studentInfoResponse != null && studentInfoResponse['data'] != null) {
+        await _localStorage.saveStudentInfo({'data': studentInfoResponse['data']});
+      }
+
+      // 2. Tải điểm
       currentStatus.value = 'Đang tải điểm học tập...';
       progress.value = 0.1;
       final gradesResponse = await _apiService.getGrades();
       if (gradesResponse != null && gradesResponse['data'] != null) {
         gradesData = {'data': gradesResponse['data']};
+        await _localStorage.saveGrades(gradesData);
       }
 
-      // 2. Tải CTDT
+      // 3. Tải CTDT
       currentStatus.value = 'Đang tải chương trình đào tạo...';
-      progress.value = 0.2;
+      progress.value = 0.15;
       final curriculumResponse = await _apiService.getCurriculum();
       if (curriculumResponse != null && curriculumResponse['data'] != null) {
         curriculumData = {'data': curriculumResponse['data']};
+        await _localStorage.saveCurriculum(curriculumData);
       }
 
-      // 3. Tải học phí
+      // 4. Tải học phí
       currentStatus.value = 'Đang tải thông tin học phí...';
-      progress.value = 0.3;
+      progress.value = 0.2;
       final tuitionResponse = await _apiService.getTuition();
       if (tuitionResponse != null && tuitionResponse['data'] != null) {
         tuitionData = {'data': tuitionResponse['data']};
+        await _localStorage.saveTuition(tuitionData);
       }
 
-      // 4. Đẩy điểm, CTDT, học phí lên Firebase
+      // 5. Tải thông báo (chỉ lưu local)
+      currentStatus.value = 'Đang tải thông báo...';
+      progress.value = 0.25;
+      final notificationsResponse = await _apiService.getNotifications();
+      if (notificationsResponse != null && notificationsResponse['data'] != null) {
+        await _localStorage.saveNotifications({'data': notificationsResponse['data']});
+      }
+
+      // 6. Đẩy điểm, CTDT, học phí lên Firebase
       currentStatus.value = 'Đang đồng bộ dữ liệu...';
-      progress.value = 0.4;
+      progress.value = 0.3;
       await _firebaseService.syncAllStudentData(
         mssv: mssv,
         grades: gradesData,
@@ -98,18 +119,19 @@ class SyncController extends GetxController {
     final semesterList = data['ds_hoc_ky'] as List? ?? [];
     final currentSemester = data['hoc_ky_theo_ngay_hien_tai'] as int? ?? 0;
 
-    // Lưu danh sách học kỳ
+    // Lưu danh sách học kỳ (local + Firebase)
+    await _localStorage.saveSemesters({'data': data});
     await _firebaseService.saveSemesters(mssv, {'data': data});
 
-    // Lấy danh sách học kỳ đã lưu trên Firebase
-    final savedSemesters = await _firebaseService.getSavedSemesters(mssv);
+    // Lấy danh sách học kỳ đã lưu local
+    final savedSemesters = _localStorage.getSavedScheduleSemesters();
     final isFirstSync = savedSemesters.isEmpty;
 
     if (isFirstSync) {
       // Lần đầu: tải TKB tất cả học kỳ
       currentStatus.value = 'Đang tải thời khóa biểu (lần đầu)...';
       final totalSemesters = semesterList.length;
-      
+
       for (int i = 0; i < totalSemesters; i++) {
         final semester = semesterList[i];
         final hocKy = semester['hoc_ky'] as int? ?? 0;
@@ -120,7 +142,10 @@ class SyncController extends GetxController {
 
         final scheduleResponse = await _apiService.getSchedule(hocKy);
         if (scheduleResponse != null && scheduleResponse['data'] != null) {
-          await _firebaseService.saveSchedule(mssv, hocKy, scheduleResponse['data']);
+          // Lưu local + Firebase
+          await _localStorage.saveSchedule(hocKy, scheduleResponse['data']);
+          await _firebaseService.saveSchedule(
+              mssv, hocKy, scheduleResponse['data']);
         }
       }
     } else {
@@ -128,7 +153,7 @@ class SyncController extends GetxController {
       currentStatus.value = 'Đang cập nhật thời khóa biểu...';
       progress.value = 0.6;
 
-      // Tìm học kỳ mới (chưa có trên Firebase)
+      // Tìm học kỳ mới (chưa có local)
       final newSemesters = <int>[];
       for (var semester in semesterList) {
         final hocKy = semester['hoc_ky'] as int? ?? 0;
@@ -145,7 +170,10 @@ class SyncController extends GetxController {
 
         final scheduleResponse = await _apiService.getSchedule(hocKy);
         if (scheduleResponse != null && scheduleResponse['data'] != null) {
-          await _firebaseService.saveSchedule(mssv, hocKy, scheduleResponse['data']);
+          // Lưu local + Firebase
+          await _localStorage.saveSchedule(hocKy, scheduleResponse['data']);
+          await _firebaseService.saveSchedule(
+              mssv, hocKy, scheduleResponse['data']);
         }
       }
 
@@ -156,7 +184,11 @@ class SyncController extends GetxController {
 
         final scheduleResponse = await _apiService.getSchedule(currentSemester);
         if (scheduleResponse != null && scheduleResponse['data'] != null) {
-          await _firebaseService.saveSchedule(mssv, currentSemester, scheduleResponse['data']);
+          // Lưu local + Firebase
+          await _localStorage.saveSchedule(
+              currentSemester, scheduleResponse['data']);
+          await _firebaseService.saveSchedule(
+              mssv, currentSemester, scheduleResponse['data']);
         }
       }
     }

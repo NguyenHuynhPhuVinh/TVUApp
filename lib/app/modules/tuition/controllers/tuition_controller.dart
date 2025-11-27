@@ -1,10 +1,9 @@
 import 'package:get/get.dart';
-import '../../../data/services/api_service.dart';
+import '../../../data/services/local_storage_service.dart';
 
 class TuitionController extends GetxController {
-  final ApiService _apiService = Get.find<ApiService>();
+  final LocalStorageService _localStorage = Get.find<LocalStorageService>();
 
-  final isLoading = false.obs;
   final tuitionList = <Map<String, dynamic>>[].obs;
   final totalTuition = 0.0.obs;
   final totalPaid = 0.0.obs;
@@ -16,31 +15,24 @@ class TuitionController extends GetxController {
     loadTuition();
   }
 
-  Future<void> loadTuition() async {
-    isLoading.value = true;
-    try {
-      final response = await _apiService.getTuition();
-      if (response != null && response['data'] != null) {
-        final data = response['data'];
-        final list = data['ds_hoc_phi_hoc_ky'] as List? ?? [];
-        tuitionList.value = list.map((e) => Map<String, dynamic>.from(e)).toList();
-        
-        double tuition = 0;
-        double paid = 0;
-        double debt = 0;
-        for (var item in tuitionList) {
-          tuition += _parseDouble(item['phai_thu']);
-          paid += _parseDouble(item['da_thu']);
-          debt += _parseDouble(item['con_no']);
-        }
-        totalTuition.value = tuition;
-        totalPaid.value = paid;
-        totalDebt.value = debt;
+  void loadTuition() {
+    final tuitionData = _localStorage.getTuition();
+    if (tuitionData != null && tuitionData['data'] != null) {
+      final data = tuitionData['data'];
+      final list = data['ds_hoc_phi_hoc_ky'] as List? ?? [];
+      tuitionList.value = list.map((e) => Map<String, dynamic>.from(e)).toList();
+
+      double tuition = 0;
+      double paid = 0;
+      double debt = 0;
+      for (var item in tuitionList) {
+        tuition += _parseDouble(item['phai_thu']);
+        paid += _parseDouble(item['da_thu']);
+        debt += _parseDouble(item['con_no']);
       }
-    } catch (e) {
-      print('Error loading tuition: $e');
-    } finally {
-      isLoading.value = false;
+      totalTuition.value = tuition;
+      totalPaid.value = paid;
+      totalDebt.value = debt;
     }
   }
 

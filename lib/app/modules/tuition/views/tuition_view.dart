@@ -12,24 +12,13 @@ class TuitionView extends GetView<TuitionController> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Học phí'),
-        actions: [
-          IconButton(
-            icon: const Icon(Iconsax.refresh),
-            onPressed: controller.loadTuition,
-          ),
+      ),
+      body: Column(
+        children: [
+          _buildSummaryCard(),
+          Expanded(child: _buildTuitionList()),
         ],
       ),
-      body: Obx(() {
-        if (controller.isLoading.value) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        return Column(
-          children: [
-            _buildSummaryCard(),
-            Expanded(child: _buildTuitionList()),
-          ],
-        );
-      }),
     );
   }
 

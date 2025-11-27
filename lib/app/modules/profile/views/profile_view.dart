@@ -12,30 +12,19 @@ class ProfileView extends GetView<ProfileController> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Thông tin cá nhân'),
-        actions: [
-          IconButton(
-            icon: const Icon(Iconsax.refresh),
-            onPressed: controller.loadProfile,
-          ),
-        ],
       ),
-      body: Obx(() {
-        if (controller.isLoading.value) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        return SingleChildScrollView(
-          padding: EdgeInsets.all(16.w),
-          child: Column(
-            children: [
-              _buildProfileHeader(),
-              SizedBox(height: 24.h),
-              _buildInfoSection(),
-              SizedBox(height: 24.h),
-              _buildMenuSection(),
-            ],
-          ),
-        );
-      }),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(16.w),
+        child: Column(
+          children: [
+            _buildProfileHeader(),
+            SizedBox(height: 24.h),
+            _buildInfoSection(),
+            SizedBox(height: 24.h),
+            _buildMenuSection(),
+          ],
+        ),
+      ),
     );
   }
 

@@ -12,26 +12,15 @@ class GradesView extends GetView<GradesController> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Điểm học tập'),
-        actions: [
-          IconButton(
-            icon: const Icon(Iconsax.refresh),
-            onPressed: controller.loadGrades,
-          ),
+      ),
+      body: Column(
+        children: [
+          _buildGPASummary(),
+          _buildSemesterSelector(),
+          _buildSemesterInfo(),
+          Expanded(child: _buildGradesList()),
         ],
       ),
-      body: Obx(() {
-        if (controller.isLoading.value) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        return Column(
-          children: [
-            _buildGPASummary(),
-            _buildSemesterSelector(),
-            _buildSemesterInfo(),
-            Expanded(child: _buildGradesList()),
-          ],
-        );
-      }),
     );
   }
 

@@ -8,6 +8,7 @@ import 'firebase_options.dart';
 import 'app/data/services/auth_service.dart';
 import 'app/data/services/api_service.dart';
 import 'app/data/services/firebase_service.dart';
+import 'app/data/services/local_storage_service.dart';
 import 'app/routes/app_pages.dart';
 import 'app/core/theme/app_theme.dart';
 
@@ -32,6 +33,7 @@ void main() async {
 }
 
 Future<void> initServices() async {
+  await Get.putAsync(() => LocalStorageService().init());
   await Get.putAsync(() => AuthService().init());
   await Get.putAsync(() => FirebaseService().init());
   Get.put(ApiService());

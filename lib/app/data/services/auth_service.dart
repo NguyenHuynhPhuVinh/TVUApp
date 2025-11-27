@@ -1,5 +1,6 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get/get.dart';
+import 'local_storage_service.dart';
 
 class AuthService extends GetxService {
   final _storage = const FlutterSecureStorage();
@@ -50,6 +51,10 @@ class AuthService extends GetxService {
 
   Future<void> logout() async {
     await _storage.deleteAll();
+    // Clear local storage data
+    final localStorage = Get.find<LocalStorageService>();
+    await localStorage.clearAll();
+    
     accessToken.value = '';
     username.value = '';
     isLoggedIn.value = false;

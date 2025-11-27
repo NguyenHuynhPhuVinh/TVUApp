@@ -12,16 +12,10 @@ class ScheduleView extends GetView<ScheduleController> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Thời khóa biểu'),
-        actions: [
-          IconButton(
-            icon: const Icon(Iconsax.refresh),
-            onPressed: controller.loadSchedule,
-          ),
-        ],
       ),
       body: Obx(() {
-        if (controller.isLoading.value && controller.semesters.isEmpty) {
-          return const Center(child: CircularProgressIndicator());
+        if (controller.semesters.isEmpty) {
+          return const Center(child: Text('Chưa có dữ liệu'));
         }
         return Column(
           children: [
@@ -114,10 +108,6 @@ class ScheduleView extends GetView<ScheduleController> {
     final days = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'CN'];
     
     return Obx(() {
-      if (controller.isLoading.value) {
-        return const Center(child: CircularProgressIndicator());
-      }
-      
       if (controller.currentWeekSchedule.isEmpty) {
         final week = controller.weeks.isNotEmpty && controller.selectedWeekIndex.value < controller.weeks.length
             ? controller.weeks[controller.selectedWeekIndex.value]

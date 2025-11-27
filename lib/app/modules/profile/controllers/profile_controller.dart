@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../data/services/api_service.dart';
 import '../../../data/services/auth_service.dart';
+import '../../../data/services/local_storage_service.dart';
 import '../../../routes/app_routes.dart';
 
 class ProfileController extends GetxController {
-  final ApiService _apiService = Get.find<ApiService>();
   final AuthService _authService = Get.find<AuthService>();
+  final LocalStorageService _localStorage = Get.find<LocalStorageService>();
 
-  final isLoading = false.obs;
   final studentInfo = <String, dynamic>{}.obs;
 
   @override
@@ -17,17 +16,10 @@ class ProfileController extends GetxController {
     loadProfile();
   }
 
-  Future<void> loadProfile() async {
-    isLoading.value = true;
-    try {
-      final response = await _apiService.getStudentInfo();
-      if (response != null && response['data'] != null) {
-        studentInfo.value = Map<String, dynamic>.from(response['data']);
-      }
-    } catch (e) {
-      print('Error loading profile: $e');
-    } finally {
-      isLoading.value = false;
+  void loadProfile() {
+    final studentInfoData = _localStorage.getStudentInfo();
+    if (studentInfoData != null && studentInfoData['data'] != null) {
+      studentInfo.value = Map<String, dynamic>.from(studentInfoData['data']);
     }
   }
 
