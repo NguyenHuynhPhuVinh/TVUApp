@@ -14,4 +14,6 @@ export 'duo_app_bar.dart';
 export 'duo_list_tile.dart';
 export 'duo_empty_state.dart';
 export 'duo_nav_bar.dart';
+export 'duo_dropdown.dart';
+export 'duo_chip_selector.dart';
 export 'tvu_mascot.dart';
