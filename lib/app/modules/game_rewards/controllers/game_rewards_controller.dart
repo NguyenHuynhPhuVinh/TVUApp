@@ -43,48 +43,57 @@ class GameRewardsController extends GetxController {
   }
 
   Future<void> _startAnimations() async {
-    // Coins animation
+    // Coins animation - hiện card rồi đếm số
     await Future.delayed(const Duration(milliseconds: 500));
     showCoins.value = true;
-    _animateValue(animatedCoins, earnedCoins, duration: 2000);
+    
+    // Đợi card animation xong rồi mới đếm
+    await Future.delayed(const Duration(milliseconds: 400));
+    _countUp(animatedCoins, earnedCoins, duration: 1500);
 
     // Diamonds animation
-    await Future.delayed(const Duration(milliseconds: 800));
+    await Future.delayed(const Duration(milliseconds: 600));
     showDiamonds.value = true;
-    _animateValue(animatedDiamonds, earnedDiamonds, duration: 1500);
+    await Future.delayed(const Duration(milliseconds: 300));
+    _countUp(animatedDiamonds, earnedDiamonds, duration: 1000);
 
     // Level animation
-    await Future.delayed(const Duration(milliseconds: 800));
+    await Future.delayed(const Duration(milliseconds: 600));
     showLevel.value = true;
-    _animateLevelUp();
-    _animateValue(animatedXp, earnedXp, duration: 2000);
+    await Future.delayed(const Duration(milliseconds: 300));
+    _countUpLevel();
+    _countUp(animatedXp, earnedXp, duration: 1500);
 
     // Button
-    await Future.delayed(const Duration(milliseconds: 1500));
+    await Future.delayed(const Duration(milliseconds: 1200));
     showButton.value = true;
   }
 
-  void _animateValue(RxInt target, int endValue, {int duration = 1500}) async {
+  /// Đếm số từ 0 lên endValue
+  Future<void> _countUp(RxInt target, int endValue, {int duration = 1500}) async {
     if (endValue == 0) {
       target.value = 0;
       return;
     }
 
-    final steps = 50;
-    final stepDuration = duration ~/ steps;
-    final increment = endValue / steps;
-
-    for (int i = 1; i <= steps; i++) {
-      await Future.delayed(Duration(milliseconds: stepDuration));
-      target.value = (increment * i).round().clamp(0, endValue);
+    const int fps = 60;
+    final int totalFrames = (duration / 1000 * fps).round();
+    final int frameDelay = duration ~/ totalFrames;
+    
+    for (int frame = 1; frame <= totalFrames; frame++) {
+      await Future.delayed(Duration(milliseconds: frameDelay));
+      // Easing out effect - chậm dần về cuối
+      final progress = frame / totalFrames;
+      final easedProgress = 1 - (1 - progress) * (1 - progress);
+      target.value = (endValue * easedProgress).round();
     }
     target.value = endValue;
   }
 
-  void _animateLevelUp() async {
-    // Animate level từ 1 lên level đạt được
+  /// Đếm level từ 1 lên
+  Future<void> _countUpLevel() async {
     for (int i = 1; i <= level; i++) {
-      await Future.delayed(const Duration(milliseconds: 300));
+      await Future.delayed(const Duration(milliseconds: 200));
       animatedLevel.value = i;
     }
   }

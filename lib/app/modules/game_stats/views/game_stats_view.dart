@@ -15,16 +15,16 @@ class GameStatsView extends GetView<GameStatsController> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: EdgeInsets.all(AppStyles.space6),
           child: Column(
             children: [
-              SizedBox(height: 20.h),
+              SizedBox(height: 10.h),
 
               // Mascot
               const TVUMascot(
                 mood: TVUMascotMood.happy,
-                size: TVUMascotSize.md,
+                size: TVUMascotSize.sm,
                 color: AppColors.primary,
               ).animate().scale(
                     begin: const Offset(0, 0),
@@ -33,29 +33,29 @@ class GameStatsView extends GetView<GameStatsController> {
                     curve: Curves.elasticOut,
                   ),
 
-              SizedBox(height: AppStyles.space4),
+              SizedBox(height: AppStyles.space3),
 
               // Title
               Text(
                 'Thống kê học tập',
                 style: TextStyle(
-                  fontSize: 26.sp,
+                  fontSize: 24.sp,
                   fontWeight: AppStyles.fontBold,
                   color: AppColors.textPrimary,
                 ),
               ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.3, end: 0),
 
-              SizedBox(height: AppStyles.space2),
+              SizedBox(height: AppStyles.space1),
 
               Text(
                 'Đây là kết quả chuyên cần của bạn',
                 style: TextStyle(
-                  fontSize: AppStyles.textBase,
+                  fontSize: AppStyles.textSm,
                   color: AppColors.textSecondary,
                 ),
               ).animate().fadeIn(delay: 400.ms),
 
-              SizedBox(height: 32.h),
+              SizedBox(height: 24.h),
 
               // Attendance Card
               DuoAttendanceCard(
@@ -65,15 +65,15 @@ class GameStatsView extends GetView<GameStatsController> {
                 missedLessons: controller.missedLessons,
               ).animate().fadeIn(delay: 500.ms).slideY(begin: 0.2, end: 0),
 
-              SizedBox(height: 24.h),
+              SizedBox(height: 16.h),
 
-              // Summary message using DuoMessageCard
+              // Summary message
               DuoMessageCard.fromAttendance(controller.attendanceRate)
                   .animate()
                   .fadeIn(delay: 800.ms)
                   .slideY(begin: 0.2, end: 0),
 
-              const Spacer(),
+              SizedBox(height: 32.h),
 
               // Continue Button
               DuoButton(
