@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_styles.dart';
+import '../../../core/widgets/widgets.dart';
 import '../controllers/home_controller.dart';
 
 class HomeView extends GetView<HomeController> {
@@ -10,128 +14,155 @@ class HomeView extends GetView<HomeController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('TVUApp'),
-        actions: [
-          IconButton(
-            icon: const Icon(Iconsax.notification),
-            onPressed: () => Get.toNamed('/news'),
-          ),
-        ],
-      ),
+      backgroundColor: AppColors.background,
+      appBar: _buildAppBar(),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(16.w),
+        padding: EdgeInsets.all(AppStyles.space4),
         child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildWelcomeCard(),
-              SizedBox(height: 24.h),
-              _buildQuickActions(),
-              SizedBox(height: 24.h),
-              _buildTodaySchedule(),
-            ],
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildWelcomeCard(),
+            SizedBox(height: AppStyles.space6),
+            _buildQuickActions(),
+            SizedBox(height: AppStyles.space6),
+            _buildTodaySchedule(),
+            SizedBox(height: AppStyles.space4),
+          ],
+        ),
+      ),
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar() {
+    return DuoAppBar(
+      title: 'TVU App',
+      showLogo: true,
+      actions: [
+        Padding(
+          padding: EdgeInsets.only(right: AppStyles.space3),
+          child: DuoIconButton(
+            icon: Iconsax.notification,
+            variant: DuoIconButtonVariant.white,
+            size: DuoIconButtonSize.md,
+            onTap: () => Get.toNamed('/news'),
           ),
         ),
+      ],
     );
   }
 
   Widget _buildWelcomeCard() {
-    return Obx(() => Container(
-      padding: EdgeInsets.all(20.w),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Get.theme.primaryColor, Get.theme.primaryColor.withValues(alpha: 0.7)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16.r),
-      ),
+    return Obx(() => DuoCard(
+      padding: EdgeInsets.all(AppStyles.space5),
+      backgroundColor: AppColors.primary,
+      shadowColor: AppColors.primaryDark,
+      shadowOffset: AppStyles.shadowLg,
+      hasBorder: false,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              CircleAvatar(
-                radius: 28.r,
-                backgroundColor: Colors.white,
-                child: Icon(Iconsax.user, size: 28.sp, color: Get.theme.primaryColor),
+              Container(
+                width: AppStyles.avatarLg,
+                height: AppStyles.avatarLg,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.primaryLight, width: AppStyles.border3),
+                ),
+                child: Icon(Iconsax.user, color: AppColors.primary, size: AppStyles.iconLg),
               ),
-              SizedBox(width: 16.w),
+              SizedBox(width: AppStyles.space4),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      controller.studentName.value.isEmpty 
-                          ? 'Xin chào!' 
+                      controller.studentName.value.isEmpty
+                          ? 'Xin chào!'
                           : controller.studentName.value,
                       style: TextStyle(
-                        fontSize: 18.sp,
-                        fontWeight: FontWeight.bold,
+                        fontSize: AppStyles.textLg,
+                        fontWeight: AppStyles.fontBold,
                         color: Colors.white,
                       ),
                     ),
-                    SizedBox(height: 4.h),
+                    SizedBox(height: AppStyles.space1),
                     Text(
-                      controller.studentId.value.isEmpty 
-                          ? 'Đang tải...' 
+                      controller.studentId.value.isEmpty
+                          ? 'Đang tải...'
                           : 'MSSV: ${controller.studentId.value}',
-                      style: TextStyle(fontSize: 14.sp, color: Colors.white70),
+                      style: TextStyle(
+                        fontSize: AppStyles.textSm,
+                        color: AppColors.withAlpha(Colors.white, 0.8),
+                      ),
                     ),
                   ],
                 ),
               ),
             ],
           ),
-          SizedBox(height: 16.h),
+          SizedBox(height: AppStyles.space4),
           Container(
-            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+            padding: EdgeInsets.symmetric(horizontal: AppStyles.space3, vertical: AppStyles.space2),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(8.r),
+              color: AppColors.withAlpha(Colors.white, 0.2),
+              borderRadius: AppStyles.roundedLg,
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Iconsax.book, size: 16.sp, color: Colors.white),
-                SizedBox(width: 8.w),
+                Icon(Iconsax.book, size: AppStyles.iconXs, color: Colors.white),
+                SizedBox(width: AppStyles.space2),
                 Text(
-                  controller.className.value.isEmpty 
-                      ? 'Đang tải...' 
+                  controller.className.value.isEmpty
+                      ? 'Đang tải...'
                       : controller.className.value,
-                  style: TextStyle(fontSize: 13.sp, color: Colors.white),
+                  style: TextStyle(
+                    fontSize: AppStyles.textSm,
+                    fontWeight: AppStyles.fontMedium,
+                    color: Colors.white,
+                  ),
                 ),
               ],
             ),
           ),
         ],
       ),
-    ));
+    )).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0);
   }
 
   Widget _buildQuickActions() {
     final actions = [
-      {'icon': Iconsax.calendar, 'label': 'Thời khóa biểu', 'route': '/schedule'},
-      {'icon': Iconsax.chart, 'label': 'Điểm học tập', 'route': '/grades'},
-      {'icon': Iconsax.wallet, 'label': 'Học phí', 'route': '/tuition'},
-      {'icon': Iconsax.book_1, 'label': 'CTĐT', 'route': '/curriculum'},
-      {'icon': Iconsax.document_text, 'label': 'Thông báo', 'route': '/news'},
-      {'icon': Iconsax.user, 'label': 'Hồ sơ', 'route': '/profile'},
+      {'icon': Iconsax.calendar, 'label': 'Thời khóa biểu', 'route': '/schedule', 'color': AppColors.primary},
+      {'icon': Iconsax.chart, 'label': 'Điểm học tập', 'route': '/grades', 'color': AppColors.green},
+      {'icon': Iconsax.wallet, 'label': 'Học phí', 'route': '/tuition', 'color': AppColors.orange},
+      {'icon': Iconsax.book_1, 'label': 'CTĐT', 'route': '/curriculum', 'color': AppColors.purple},
+      {'icon': Iconsax.document_text, 'label': 'Thông báo', 'route': '/news', 'color': AppColors.red},
+      {'icon': Iconsax.user, 'label': 'Hồ sơ', 'route': '/profile', 'color': AppColors.primary},
     ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Chức năng', style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold)),
-        SizedBox(height: 16.h),
+        Text(
+          'Chức năng',
+          style: TextStyle(
+            fontSize: AppStyles.textLg,
+            fontWeight: AppStyles.fontBold,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        SizedBox(height: AppStyles.space4),
         GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 3,
-            crossAxisSpacing: 12.w,
-            mainAxisSpacing: 12.h,
-            childAspectRatio: 1,
+            crossAxisSpacing: AppStyles.space3,
+            mainAxisSpacing: AppStyles.space3,
+            childAspectRatio: 0.95,
           ),
           itemCount: actions.length,
           itemBuilder: (context, index) {
@@ -139,32 +170,51 @@ class HomeView extends GetView<HomeController> {
             return _buildActionItem(
               icon: action['icon'] as IconData,
               label: action['label'] as String,
+              color: action['color'] as Color,
               onTap: () => Get.toNamed(action['route'] as String),
-            );
+            ).animate().fadeIn(duration: 300.ms, delay: (index * 50).ms).scale(begin: const Offset(0.8, 0.8), end: const Offset(1, 1));
           },
         ),
       ],
     );
   }
 
-  Widget _buildActionItem({required IconData icon, required String label, required VoidCallback onTap}) {
-    return InkWell(
+  Widget _buildActionItem({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return DuoPressableCard(
+      padding: EdgeInsets.all(AppStyles.space2),
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12.r),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Get.theme.cardColor,
-          borderRadius: BorderRadius.circular(12.r),
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 2))],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 32.sp, color: Get.theme.primaryColor),
-            SizedBox(height: 8.h),
-            Text(label, style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w500), textAlign: TextAlign.center),
-          ],
-        ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: EdgeInsets.all(AppStyles.space2),
+            decoration: BoxDecoration(
+              color: AppColors.withAlpha(color, 0.1),
+              borderRadius: AppStyles.roundedLg,
+            ),
+            child: Icon(icon, size: AppStyles.iconMd, color: color),
+          ),
+          SizedBox(height: AppStyles.space1),
+          Flexible(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 10.sp,
+                fontWeight: AppStyles.fontSemibold,
+                color: AppColors.textPrimary,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -176,89 +226,152 @@ class HomeView extends GetView<HomeController> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Lịch học hôm nay', style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold)),
-            TextButton(onPressed: () => Get.toNamed('/schedule'), child: const Text('Xem tất cả')),
-          ],
-        ),
-        SizedBox(height: 12.h),
-        Obx(() {
-          if (controller.todaySchedule.isEmpty) {
-            return Container(
-              padding: EdgeInsets.all(24.w),
-              decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(12.r)),
-              child: Center(
-                child: Column(
-                  children: [
-                    Icon(Iconsax.calendar_tick, size: 48.sp, color: Colors.grey),
-                    SizedBox(height: 12.h),
-                    Text('Không có lịch học hôm nay', style: TextStyle(color: Colors.grey[600], fontSize: 14.sp)),
-                  ],
+            Text(
+              'Lịch học hôm nay',
+              style: TextStyle(
+                fontSize: AppStyles.textLg,
+                fontWeight: AppStyles.fontBold,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            GestureDetector(
+              onTap: () => Get.toNamed('/schedule'),
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: AppStyles.space3, vertical: AppStyles.space1),
+                decoration: BoxDecoration(
+                  color: AppColors.primarySoft,
+                  borderRadius: AppStyles.roundedFull,
+                ),
+                child: Text(
+                  'Xem tất cả',
+                  style: TextStyle(
+                    fontSize: AppStyles.textSm,
+                    fontWeight: AppStyles.fontSemibold,
+                    color: AppColors.primary,
+                  ),
                 ),
               ),
-            );
+            ),
+          ],
+        ),
+        SizedBox(height: AppStyles.space4),
+        Obx(() {
+          if (controller.todaySchedule.isEmpty) {
+            return _buildEmptySchedule();
           }
           return ListView.separated(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: controller.todaySchedule.length,
-            separatorBuilder: (context, index) => SizedBox(height: 12.h),
-            itemBuilder: (context, index) => _buildScheduleItem(controller.todaySchedule[index]),
+            separatorBuilder: (context, index) => SizedBox(height: AppStyles.space3),
+            itemBuilder: (context, index) => _buildScheduleItem(controller.todaySchedule[index], index),
           );
         }),
       ],
     );
   }
 
-  Widget _buildScheduleItem(Map<String, dynamic> item) {
+  Widget _buildEmptySchedule() {
+    return DuoEmptyState(
+      icon: Iconsax.calendar_tick,
+      title: 'Không có lịch học hôm nay',
+      subtitle: 'Hãy tận hưởng ngày nghỉ!',
+      iconColor: AppColors.green,
+      iconBackgroundColor: AppColors.greenSoft,
+    ).animate().fadeIn(duration: 400.ms).scale(begin: const Offset(0.95, 0.95), end: const Offset(1, 1));
+  }
+
+  Widget _buildScheduleItem(Map<String, dynamic> item, int index) {
     final tietBatDau = item['tiet_bat_dau'] ?? 0;
     final soTiet = item['so_tiet'] ?? 0;
     final tietKetThuc = tietBatDau + soTiet - 1;
-    
-    return Container(
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        color: Get.theme.cardColor,
-        borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
-      ),
+
+    final colors = [AppColors.primary, AppColors.green, AppColors.orange, AppColors.purple];
+    final color = colors[index % colors.length];
+
+    return DuoCard(
+      padding: EdgeInsets.all(AppStyles.space4),
       child: Row(
         children: [
-          Container(width: 4.w, height: 70.h, decoration: BoxDecoration(color: Get.theme.primaryColor, borderRadius: BorderRadius.circular(2.r))),
-          SizedBox(width: 12.w),
+          Container(
+            width: 4.w,
+            height: 80.h,
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: AppStyles.roundedFull,
+            ),
+          ),
+          SizedBox(width: AppStyles.space3),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(item['ten_mon'] ?? 'N/A', style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600), maxLines: 2, overflow: TextOverflow.ellipsis),
-                SizedBox(height: 6.h),
-                Row(
-                  children: [
-                    Icon(Iconsax.clock, size: 14.sp, color: Colors.grey),
-                    SizedBox(width: 4.w),
-                    Text('Tiết $tietBatDau - $tietKetThuc', style: TextStyle(fontSize: 12.sp, color: Colors.grey[600])),
-                  ],
+                Text(
+                  item['ten_mon'] ?? 'N/A',
+                  style: TextStyle(
+                    fontSize: AppStyles.textBase,
+                    fontWeight: AppStyles.fontSemibold,
+                    color: AppColors.textPrimary,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                SizedBox(height: 4.h),
-                Row(
-                  children: [
-                    Icon(Iconsax.location, size: 14.sp, color: Colors.grey),
-                    SizedBox(width: 4.w),
-                    Expanded(child: Text(item['ma_phong'] ?? 'N/A', style: TextStyle(fontSize: 12.sp, color: Colors.grey[600]), overflow: TextOverflow.ellipsis)),
-                  ],
+                SizedBox(height: AppStyles.space2),
+                _buildScheduleInfo(Iconsax.clock, 'Tiết $tietBatDau - $tietKetThuc'),
+                SizedBox(height: AppStyles.space1),
+                _buildScheduleInfo(Iconsax.location, item['ma_phong'] ?? 'N/A'),
+                SizedBox(height: AppStyles.space1),
+                _buildScheduleInfo(Iconsax.teacher, item['ten_giang_vien'] ?? 'N/A'),
+              ],
+            ),
+          ),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: AppStyles.space3, vertical: AppStyles.space2),
+            decoration: BoxDecoration(
+              color: AppColors.withAlpha(color, 0.1),
+              borderRadius: AppStyles.roundedLg,
+            ),
+            child: Column(
+              children: [
+                Text(
+                  '$soTiet',
+                  style: TextStyle(
+                    fontSize: AppStyles.textXl,
+                    fontWeight: AppStyles.fontBold,
+                    color: color,
+                  ),
                 ),
-                SizedBox(height: 4.h),
-                Row(
-                  children: [
-                    Icon(Iconsax.teacher, size: 14.sp, color: Colors.grey),
-                    SizedBox(width: 4.w),
-                    Expanded(child: Text(item['ten_giang_vien'] ?? 'N/A', style: TextStyle(fontSize: 12.sp, color: Colors.grey[600]), overflow: TextOverflow.ellipsis)),
-                  ],
+                Text(
+                  'tiết',
+                  style: TextStyle(
+                    fontSize: AppStyles.textXs,
+                    color: color,
+                  ),
                 ),
               ],
             ),
           ),
         ],
       ),
+    ).animate().fadeIn(duration: 300.ms, delay: (index * 100).ms).slideX(begin: 0.1, end: 0);
+  }
+
+  Widget _buildScheduleInfo(IconData icon, String text) {
+    return Row(
+      children: [
+        Icon(icon, size: AppStyles.iconXs, color: AppColors.textTertiary),
+        SizedBox(width: AppStyles.space2),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: AppStyles.textSm,
+              color: AppColors.textSecondary,
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
     );
   }
 }
