@@ -21,6 +21,6 @@ class ApiConstants {
   // Curriculum
   static const String curriculum = '/api/sch/w-locdsctdtsinhvien';
 
-  // News
-  static const String news = '/api/web/w-locdsbaidang';
+  // News/Notifications
+  static const String notifications = '/api/web/w-locdsthongbao';
 }

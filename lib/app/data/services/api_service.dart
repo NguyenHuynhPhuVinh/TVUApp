@@ -178,23 +178,23 @@ class ApiService extends GetxService {
     }
   }
 
-  // News API
-  Future<Map<String, dynamic>?> getNews({String type = '', int limit = 20, int page = 1}) async {
+  // Notifications API
+  Future<Map<String, dynamic>?> getNotifications({int limit = 50, int page = 1}) async {
     try {
       final response = await _dio.post(
-        ApiConstants.news,
+        ApiConstants.notifications,
         data: {
-          'filter': {'ky_hieu': type, 'is_hien_thi': true, 'is_hinh_dai_dien': true, 'is_quyen_xem': true},
+          'filter': {'id': null, 'is_noi_dung': true, 'is_web': true},
           'additional': {
             'paging': {'limit': limit, 'page': page},
-            'ordering': [{'name': 'do_uu_tien', 'order_type': 1}, {'name': 'ngay_dang_tin', 'order_type': 1}]
+            'ordering': [{'name': 'ngay_gui', 'order_type': 1}]
           }
         },
         options: Options(contentType: 'application/json'),
       );
       return response.data;
     } catch (e) {
-      print('Error getNews: $e');
+      print('Error getNotifications: $e');
       return null;
     }
   }

@@ -146,26 +146,11 @@ class ProfileView extends GetView<ProfileController> {
   }
 
   Widget _buildMenuSection() {
-    return Column(
-      children: [
-        _buildMenuItem(
-          icon: Iconsax.book_1,
-          title: 'Chương trình đào tạo',
-          onTap: () => Get.toNamed('/curriculum'),
-        ),
-        _buildMenuItem(
-          icon: Iconsax.notification,
-          title: 'Thông báo',
-          onTap: () => Get.toNamed('/news'),
-        ),
-        SizedBox(height: 16.h),
-        _buildMenuItem(
-          icon: Iconsax.logout,
-          title: 'Đăng xuất',
-          onTap: controller.logout,
-          isDestructive: true,
-        ),
-      ],
+    return _buildMenuItem(
+      icon: Iconsax.logout,
+      title: 'Đăng xuất',
+      onTap: controller.logout,
+      isDestructive: true,
     );
   }
 
