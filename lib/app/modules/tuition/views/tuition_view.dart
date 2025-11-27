@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_styles.dart';
+import '../../../core/widgets/widgets.dart';
 import '../controllers/tuition_controller.dart';
 
 class TuitionView extends GetView<TuitionController> {
@@ -10,8 +14,11 @@ class TuitionView extends GetView<TuitionController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Học phí'),
+      backgroundColor: AppColors.background,
+      appBar: DuoAppBar(
+        title: 'Học phí',
+        showLogo: false,
+        leading: const DuoBackButton(),
       ),
       body: Column(
         children: [
@@ -23,70 +30,115 @@ class TuitionView extends GetView<TuitionController> {
   }
 
   Widget _buildSummaryCard() {
-    return Container(
-      margin: EdgeInsets.all(16.w),
-      padding: EdgeInsets.all(20.w),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Get.theme.primaryColor, Get.theme.primaryColor.withValues(alpha: 0.7)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16.r),
-      ),
-      child: Obx(() => Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(child: _buildSummaryItem('Tổng phải thu', controller.formatCurrency(controller.totalTuition.value), Iconsax.receipt, Colors.white)),
-              SizedBox(width: 16.w),
-              Expanded(child: _buildSummaryItem('Đã đóng', controller.formatCurrency(controller.totalPaid.value), Iconsax.tick_circle, Colors.greenAccent)),
+    return Padding(
+      padding: EdgeInsets.all(AppStyles.space4),
+      child: Obx(() {
+        final hasDebt = controller.totalDebt.value > 0;
+
+        return Container(
+          padding: EdgeInsets.all(AppStyles.space5),
+          decoration: BoxDecoration(
+            color: AppColors.primary,
+            borderRadius: AppStyles.rounded2xl,
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primaryDark,
+                offset: const Offset(0, 4),
+                blurRadius: 0,
+              ),
             ],
           ),
-          SizedBox(height: 16.h),
-          Container(
-            padding: EdgeInsets.all(12.w),
-            decoration: BoxDecoration(
-              color: controller.totalDebt.value > 0 ? Colors.red.withValues(alpha: 0.2) : Colors.green.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(12.r),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  controller.totalDebt.value > 0 ? Iconsax.warning_2 : Iconsax.tick_circle,
-                  color: Colors.white,
-                  size: 20.sp,
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildSummaryItem(
+                      'Tổng phải thu',
+                      controller.formatCurrency(controller.totalTuition.value),
+                      Iconsax.receipt,
+                      Colors.white,
+                    ),
+                  ),
+                  Container(
+                    width: 1,
+                    height: 50.h,
+                    color: AppColors.withAlpha(Colors.white, 0.3),
+                  ),
+                  Expanded(
+                    child: _buildSummaryItem(
+                      'Đã đóng',
+                      controller.formatCurrency(controller.totalPaid.value),
+                      Iconsax.tick_circle,
+                      AppColors.greenLight,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: AppStyles.space4),
+              Container(
+                padding: EdgeInsets.all(AppStyles.space3),
+                decoration: BoxDecoration(
+                  color: hasDebt
+                      ? AppColors.withAlpha(AppColors.red, 0.3)
+                      : AppColors.withAlpha(AppColors.green, 0.3),
+                  borderRadius: AppStyles.roundedXl,
                 ),
-                SizedBox(width: 8.w),
-                Text(
-                  controller.totalDebt.value > 0 
-                      ? 'Còn nợ: ${controller.formatCurrency(controller.totalDebt.value)}'
-                      : 'Đã đóng đủ học phí',
-                  style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: Colors.white),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      hasDebt ? Iconsax.warning_2 : Iconsax.tick_circle,
+                      color: Colors.white,
+                      size: AppStyles.iconSm,
+                    ),
+                    SizedBox(width: AppStyles.space2),
+                    Text(
+                      hasDebt
+                          ? 'Còn nợ: ${controller.formatCurrency(controller.totalDebt.value)}'
+                          : 'Đã đóng đủ học phí',
+                      style: TextStyle(
+                        fontSize: AppStyles.textBase,
+                        fontWeight: AppStyles.fontBold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      )),
-    );
+        );
+      }),
+    ).animate().fadeIn(duration: 400.ms).slideY(begin: -0.1, end: 0);
   }
 
   Widget _buildSummaryItem(String label, String value, IconData icon, Color iconColor) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 16.sp, color: iconColor),
-            SizedBox(width: 6.w),
-            Text(label, style: TextStyle(fontSize: 12.sp, color: Colors.white70)),
+            Icon(icon, size: AppStyles.iconXs, color: iconColor),
+            SizedBox(width: AppStyles.space1),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: AppStyles.textXs,
+                color: AppColors.withAlpha(Colors.white, 0.8),
+              ),
+            ),
           ],
         ),
-        SizedBox(height: 6.h),
-        Text(value, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: Colors.white)),
+        SizedBox(height: AppStyles.space2),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: AppStyles.textLg,
+            fontWeight: AppStyles.fontBold,
+            color: Colors.white,
+          ),
+        ),
       ],
     );
   }
@@ -94,30 +146,26 @@ class TuitionView extends GetView<TuitionController> {
   Widget _buildTuitionList() {
     return Obx(() {
       if (controller.tuitionList.isEmpty) {
-        return Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Iconsax.wallet, size: 64.sp, color: Colors.grey),
-              SizedBox(height: 16.h),
-              Text('Chưa có thông tin học phí', style: TextStyle(fontSize: 16.sp, color: Colors.grey)),
-            ],
-          ),
-        );
+        return DuoEmptyState(
+          icon: Iconsax.wallet,
+          title: 'Chưa có thông tin học phí',
+          subtitle: 'Thông tin sẽ được cập nhật khi có dữ liệu',
+          iconColor: AppColors.textTertiary,
+          iconBackgroundColor: AppColors.backgroundDark,
+        ).animate().fadeIn(duration: 300.ms);
       }
 
-      // Reverse để học kỳ mới nhất lên đầu
       final reversedList = controller.tuitionList.reversed.toList();
-      
+
       return ListView.builder(
-        padding: EdgeInsets.symmetric(horizontal: 16.w),
+        padding: EdgeInsets.symmetric(horizontal: AppStyles.space4),
         itemCount: reversedList.length,
-        itemBuilder: (context, index) => _buildTuitionCard(reversedList[index]),
+        itemBuilder: (context, index) => _buildTuitionCard(reversedList[index], index),
       );
     });
   }
 
-  Widget _buildTuitionCard(Map<String, dynamic> item) {
+  Widget _buildTuitionCard(Map<String, dynamic> item, int index) {
     double parseDouble(dynamic value) {
       if (value == null) return 0;
       if (value is num) return value.toDouble();
@@ -132,65 +180,140 @@ class TuitionView extends GetView<TuitionController> {
     final daThu = parseDouble(item['da_thu']);
     final conNo = parseDouble(item['con_no']);
     final donGia = parseDouble(item['don_gia']);
+    final hasDebt = conNo > 0;
 
     return Container(
-      margin: EdgeInsets.only(bottom: 12.h),
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        color: Get.theme.cardColor,
-        borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: conNo > 0 ? Colors.red.withValues(alpha: 0.3) : Colors.green.withValues(alpha: 0.3)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  item['ten_hoc_ky'] ?? 'N/A',
-                  style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.bold),
+      margin: EdgeInsets.only(bottom: AppStyles.space3),
+      child: DuoCard(
+        padding: EdgeInsets.all(AppStyles.space4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 4.w,
+                  height: 40.h,
+                  decoration: BoxDecoration(
+                    color: hasDebt ? AppColors.red : AppColors.green,
+                    borderRadius: AppStyles.roundedFull,
+                  ),
                 ),
+                SizedBox(width: AppStyles.space3),
+                Expanded(
+                  child: Text(
+                    item['ten_hoc_ky'] ?? 'N/A',
+                    style: TextStyle(
+                      fontSize: AppStyles.textBase,
+                      fontWeight: AppStyles.fontBold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: AppStyles.space3,
+                    vertical: AppStyles.space1,
+                  ),
+                  decoration: BoxDecoration(
+                    color: hasDebt ? AppColors.redSoft : AppColors.greenSoft,
+                    borderRadius: AppStyles.roundedFull,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        hasDebt ? Iconsax.warning_2 : Iconsax.tick_circle,
+                        size: 12.sp,
+                        color: hasDebt ? AppColors.red : AppColors.green,
+                      ),
+                      SizedBox(width: AppStyles.space1),
+                      Text(
+                        hasDebt ? 'Còn nợ' : 'Đã đóng đủ',
+                        style: TextStyle(
+                          fontSize: AppStyles.textXs,
+                          fontWeight: AppStyles.fontBold,
+                          color: hasDebt ? AppColors.red : AppColors.green,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: AppStyles.space4),
+            _buildTuitionRow('Học phí', controller.formatCurrency(hocPhi)),
+            if (mienGiam > 0)
+              _buildTuitionRow(
+                'Miễn giảm',
+                '-${controller.formatCurrency(mienGiam)}',
+                color: AppColors.orange,
               ),
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-                decoration: BoxDecoration(
-                  color: conNo > 0 ? Colors.red[50] : Colors.green[50],
-                  borderRadius: BorderRadius.circular(8.r),
-                ),
-                child: Text(
-                  conNo > 0 ? 'Còn nợ' : 'Đã đóng đủ',
-                  style: TextStyle(fontSize: 12.sp, color: conNo > 0 ? Colors.red : Colors.green, fontWeight: FontWeight.w600),
+            if (duocHoTro > 0)
+              _buildTuitionRow(
+                'Được hỗ trợ',
+                '-${controller.formatCurrency(duocHoTro)}',
+                color: AppColors.primary,
+              ),
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: AppStyles.space2),
+              child: Divider(color: AppColors.border, height: 1),
+            ),
+            _buildTuitionRow(
+              'Phải thu',
+              controller.formatCurrency(phaiThu),
+              isBold: true,
+            ),
+            _buildTuitionRow(
+              'Đã đóng',
+              controller.formatCurrency(daThu),
+              color: AppColors.green,
+            ),
+            if (conNo > 0)
+              _buildTuitionRow(
+                'Còn nợ',
+                controller.formatCurrency(conNo),
+                color: AppColors.red,
+                isBold: true,
+              ),
+            if (donGia > 0) ...[
+              SizedBox(height: AppStyles.space2),
+              Text(
+                'Đơn giá: ${controller.formatCurrency(donGia)}/TC',
+                style: TextStyle(
+                  fontSize: AppStyles.textXs,
+                  color: AppColors.textTertiary,
+                  fontStyle: FontStyle.italic,
                 ),
               ),
             ],
-          ),
-          SizedBox(height: 12.h),
-          _buildTuitionRow('Học phí', controller.formatCurrency(hocPhi)),
-          if (mienGiam > 0) _buildTuitionRow('Miễn giảm', '-${controller.formatCurrency(mienGiam)}', color: Colors.orange),
-          if (duocHoTro > 0) _buildTuitionRow('Được hỗ trợ', '-${controller.formatCurrency(duocHoTro)}', color: Colors.blue),
-          Divider(height: 16.h),
-          _buildTuitionRow('Phải thu', controller.formatCurrency(phaiThu), isBold: true),
-          _buildTuitionRow('Đã đóng', controller.formatCurrency(daThu), color: Colors.green),
-          if (conNo > 0) _buildTuitionRow('Còn nợ', controller.formatCurrency(conNo), color: Colors.red, isBold: true),
-          if (donGia > 0) ...[
-            SizedBox(height: 8.h),
-            Text('Đơn giá: ${controller.formatCurrency(donGia)}/TC', style: TextStyle(fontSize: 11.sp, color: Colors.grey[500], fontStyle: FontStyle.italic)),
           ],
-        ],
+        ),
       ),
-    );
+    ).animate().fadeIn(duration: 300.ms, delay: (index * 50).ms).slideX(begin: 0.05, end: 0);
   }
 
   Widget _buildTuitionRow(String label, String value, {Color? color, bool isBold = false}) {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 3.h),
+      padding: EdgeInsets.symmetric(vertical: AppStyles.space1),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(fontSize: 13.sp, color: Colors.grey[600])),
-          Text(value, style: TextStyle(fontSize: 13.sp, fontWeight: isBold ? FontWeight.bold : FontWeight.normal, color: color ?? Colors.black87)),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: AppStyles.textSm,
+              color: AppColors.textSecondary,
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: AppStyles.textSm,
+              fontWeight: isBold ? AppStyles.fontBold : AppStyles.fontMedium,
+              color: color ?? AppColors.textPrimary,
+            ),
+          ),
         ],
       ),
     );
