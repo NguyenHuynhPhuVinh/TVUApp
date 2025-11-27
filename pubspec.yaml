@@ -1,0 +1,45 @@
+name: tvu_app
+description: "Ứng dụng Cổng thông tin Sinh viên TVU"
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.8.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+
+  # State Management & Navigation
+  get: ^4.6.6
+
+  # Network
+  dio: ^5.4.3+1
+
+  # Storage
+  flutter_secure_storage: ^9.2.2
+  shared_preferences: ^2.2.0
+
+  # UI Components
+  google_nav_bar: ^5.0.6
+  shimmer: ^3.0.0
+  liquid_pull_to_refresh: ^3.0.1
+
+  # Icons
+  iconsax: ^0.0.8
+
+  # Responsive
+  flutter_screenutil: ^5.9.3
+
+  # Utilities
+  connectivity_plus: ^6.0.3
+  intl: ^0.19.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
