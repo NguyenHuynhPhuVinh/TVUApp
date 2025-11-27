@@ -17,4 +17,5 @@ export 'duo_nav_bar.dart';
 export 'duo_dropdown.dart';
 export 'duo_chip_selector.dart';
 export 'duo_stat_card.dart';
+export 'duo_profile_card.dart';
 export 'tvu_mascot.dart';

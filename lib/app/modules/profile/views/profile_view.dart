@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_styles.dart';
+import '../../../core/widgets/widgets.dart';
 import '../controllers/profile_controller.dart';
 
 class ProfileView extends GetView<ProfileController> {
@@ -10,18 +13,20 @@ class ProfileView extends GetView<ProfileController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Thông tin cá nhân'),
-      ),
+      backgroundColor: AppColors.background,
+      appBar: const DuoAppBar(title: 'Thông tin cá nhân', showLogo: false),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(16.w),
+        padding: EdgeInsets.all(AppStyles.space4),
         child: Column(
           children: [
             _buildProfileHeader(),
-            SizedBox(height: 24.h),
-            _buildInfoSection(),
-            SizedBox(height: 24.h),
+            SizedBox(height: AppStyles.space4),
+            _buildPersonalInfo(),
+            SizedBox(height: AppStyles.space4),
+            _buildAcademicInfo(),
+            SizedBox(height: AppStyles.space4),
             _buildMenuSection(),
+            SizedBox(height: AppStyles.space4),
           ],
         ),
       ),
@@ -29,136 +34,92 @@ class ProfileView extends GetView<ProfileController> {
   }
 
   Widget _buildProfileHeader() {
-    return Obx(() => Container(
-      padding: EdgeInsets.all(24.w),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Get.theme.primaryColor, Get.theme.primaryColor.withValues(alpha: 0.7)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16.r),
-      ),
-      child: Column(
-        children: [
-          CircleAvatar(
-            radius: 48.r,
-            backgroundColor: Colors.white,
-            child: Icon(Iconsax.user, size: 48.sp, color: Get.theme.primaryColor),
-          ),
-          SizedBox(height: 16.h),
-          Text(
-            controller.studentInfo['ten_day_du'] ?? 'N/A',
-            style: TextStyle(
-              fontSize: 22.sp,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-          SizedBox(height: 8.h),
-          Text(
-            'MSSV: ${controller.studentInfo['ma_sv'] ?? 'N/A'}',
-            style: TextStyle(fontSize: 16.sp, color: Colors.white70),
-          ),
-          SizedBox(height: 4.h),
-          Text(
-            controller.studentInfo['email'] ?? '',
-            style: TextStyle(fontSize: 14.sp, color: Colors.white60),
-          ),
-        ],
-      ),
-    ));
+    return Obx(() => DuoProfileHeader(
+          name: controller.studentInfo['ten_day_du'] ?? 'N/A',
+          subtitle: 'MSSV: ${controller.studentInfo['ma_sv'] ?? 'N/A'}',
+          email: controller.studentInfo['email'],
+        )).animate().fadeIn(duration: 400.ms).slideY(begin: -0.1, end: 0);
   }
 
-  Widget _buildInfoSection() {
-    return Obx(() => Container(
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        color: Get.theme.cardColor,
-        borderRadius: BorderRadius.circular(12.r),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Thông tin cá nhân',
-            style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
-          ),
-          SizedBox(height: 16.h),
-          _buildInfoRow(Iconsax.calendar, 'Ngày sinh', controller.studentInfo['ngay_sinh'] ?? 'N/A'),
-          _buildInfoRow(Iconsax.user, 'Giới tính', controller.studentInfo['gioi_tinh'] ?? 'N/A'),
-          _buildInfoRow(Iconsax.call, 'Điện thoại', controller.studentInfo['dien_thoai'] ?? 'N/A'),
-          _buildInfoRow(Iconsax.location, 'Nơi sinh', controller.studentInfo['noi_sinh'] ?? 'N/A'),
-          Divider(height: 24.h),
-          Text(
-            'Thông tin học tập',
-            style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
-          ),
-          SizedBox(height: 16.h),
-          _buildInfoRow(Iconsax.book, 'Lớp', controller.studentInfo['lop'] ?? 'N/A'),
-          _buildInfoRow(Iconsax.teacher, 'Ngành', controller.studentInfo['nganh'] ?? 'N/A'),
-          _buildInfoRow(Iconsax.building, 'Khoa', controller.studentInfo['khoa'] ?? 'N/A'),
-          _buildInfoRow(Iconsax.calendar_1, 'Niên khóa', controller.studentInfo['nien_khoa'] ?? 'N/A'),
-          _buildInfoRow(Iconsax.status, 'Trạng thái', controller.studentInfo['hien_dien_sv'] ?? 'N/A'),
-        ],
-      ),
-    ));
+  Widget _buildPersonalInfo() {
+    return Obx(() => DuoInfoSection(
+          title: 'Thông tin cá nhân',
+          titleIcon: Iconsax.user,
+          items: [
+            DuoInfoItem(
+              icon: Iconsax.calendar,
+              label: 'Ngày sinh',
+              value: controller.studentInfo['ngay_sinh'] ?? 'N/A',
+              iconColor: AppColors.orange,
+            ),
+            DuoInfoItem(
+              icon: Iconsax.user_octagon,
+              label: 'Giới tính',
+              value: controller.studentInfo['gioi_tinh'] ?? 'N/A',
+              iconColor: AppColors.purple,
+            ),
+            DuoInfoItem(
+              icon: Iconsax.call,
+              label: 'Điện thoại',
+              value: controller.studentInfo['dien_thoai'] ?? 'N/A',
+              iconColor: AppColors.green,
+            ),
+            DuoInfoItem(
+              icon: Iconsax.location,
+              label: 'Nơi sinh',
+              value: controller.studentInfo['noi_sinh'] ?? 'N/A',
+              iconColor: AppColors.primary,
+            ),
+          ],
+        )).animate().fadeIn(duration: 400.ms, delay: 100.ms).slideY(begin: 0.1, end: 0);
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 8.h),
-      child: Row(
-        children: [
-          Icon(icon, size: 20.sp, color: Get.theme.primaryColor),
-          SizedBox(width: 12.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label, style: TextStyle(fontSize: 12.sp, color: Colors.grey[600])),
-                SizedBox(height: 2.h),
-                Text(value, style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w500)),
-              ],
+  Widget _buildAcademicInfo() {
+    return Obx(() => DuoInfoSection(
+          title: 'Thông tin học tập',
+          titleIcon: Iconsax.book,
+          items: [
+            DuoInfoItem(
+              icon: Iconsax.people,
+              label: 'Lớp',
+              value: controller.studentInfo['lop'] ?? 'N/A',
+              iconColor: AppColors.primary,
             ),
-          ),
-        ],
-      ),
-    );
+            DuoInfoItem(
+              icon: Iconsax.teacher,
+              label: 'Ngành',
+              value: controller.studentInfo['nganh'] ?? 'N/A',
+              iconColor: AppColors.green,
+            ),
+            DuoInfoItem(
+              icon: Iconsax.building,
+              label: 'Khoa',
+              value: controller.studentInfo['khoa'] ?? 'N/A',
+              iconColor: AppColors.orange,
+            ),
+            DuoInfoItem(
+              icon: Iconsax.calendar_1,
+              label: 'Niên khóa',
+              value: controller.studentInfo['nien_khoa'] ?? 'N/A',
+              iconColor: AppColors.purple,
+            ),
+            DuoInfoItem(
+              icon: Iconsax.status,
+              label: 'Trạng thái',
+              value: controller.studentInfo['hien_dien_sv'] ?? 'N/A',
+              iconColor: AppColors.green,
+            ),
+          ],
+        )).animate().fadeIn(duration: 400.ms, delay: 200.ms).slideY(begin: 0.1, end: 0);
   }
 
   Widget _buildMenuSection() {
-    return _buildMenuItem(
+    return DuoMenuItem(
       icon: Iconsax.logout,
       title: 'Đăng xuất',
+      subtitle: 'Thoát khỏi tài khoản hiện tại',
       onTap: controller.logout,
       isDestructive: true,
-    );
-  }
-
-  Widget _buildMenuItem({
-    required IconData icon,
-    required String title,
-    required VoidCallback onTap,
-    bool isDestructive = false,
-  }) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 8.h),
-      child: ListTile(
-        leading: Icon(icon, color: isDestructive ? Colors.red : Get.theme.primaryColor),
-        title: Text(title, style: TextStyle(color: isDestructive ? Colors.red : null)),
-        trailing: const Icon(Iconsax.arrow_right_3, size: 18),
-        onTap: onTap,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
-        tileColor: Get.theme.cardColor,
-      ),
-    );
+    ).animate().fadeIn(duration: 400.ms, delay: 300.ms).slideY(begin: 0.1, end: 0);
   }
 }
