@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_styles.dart';
+import '../../../core/widgets/widgets.dart';
 import '../controllers/curriculum_controller.dart';
 
 class CurriculumView extends GetView<CurriculumController> {
@@ -10,20 +14,20 @@ class CurriculumView extends GetView<CurriculumController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Chương trình đào tạo'),
+      backgroundColor: AppColors.background,
+      appBar: DuoAppBar(
+        title: 'Chương trình đào tạo',
+        showLogo: false,
+        leading: const DuoBackButton(),
       ),
       body: Obx(() {
         if (controller.semesters.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Iconsax.book, size: 64.sp, color: Colors.grey),
-                SizedBox(height: 16.h),
-                Text('Chưa có dữ liệu', style: TextStyle(fontSize: 16.sp, color: Colors.grey)),
-              ],
-            ),
+          return DuoEmptyState(
+            icon: Iconsax.book,
+            title: 'Chưa có dữ liệu',
+            subtitle: 'Thông tin CTĐT sẽ được cập nhật',
+            iconColor: AppColors.textTertiary,
+            iconBackgroundColor: AppColors.backgroundDark,
           );
         }
         return Column(
@@ -38,91 +42,179 @@ class CurriculumView extends GetView<CurriculumController> {
   }
 
   Widget _buildSummaryCard() {
-    return Container(
-      margin: EdgeInsets.all(16.w),
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Get.theme.primaryColor, Get.theme.primaryColor.withValues(alpha: 0.7)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16.r),
-      ),
-      child: Obx(() => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(controller.majorName.value, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: Colors.white)),
-          SizedBox(height: 16.h),
-          Row(
-            children: [
-              Expanded(child: _buildStatItem('Tín chỉ', '${controller.completedCredits}/${controller.totalCredits}')),
-              Container(width: 1, height: 40.h, color: Colors.white30),
-              Expanded(child: _buildStatItem('Môn học', '${controller.completedSubjects}/${controller.totalSubjects}')),
-              Container(width: 1, height: 40.h, color: Colors.white30),
-              Expanded(child: _buildStatItem('Tiến độ', '${(controller.completedCredits / controller.totalCredits * 100).toStringAsFixed(0)}%')),
+    return Padding(
+      padding: EdgeInsets.all(AppStyles.space4),
+      child: Obx(() {
+        final progress = controller.totalCredits > 0
+            ? controller.completedCredits / controller.totalCredits
+            : 0.0;
+
+        return Container(
+          padding: EdgeInsets.all(AppStyles.space5),
+          decoration: BoxDecoration(
+            color: AppColors.primary,
+            borderRadius: AppStyles.rounded2xl,
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primaryDark,
+                offset: const Offset(0, 4),
+                blurRadius: 0,
+              ),
             ],
           ),
-        ],
-      )),
-    );
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(AppStyles.space2),
+                    decoration: BoxDecoration(
+                      color: AppColors.withAlpha(Colors.white, 0.2),
+                      borderRadius: AppStyles.roundedLg,
+                    ),
+                    child: Icon(Iconsax.book_1, color: Colors.white, size: AppStyles.iconSm),
+                  ),
+                  SizedBox(width: AppStyles.space3),
+                  Expanded(
+                    child: Text(
+                      controller.majorName.value,
+                      style: TextStyle(
+                        fontSize: AppStyles.textBase,
+                        fontWeight: AppStyles.fontBold,
+                        color: Colors.white,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: AppStyles.space4),
+              // Progress bar
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Tiến độ hoàn thành',
+                        style: TextStyle(
+                          fontSize: AppStyles.textSm,
+                          color: AppColors.withAlpha(Colors.white, 0.8),
+                        ),
+                      ),
+                      Text(
+                        '${(progress * 100).toStringAsFixed(0)}%',
+                        style: TextStyle(
+                          fontSize: AppStyles.textSm,
+                          fontWeight: AppStyles.fontBold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: AppStyles.space2),
+                  DuoProgressBar(
+                    progress: progress,
+                    backgroundColor: AppColors.primaryDark,
+                    progressColor: AppColors.green,
+                    shadowColor: AppColors.greenDark,
+                    height: 10,
+                  ),
+                ],
+              ),
+              SizedBox(height: AppStyles.space4),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildStatItem(
+                      'Tín chỉ',
+                      '${controller.completedCredits}/${controller.totalCredits}',
+                      Iconsax.medal_star,
+                    ),
+                  ),
+                  Container(
+                    width: 1,
+                    height: 40.h,
+                    color: AppColors.withAlpha(Colors.white, 0.3),
+                  ),
+                  Expanded(
+                    child: _buildStatItem(
+                      'Môn học',
+                      '${controller.completedSubjects}/${controller.totalSubjects}',
+                      Iconsax.book,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      }),
+    ).animate().fadeIn(duration: 400.ms).slideY(begin: -0.1, end: 0);
   }
 
-  Widget _buildStatItem(String label, String value) {
-    return Column(
+  Widget _buildStatItem(String label, String value, IconData icon) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text(value, style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: Colors.white)),
-        SizedBox(height: 4.h),
-        Text(label, style: TextStyle(fontSize: 12.sp, color: Colors.white70)),
+        Icon(icon, color: AppColors.withAlpha(Colors.white, 0.7), size: AppStyles.iconSm),
+        SizedBox(width: AppStyles.space2),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: AppStyles.textLg,
+                fontWeight: AppStyles.fontBold,
+                color: Colors.white,
+              ),
+            ),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: AppStyles.textXs,
+                color: AppColors.withAlpha(Colors.white, 0.7),
+              ),
+            ),
+          ],
+        ),
       ],
     );
   }
 
   Widget _buildSemesterSelector() {
-    return Container(
-      height: 50.h,
-      padding: EdgeInsets.symmetric(vertical: 4.h),
-      child: Obx(() => ListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: EdgeInsets.symmetric(horizontal: 16.w),
-        itemCount: controller.semesters.length,
-        itemBuilder: (context, index) {
-          final semester = controller.semesters[index];
-          final isSelected = controller.selectedSemesterIndex.value == index;
-          final tenHK = semester['ten_hoc_ky'] as String? ?? '';
-          final shortName = tenHK.replaceAll('Học kỳ ', 'HK').replaceAll(' - Năm học ', ' ');
-          
-          // Đếm số môn đã đạt trong học kỳ
-          final subjects = semester['ds_CTDT_mon_hoc'] as List? ?? [];
-          final completed = subjects.where((s) => s['mon_da_dat'] == 'x').length;
-          
-          return GestureDetector(
-            onTap: () => controller.selectSemester(index),
-            child: Container(
-              margin: EdgeInsets.only(right: 8.w),
-              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-              decoration: BoxDecoration(
-                color: isSelected ? Get.theme.primaryColor : (completed == subjects.length && subjects.isNotEmpty ? Colors.green[50] : Colors.grey[200]),
-                borderRadius: BorderRadius.circular(20.r),
-                border: completed == subjects.length && subjects.isNotEmpty && !isSelected 
-                    ? Border.all(color: Colors.green.withValues(alpha: 0.5)) 
-                    : null,
-              ),
-              child: Center(
-                child: Text(
-                  shortName,
-                  style: TextStyle(
-                    color: isSelected ? Colors.white : (completed == subjects.length && subjects.isNotEmpty ? Colors.green[700] : Colors.black87),
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                    fontSize: 11.sp,
-                  ),
-                ),
-              ),
-            ),
-          );
-        },
-      )),
-    );
+    return Obx(() {
+      if (controller.semesters.isEmpty) return const SizedBox.shrink();
+
+      return Padding(
+        padding: EdgeInsets.only(bottom: AppStyles.space2),
+        child: DuoChipSelector<int>(
+          selectedValue: controller.selectedSemesterIndex.value,
+          activeColor: AppColors.primary,
+          height: 44,
+          items: controller.semesters.asMap().entries.map((entry) {
+            final index = entry.key;
+            final semester = entry.value;
+            final tenHK = semester['ten_hoc_ky'] as String? ?? '';
+            final shortName = tenHK.replaceAll('Học kỳ ', 'HK').replaceAll(' - Năm học ', ' ');
+            final subjects = semester['ds_CTDT_mon_hoc'] as List? ?? [];
+            final completed = subjects.where((s) => s['mon_da_dat'] == 'x').length;
+            final isAllCompleted = completed == subjects.length && subjects.isNotEmpty;
+
+            return DuoChipItem<int>(
+              value: index,
+              label: shortName,
+              hasContent: isAllCompleted,
+            );
+          }).toList(),
+          onSelected: controller.selectSemester,
+        ),
+      );
+    });
   }
 
   Widget _buildSubjectList() {
@@ -130,19 +222,22 @@ class CurriculumView extends GetView<CurriculumController> {
       final subjects = controller.currentSemesterSubjects;
       if (subjects.isEmpty) {
         return Center(
-          child: Text('Không có môn học', style: TextStyle(fontSize: 14.sp, color: Colors.grey)),
+          child: Text(
+            'Không có môn học',
+            style: TextStyle(fontSize: AppStyles.textBase, color: AppColors.textTertiary),
+          ),
         );
       }
 
       return ListView.builder(
-        padding: EdgeInsets.all(16.w),
+        padding: EdgeInsets.all(AppStyles.space4),
         itemCount: subjects.length,
-        itemBuilder: (context, index) => _buildSubjectCard(subjects[index]),
+        itemBuilder: (context, index) => _buildSubjectCard(subjects[index], index),
       );
     });
   }
 
-  Widget _buildSubjectCard(Map<String, dynamic> item) {
+  Widget _buildSubjectCard(Map<String, dynamic> item, int index) {
     final isCompleted = item['mon_da_dat'] == 'x';
     final isRequired = item['mon_bat_buoc'] == 'x';
     final soTC = item['so_tin_chi']?.toString() ?? '0';
@@ -150,87 +245,112 @@ class CurriculumView extends GetView<CurriculumController> {
     final thucHanh = item['thuc_hanh']?.toString() ?? '';
 
     return Container(
-      margin: EdgeInsets.only(bottom: 12.h),
-      padding: EdgeInsets.all(14.w),
-      decoration: BoxDecoration(
-        color: Get.theme.cardColor,
-        borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(
-          color: isCompleted ? Colors.green.withValues(alpha: 0.3) : Colors.grey.withValues(alpha: 0.2),
+      margin: EdgeInsets.only(bottom: AppStyles.space3),
+      child: DuoCard(
+        padding: EdgeInsets.all(AppStyles.space4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 4.w,
+                  height: 50.h,
+                  decoration: BoxDecoration(
+                    color: isCompleted ? AppColors.green : AppColors.textTertiary,
+                    borderRadius: AppStyles.roundedFull,
+                  ),
+                ),
+                SizedBox(width: AppStyles.space3),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item['ten_mon'] ?? 'N/A',
+                        style: TextStyle(
+                          fontSize: AppStyles.textBase,
+                          fontWeight: AppStyles.fontSemibold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      SizedBox(height: AppStyles.space1),
+                      Text(
+                        item['ma_mon'] ?? '',
+                        style: TextStyle(
+                          fontSize: AppStyles.textSm,
+                          color: AppColors.textTertiary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: AppStyles.space3,
+                    vertical: AppStyles.space1,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isCompleted ? AppColors.greenSoft : AppColors.backgroundDark,
+                    borderRadius: AppStyles.roundedFull,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (isCompleted)
+                        Icon(Iconsax.tick_circle, size: 14.sp, color: AppColors.green),
+                      if (isCompleted) SizedBox(width: AppStyles.space1),
+                      Text(
+                        isCompleted ? 'Đạt' : 'Chưa học',
+                        style: TextStyle(
+                          fontSize: AppStyles.textXs,
+                          fontWeight: AppStyles.fontSemibold,
+                          color: isCompleted ? AppColors.green : AppColors.textTertiary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: AppStyles.space3),
+            Wrap(
+              spacing: AppStyles.space2,
+              runSpacing: AppStyles.space2,
+              children: [
+                _buildTag('$soTC TC', AppColors.primary),
+                if (isRequired)
+                  _buildTag('Bắt buộc', AppColors.orange)
+                else
+                  _buildTag('Tự chọn', AppColors.purple),
+                if (lyThuyet.isNotEmpty && lyThuyet != '0')
+                  _buildTag('LT: $lyThuyet', AppColors.green),
+                if (thucHanh.isNotEmpty && thucHanh != '0')
+                  _buildTag('TH: $thucHanh', AppColors.primary),
+              ],
+            ),
+          ],
         ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      item['ten_mon'] ?? 'N/A',
-                      style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600),
-                    ),
-                    SizedBox(height: 4.h),
-                    Text(
-                      item['ma_mon'] ?? '',
-                      style: TextStyle(fontSize: 12.sp, color: Colors.grey[600]),
-                    ),
-                  ],
-                ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-                    decoration: BoxDecoration(
-                      color: isCompleted ? Colors.green[50] : Colors.grey[100],
-                      borderRadius: BorderRadius.circular(6.r),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (isCompleted) Icon(Iconsax.tick_circle, size: 14.sp, color: Colors.green),
-                        if (isCompleted) SizedBox(width: 4.w),
-                        Text(
-                          isCompleted ? 'Đạt' : 'Chưa học',
-                          style: TextStyle(fontSize: 11.sp, color: isCompleted ? Colors.green : Colors.grey[600], fontWeight: FontWeight.w500),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          SizedBox(height: 10.h),
-          Wrap(
-            spacing: 8.w,
-            runSpacing: 6.h,
-            children: [
-              _buildTag('$soTC TC', Get.theme.primaryColor),
-              if (isRequired) _buildTag('Bắt buộc', Colors.orange),
-              if (!isRequired) _buildTag('Tự chọn', Colors.blue),
-              if (lyThuyet.isNotEmpty && lyThuyet != '0') _buildTag('LT: $lyThuyet', Colors.purple),
-              if (thucHanh.isNotEmpty && thucHanh != '0') _buildTag('TH: $thucHanh', Colors.teal),
-            ],
-          ),
-        ],
-      ),
-    );
+    ).animate().fadeIn(duration: 300.ms, delay: (index * 30).ms).slideX(begin: 0.05, end: 0);
   }
 
   Widget _buildTag(String text, Color color) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
+      padding: EdgeInsets.symmetric(horizontal: AppStyles.space2, vertical: 3),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(4.r),
+        color: AppColors.withAlpha(color, 0.1),
+        borderRadius: AppStyles.roundedMd,
       ),
-      child: Text(text, style: TextStyle(fontSize: 10.sp, color: color, fontWeight: FontWeight.w500)),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 10.sp,
+          color: color,
+          fontWeight: AppStyles.fontSemibold,
+        ),
+      ),
     );
   }
 }
