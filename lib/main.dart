@@ -2,14 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
 import 'app/data/services/auth_service.dart';
 import 'app/data/services/api_service.dart';
+import 'app/data/services/firebase_service.dart';
 import 'app/routes/app_pages.dart';
 import 'app/core/theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize Firebase
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   
   // Set preferred orientations
   await SystemChrome.setPreferredOrientations([
@@ -25,6 +33,7 @@ void main() async {
 
 Future<void> initServices() async {
   await Get.putAsync(() => AuthService().init());
+  await Get.putAsync(() => FirebaseService().init());
   Get.put(ApiService());
 }
 

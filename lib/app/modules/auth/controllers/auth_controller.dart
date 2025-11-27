@@ -42,8 +42,9 @@ class AuthController extends GetxController {
           user: usernameController.text.trim(),
           password: passwordController.text,
         );
-        print('Token saved, navigating to main...');
-        Get.offAllNamed(Routes.main);
+        print('Token saved, navigating to sync...');
+        // Chuyển sang màn hình sync để tải và đẩy data lên Firebase
+        Get.offAllNamed(Routes.sync);
       } else {
         errorMessage.value = 'Đăng nhập thất bại';
       }

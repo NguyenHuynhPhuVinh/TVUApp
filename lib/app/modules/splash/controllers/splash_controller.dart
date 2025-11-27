@@ -16,7 +16,8 @@ class SplashController extends GetxController {
       await Future.delayed(const Duration(seconds: 2));
       
       if (_authService.isLoggedIn.value) {
-        Get.offAllNamed(Routes.main);
+        // Đã đăng nhập -> chuyển sang sync để tải lại data từ API và đẩy lên Firebase
+        Get.offAllNamed(Routes.sync);
       } else {
         Get.offAllNamed(Routes.login);
       }

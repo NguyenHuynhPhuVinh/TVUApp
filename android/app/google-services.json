@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "519076973476",
+    "project_id": "tvuapp-tomisakae",
+    "storage_bucket": "tvuapp-tomisakae.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:519076973476:android:c123765058e6292dee8f31",
+        "android_client_info": {
+          "package_name": "com.tomisakae.tvuapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDVbf07lv0fW2Nc_GWaK9eHwjgb0fc7weo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
