@@ -12,6 +12,11 @@ class SplashController extends GetxController {
   final FirebaseService _firebaseService = Get.find<FirebaseService>();
   final LocalStorageService _localStorage = Get.find<LocalStorageService>();
 
+  // Progress cho UI
+  final syncProgress = 0.0.obs;
+  final syncStatus = ''.obs;
+  final isFirstTimeSync = false.obs;
+
   @override
   void onInit() {
     super.onInit();
@@ -33,14 +38,22 @@ class SplashController extends GetxController {
         return;
       }
 
-      // Ưu tiên tải TKB học kỳ hiện tại trước
-      final currentScheduleData = await _loadCurrentSemesterSchedule(mssv);
-
-      // Vào main ngay
-      Get.offAllNamed(Routes.main);
-
-      // Chạy nền các sync khác (truyền data đã load để tránh gọi API lại)
-      _syncInBackground(mssv, currentScheduleData);
+      // Check xem đây có phải lần đầu (chưa có data local) hay không
+      final hasLocalData = _localStorage.getGrades() != null || 
+                           _localStorage.getSemesters() != null;
+      
+      // Nếu vừa login xong (từ argument) hoặc chưa có data local -> sync hết
+      final justLoggedIn = Get.arguments?['justLoggedIn'] == true;
+      
+      if (justLoggedIn || !hasLocalData) {
+        isFirstTimeSync.value = true;
+        await _fullSync(mssv);
+      } else {
+        // Đã có data -> load nhanh TKB hiện tại, sync nền
+        final currentScheduleData = await _loadCurrentSemesterSchedule(mssv);
+        Get.offAllNamed(Routes.main);
+        _syncInBackground(mssv, currentScheduleData);
+      }
     } catch (e) {
       print('Splash error: $e');
       if (_authService.isLoggedIn.value) {
@@ -51,11 +64,139 @@ class SplashController extends GetxController {
     }
   }
 
+  /// Full sync - chạy khi lần đầu login hoặc chưa có data
+  Future<void> _fullSync(String mssv) async {
+    try {
+      // 1. Thông tin sinh viên
+      syncStatus.value = 'Đang tải thông tin sinh viên...';
+      syncProgress.value = 0.1;
+      final studentInfoResponse = await _apiService.getStudentInfo();
+      if (studentInfoResponse != null && studentInfoResponse['data'] != null) {
+        await _localStorage.saveStudentInfo({'data': studentInfoResponse['data']});
+      }
+
+      // 2. Danh sách học kỳ + TKB tất cả học kỳ
+      syncStatus.value = 'Đang tải thời khóa biểu...';
+      syncProgress.value = 0.15;
+      final allSchedulesData = await _loadAllSchedules(mssv);
+
+      // 3. Điểm
+      syncStatus.value = 'Đang tải điểm...';
+      syncProgress.value = 0.35;
+      Map<String, dynamic>? gradesData;
+      final gradesResponse = await _apiService.getGrades();
+      if (gradesResponse != null && gradesResponse['data'] != null) {
+        gradesData = {'data': gradesResponse['data']};
+        await _localStorage.saveGrades(gradesData);
+      }
+
+      // 4. CTDT
+      syncStatus.value = 'Đang tải chương trình đào tạo...';
+      syncProgress.value = 0.55;
+      Map<String, dynamic>? curriculumData;
+      final curriculumResponse = await _apiService.getCurriculum();
+      if (curriculumResponse != null && curriculumResponse['data'] != null) {
+        curriculumData = {'data': curriculumResponse['data']};
+        await _localStorage.saveCurriculum(curriculumData);
+      }
+
+      // 5. Học phí
+      syncStatus.value = 'Đang tải học phí...';
+      syncProgress.value = 0.7;
+      Map<String, dynamic>? tuitionData;
+      final tuitionResponse = await _apiService.getTuition();
+      if (tuitionResponse != null && tuitionResponse['data'] != null) {
+        tuitionData = {'data': tuitionResponse['data']};
+        await _localStorage.saveTuition(tuitionData);
+      }
+
+      // 6. Thông báo
+      syncStatus.value = 'Đang tải thông báo...';
+      syncProgress.value = 0.75;
+      final notificationsResponse = await _apiService.getNotifications();
+      if (notificationsResponse != null && notificationsResponse['data'] != null) {
+        await _localStorage.saveNotifications({'data': notificationsResponse['data']});
+      }
+
+      // 7. Sync Firebase
+      syncStatus.value = 'Đang đồng bộ dữ liệu...';
+      syncProgress.value = 0.85;
+      await _firebaseService.syncAllStudentData(
+        mssv: mssv,
+        grades: gradesData,
+        curriculum: curriculumData,
+        tuition: tuitionData,
+      );
+
+      // Sync tất cả TKB lên Firebase
+      if (allSchedulesData != null) {
+        for (var entry in allSchedulesData.entries) {
+          final semester = int.tryParse(entry.key) ?? 0;
+          if (semester > 0) {
+            await _firebaseService.saveSchedule(mssv, semester, entry.value);
+          }
+        }
+      }
+
+      final semestersData = _localStorage.getSemesters();
+      if (semestersData != null) {
+        await _firebaseService.saveSemesters(mssv, semestersData);
+      }
+
+      syncProgress.value = 1.0;
+      syncStatus.value = 'Hoàn tất!';
+      
+      await Future.delayed(const Duration(milliseconds: 300));
+      Get.offAllNamed(Routes.main);
+    } catch (e) {
+      print('Full sync error: $e');
+      // Vẫn vào main dù có lỗi
+      Get.offAllNamed(Routes.main);
+    }
+  }
+
   /// So sánh 2 map data, return true nếu khác nhau
   bool _isDataChanged(Map<String, dynamic>? newData, Map<String, dynamic>? oldData) {
     if (newData == null && oldData == null) return false;
     if (newData == null || oldData == null) return true;
     return jsonEncode(newData) != jsonEncode(oldData);
+  }
+
+  /// Tải TKB tất cả học kỳ (dùng cho lần đầu login)
+  /// Returns: Map<semesterId, scheduleData>
+  Future<Map<String, dynamic>?> _loadAllSchedules(String mssv) async {
+    try {
+      final semestersResponse = await _apiService.getSemesters();
+      if (semestersResponse == null || semestersResponse['data'] == null) {
+        return null;
+      }
+
+      final data = semestersResponse['data'];
+      await _localStorage.saveSemesters({'data': data});
+
+      final semesterList = data['ds_hoc_ky'] as List? ?? [];
+      final Map<String, dynamic> allSchedules = {};
+
+      for (int i = 0; i < semesterList.length; i++) {
+        final semester = semesterList[i];
+        final hocKy = semester['hoc_ky'] as int? ?? 0;
+        if (hocKy == 0) continue;
+
+        syncStatus.value = 'Đang tải TKB học kỳ ${i + 1}/${semesterList.length}...';
+        syncProgress.value = 0.15 + (0.2 * (i + 1) / semesterList.length);
+
+        final scheduleResponse = await _apiService.getSchedule(hocKy);
+        if (scheduleResponse != null && scheduleResponse['data'] != null) {
+          await _localStorage.saveSchedule(hocKy, scheduleResponse['data']);
+          allSchedules[hocKy.toString()] = scheduleResponse['data'];
+        }
+      }
+
+      return allSchedules.isNotEmpty ? allSchedules : null;
+    } catch (e) {
+      print('Load all schedules error: $e');
+      return null;
+    }
   }
 
   /// Tải TKB học kỳ hiện tại (ưu tiên cao nhất)

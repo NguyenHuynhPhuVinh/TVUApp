@@ -42,9 +42,9 @@ class AuthController extends GetxController {
           user: usernameController.text.trim(),
           password: passwordController.text,
         );
-        print('Token saved, navigating to main...');
-        // Chuyển sang màn hình chính (splash sẽ sync nền)
-        Get.offAllNamed(Routes.main);
+        print('Token saved, navigating to splash for sync...');
+        // Chuyển về splash để sync hết data (lần đầu login)
+        Get.offAllNamed(Routes.splash, arguments: {'justLoggedIn': true});
       } else {
         errorMessage.value = 'Đăng nhập thất bại';
       }

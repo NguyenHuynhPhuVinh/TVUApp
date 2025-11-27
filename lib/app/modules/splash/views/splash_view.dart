@@ -80,8 +80,10 @@ class SplashView extends GetView<SplashController> {
                     ),
                   ),
                   SizedBox(height: 48.h),
-                  // Loading indicator - Duolingo style dots
-                  _buildLoadingDots(),
+                  // Loading indicator - hiển thị progress nếu đang sync
+                  Obx(() => controller.isFirstTimeSync.value
+                      ? _buildSyncProgress()
+                      : _buildLoadingDots()),
                 ],
               ),
             ),
@@ -156,6 +158,42 @@ class SplashView extends GetView<SplashController> {
         );
       },
       onEnd: () {},
+    );
+  }
+
+  Widget _buildSyncProgress() {
+    return Column(
+      children: [
+        // Progress bar
+        Container(
+          width: 200.w,
+          height: 8.h,
+          decoration: BoxDecoration(
+            color: _darkBlue,
+            borderRadius: BorderRadius.circular(4.r),
+          ),
+          child: Obx(() => FractionallySizedBox(
+                alignment: Alignment.centerLeft,
+                widthFactor: controller.syncProgress.value,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(4.r),
+                  ),
+                ),
+              )),
+        ),
+        SizedBox(height: 16.h),
+        // Status text
+        Obx(() => Text(
+              controller.syncStatus.value,
+              style: TextStyle(
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            )),
+      ],
     );
   }
 }
