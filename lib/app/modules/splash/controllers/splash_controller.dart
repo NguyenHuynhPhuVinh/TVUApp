@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:get/get.dart';
 import '../../../data/services/api_service.dart';
 import '../../../data/services/auth_service.dart';
@@ -50,10 +51,16 @@ class SplashController extends GetxController {
     }
   }
 
+  /// So sánh 2 map data, return true nếu khác nhau
+  bool _isDataChanged(Map<String, dynamic>? newData, Map<String, dynamic>? oldData) {
+    if (newData == null && oldData == null) return false;
+    if (newData == null || oldData == null) return true;
+    return jsonEncode(newData) != jsonEncode(oldData);
+  }
+
   /// Tải TKB học kỳ hiện tại (ưu tiên cao nhất)
   Future<void> _loadCurrentSemesterSchedule(String mssv) async {
     try {
-      // Lấy danh sách học kỳ
       final semestersResponse = await _apiService.getSemesters();
       if (semestersResponse == null || semestersResponse['data'] == null) {
         return;
@@ -62,11 +69,9 @@ class SplashController extends GetxController {
       final data = semestersResponse['data'];
       final currentSemester = data['hoc_ky_theo_ngay_hien_tai'] as int? ?? 0;
 
-      // Lưu danh sách học kỳ
       await _localStorage.saveSemesters({'data': data});
 
       if (currentSemester > 0) {
-        // Tải TKB học kỳ hiện tại
         final scheduleResponse = await _apiService.getSchedule(currentSemester);
         if (scheduleResponse != null && scheduleResponse['data'] != null) {
           await _localStorage.saveSchedule(
@@ -81,49 +86,66 @@ class SplashController extends GetxController {
   /// Sync các dữ liệu khác chạy nền
   Future<void> _syncInBackground(String mssv) async {
     try {
-      // 1. Thông tin sinh viên
+      // 1. Thông tin sinh viên (chỉ lưu local)
       final studentInfoResponse = await _apiService.getStudentInfo();
       if (studentInfoResponse != null && studentInfoResponse['data'] != null) {
         await _localStorage.saveStudentInfo({'data': studentInfoResponse['data']});
       }
 
-      // 2. Điểm
+      // 2. Điểm - check thay đổi trước khi đẩy Firebase
       Map<String, dynamic>? gradesData;
+      bool gradesChanged = false;
+      final oldGrades = _localStorage.getGrades();
       final gradesResponse = await _apiService.getGrades();
       if (gradesResponse != null && gradesResponse['data'] != null) {
         gradesData = {'data': gradesResponse['data']};
-        await _localStorage.saveGrades(gradesData);
+        gradesChanged = _isDataChanged(gradesData, oldGrades);
+        if (gradesChanged) {
+          await _localStorage.saveGrades(gradesData);
+        }
       }
 
-      // 3. CTDT
+      // 3. CTDT - check thay đổi
       Map<String, dynamic>? curriculumData;
+      bool curriculumChanged = false;
+      final oldCurriculum = _localStorage.getCurriculum();
       final curriculumResponse = await _apiService.getCurriculum();
       if (curriculumResponse != null && curriculumResponse['data'] != null) {
         curriculumData = {'data': curriculumResponse['data']};
-        await _localStorage.saveCurriculum(curriculumData);
+        curriculumChanged = _isDataChanged(curriculumData, oldCurriculum);
+        if (curriculumChanged) {
+          await _localStorage.saveCurriculum(curriculumData);
+        }
       }
 
-      // 4. Học phí
+      // 4. Học phí - check thay đổi
       Map<String, dynamic>? tuitionData;
+      bool tuitionChanged = false;
+      final oldTuition = _localStorage.getTuition();
       final tuitionResponse = await _apiService.getTuition();
       if (tuitionResponse != null && tuitionResponse['data'] != null) {
         tuitionData = {'data': tuitionResponse['data']};
-        await _localStorage.saveTuition(tuitionData);
+        tuitionChanged = _isDataChanged(tuitionData, oldTuition);
+        if (tuitionChanged) {
+          await _localStorage.saveTuition(tuitionData);
+        }
       }
 
-      // 5. Thông báo
+      // 5. Thông báo (chỉ lưu local)
       final notificationsResponse = await _apiService.getNotifications();
       if (notificationsResponse != null && notificationsResponse['data'] != null) {
         await _localStorage.saveNotifications({'data': notificationsResponse['data']});
       }
 
-      // 6. Đẩy lên Firebase
-      await _firebaseService.syncAllStudentData(
-        mssv: mssv,
-        grades: gradesData,
-        curriculum: curriculumData,
-        tuition: tuitionData,
-      );
+      // 6. Chỉ đẩy Firebase nếu có thay đổi
+      if (gradesChanged || curriculumChanged || tuitionChanged) {
+        await _firebaseService.syncAllStudentData(
+          mssv: mssv,
+          grades: gradesChanged ? gradesData : null,
+          curriculum: curriculumChanged ? curriculumData : null,
+          tuition: tuitionChanged ? tuitionData : null,
+        );
+      }
 
       // 7. Sync TKB các học kỳ còn lại
       await _syncRemainingSchedules(mssv);
@@ -147,7 +169,6 @@ class SplashController extends GetxController {
         final hocKy = semester['hoc_ky'] as int? ?? 0;
         if (hocKy == 0 || hocKy == currentSemester) continue;
 
-        // Chỉ tải nếu chưa có hoặc cần cập nhật
         if (!savedSemesters.contains(hocKy)) {
           final scheduleResponse = await _apiService.getSchedule(hocKy);
           if (scheduleResponse != null && scheduleResponse['data'] != null) {
@@ -158,16 +179,20 @@ class SplashController extends GetxController {
         }
       }
 
-      // Đẩy TKB học kỳ hiện tại lên Firebase (đã tải ở splash)
+      // TKB học kỳ hiện tại - check thay đổi trước khi đẩy Firebase
       if (currentSemester > 0) {
         final currentSchedule = _localStorage.getSchedule(currentSemester);
-        if (currentSchedule != null) {
+        final oldSchedule = _localStorage.getSchedule(currentSemester);
+        if (currentSchedule != null && _isDataChanged(currentSchedule, oldSchedule)) {
           await _firebaseService.saveSchedule(mssv, currentSemester, currentSchedule);
         }
       }
 
-      // Lưu semesters lên Firebase
-      await _firebaseService.saveSemesters(mssv, semestersData);
+      // Semesters - check thay đổi
+      final oldSemesters = _localStorage.getSemesters();
+      if (_isDataChanged(semestersData, oldSemesters)) {
+        await _firebaseService.saveSemesters(mssv, semestersData);
+      }
     } catch (e) {
       print('Sync remaining schedules error: $e');
     }
