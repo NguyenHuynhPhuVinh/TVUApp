@@ -23,9 +23,9 @@ class LoginView extends GetView<AuthController> {
             child: Column(
               children: [
                 SizedBox(height: AppStyles.space10),
-                const DuoMascot(
-                  mood: DuoMascotMood.happy,
-                  size: DuoMascotSize.lg,
+                const TVUMascot(
+                  mood: TVUMascotMood.happy,
+                  size: TVUMascotSize.lg,
                   hasGlow: true,
                   hasAnimation: true,
                   hasHat: true,
@@ -51,19 +51,26 @@ class LoginView extends GetView<AuthController> {
   Widget _buildWelcomeText() {
     return Column(
       children: [
-        DefaultTextStyle(
-          style: TextStyle(
-            fontSize: AppStyles.text2xl,
-            fontWeight: AppStyles.fontBold,
-            color: AppColors.textPrimary,
-          ),
-          child: AnimatedTextKit(
-            animatedTexts: [
-              WavyAnimatedText('Chào mừng đến TVU! 🎓', speed: const Duration(milliseconds: 100)),
-            ],
-            isRepeatingAnimation: false,
-            displayFullTextOnTap: true,
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            DefaultTextStyle(
+              style: TextStyle(
+                fontSize: AppStyles.text2xl,
+                fontWeight: AppStyles.fontBold,
+                color: AppColors.textPrimary,
+              ),
+              child: AnimatedTextKit(
+                animatedTexts: [
+                  WavyAnimatedText('Chào mừng đến TVU!', speed: const Duration(milliseconds: 100)),
+                ],
+                isRepeatingAnimation: false,
+                displayFullTextOnTap: true,
+              ),
+            ),
+            SizedBox(width: AppStyles.space2),
+            Icon(Icons.school_rounded, color: AppColors.primary, size: AppStyles.iconLg),
+          ],
         ),
         SizedBox(height: AppStyles.space2),
         Text(

@@ -8,5 +8,5 @@ export 'duo_card.dart';
 export 'duo_avatar.dart';
 export 'duo_badge.dart';
 export 'duo_progress.dart';
-export 'duo_mascot.dart';
 export 'duo_alert.dart';
+export 'tvu_mascot.dart';
