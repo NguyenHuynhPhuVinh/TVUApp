@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:iconsax/iconsax.dart';
 
+import '../../../core/widgets/widgets.dart';
 import '../controllers/main_controller.dart';
 import '../../home/views/home_view.dart';
 import '../../schedule/views/schedule_view.dart';
@@ -17,49 +16,40 @@ class MainView extends GetView<MainController> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Obx(() => IndexedStack(
-        index: controller.currentIndex.value,
-        children: const [
-          HomeView(),
-          ScheduleView(),
-          GradesView(),
-          ProfileView(),
-        ],
-      )),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).scaffoldBackgroundColor,
-          boxShadow: [
-            BoxShadow(
-              blurRadius: 20,
-              color: Colors.black.withValues(alpha: 0.1),
-            ),
-          ],
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-            child: Obx(() => GNav(
-              rippleColor: Colors.grey[300]!,
-              hoverColor: Colors.grey[100]!,
-              gap: 8,
-              activeColor: Theme.of(context).primaryColor,
-              iconSize: 24,
-              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-              duration: const Duration(milliseconds: 400),
-              tabBackgroundColor: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-              color: Colors.grey[600],
-              tabs: const [
-                GButton(icon: Iconsax.home, text: 'Trang chủ'),
-                GButton(icon: Iconsax.calendar, text: 'Lịch học'),
-                GButton(icon: Iconsax.chart, text: 'Điểm'),
-                GButton(icon: Iconsax.user, text: 'Cá nhân'),
-              ],
-              selectedIndex: controller.currentIndex.value,
-              onTabChange: controller.changePage,
-            )),
-          ),
-        ),
-      ),
+            index: controller.currentIndex.value,
+            children: const [
+              HomeView(),
+              ScheduleView(),
+              GradesView(),
+              ProfileView(),
+            ],
+          )),
+      bottomNavigationBar: Obx(() => DuoNavBar(
+            currentIndex: controller.currentIndex.value,
+            onTap: controller.changePage,
+            items: const [
+              DuoNavItem(
+                icon: Iconsax.home_2,
+                activeIcon: Iconsax.home_15,
+                label: 'Trang chủ',
+              ),
+              DuoNavItem(
+                icon: Iconsax.calendar_1,
+                activeIcon: Iconsax.calendar,
+                label: 'Lịch học',
+              ),
+              DuoNavItem(
+                icon: Iconsax.chart_2,
+                activeIcon: Iconsax.chart_1,
+                label: 'Điểm',
+              ),
+              DuoNavItem(
+                icon: Iconsax.user,
+                activeIcon: Iconsax.user,
+                label: 'Cá nhân',
+              ),
+            ],
+          )),
     );
   }
 }
