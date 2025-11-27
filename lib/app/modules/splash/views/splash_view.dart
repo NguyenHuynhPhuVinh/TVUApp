@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import '../controllers/splash_controller.dart';
 
@@ -9,7 +10,7 @@ class SplashView extends GetView<SplashController> {
   Widget build(BuildContext context) {
     // Access controller to ensure it's initialized
     final _ = controller;
-    
+
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
@@ -22,50 +23,80 @@ class SplashView extends GetView<SplashController> {
             ],
           ),
         ),
-        child: Center(
+        child: SafeArea(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.2),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
+              const Spacer(flex: 2),
+              Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 120.w,
+                      height: 120.w,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(24.r),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.2),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        Icons.school_rounded,
+                        size: 64.sp,
+                        color: const Color(0xFF1565C0),
+                      ),
+                    ),
+                    SizedBox(height: 24.h),
+                    Text(
+                      'TVU Student',
+                      style: TextStyle(
+                        fontSize: 32.sp,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    SizedBox(height: 8.h),
+                    Text(
+                      'Cổng thông tin Sinh viên',
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        color: Colors.white.withValues(alpha: 0.9),
+                      ),
+                    ),
+                    SizedBox(height: 48.h),
+                    const CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                     ),
                   ],
                 ),
-                child: const Icon(
-                  Icons.school_rounded,
-                  size: 64,
-                  color: Color(0xFF1565C0),
-                ),
               ),
-              const SizedBox(height: 24),
-              const Text(
-                'TVU Student',
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+              const Spacer(flex: 2),
+              Padding(
+                padding: EdgeInsets.only(bottom: 24.h),
+                child: Column(
+                  children: [
+                    Text(
+                      'v1.0',
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        color: Colors.white.withValues(alpha: 0.7),
+                      ),
+                    ),
+                    SizedBox(height: 4.h),
+                    Text(
+                      'Tạo bởi TomiSakae',
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        color: Colors.white.withValues(alpha: 0.6),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Cổng thông tin Sinh viên',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.white.withValues(alpha: 0.9),
-                ),
-              ),
-              const SizedBox(height: 48),
-              const CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
               ),
             ],
           ),

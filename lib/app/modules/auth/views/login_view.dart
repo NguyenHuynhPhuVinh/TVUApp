@@ -49,7 +49,7 @@ class LoginView extends GetView<AuthController> {
         ),
         SizedBox(height: 24.h),
         Text(
-          'TVU Student',
+          'TVUApp',
           style: TextStyle(
             fontSize: 28.sp,
             fontWeight: FontWeight.bold,
