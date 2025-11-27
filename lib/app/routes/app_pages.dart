@@ -8,6 +8,8 @@ import '../modules/game_setup/bindings/game_setup_binding.dart';
 import '../modules/game_setup/views/game_setup_view.dart';
 import '../modules/game_stats/bindings/game_stats_binding.dart';
 import '../modules/game_stats/views/game_stats_view.dart';
+import '../modules/game_rewards/bindings/game_rewards_binding.dart';
+import '../modules/game_rewards/views/game_rewards_view.dart';
 import '../modules/grades/bindings/grades_binding.dart';
 import '../modules/grades/views/grades_view.dart';
 import '../modules/home/bindings/home_binding.dart';
@@ -89,6 +91,11 @@ class AppPages {
       name: Routes.gameStats,
       page: () => const GameStatsView(),
       binding: GameStatsBinding(),
+    ),
+    GetPage(
+      name: Routes.gameRewards,
+      page: () => const GameRewardsView(),
+      binding: GameRewardsBinding(),
     ),
   ];
 }

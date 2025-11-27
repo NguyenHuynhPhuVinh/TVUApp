@@ -23,3 +23,4 @@ export 'duo_reward_card.dart';
 export 'duo_level_card.dart';
 export 'duo_attendance_card.dart';
 export 'duo_number_input.dart';
+export 'duo_message_card.dart';

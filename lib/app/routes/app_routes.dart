@@ -12,4 +12,5 @@ abstract class Routes {
   static const settings = '/settings';
   static const gameSetup = '/game-setup';
   static const gameStats = '/game-stats';
+  static const gameRewards = '/game-rewards';
 }

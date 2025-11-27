@@ -107,12 +107,17 @@ class GameService extends GetxService {
       final missedLessons = missedSessions * 4; // 1 buổi = 4 tiết
       final attendedLessons = (totalLessons - missedLessons).clamp(0, totalLessons);
       
-      // Tính rewards dựa trên số tiết đã học
-      // 1 tiết = 10 coins + 5 XP
-      // Bonus diamond mỗi 100 tiết
-      final earnedCoins = attendedLessons * 10;
-      final earnedXp = attendedLessons * 5;
-      final earnedDiamonds = attendedLessons ~/ 100;
+      // Tính rewards dựa trên số tiết đã học (TĂNG MẠNH HƠN)
+      // 1 tiết = 50 coins + 25 XP
+      // Bonus: +20% coins nếu chuyên cần >= 80%
+      // Bonus diamond mỗi 20 tiết
+      final attendanceRate = totalLessons > 0 ? (attendedLessons / totalLessons) * 100 : 100.0;
+      var earnedCoins = attendedLessons * 50;
+      if (attendanceRate >= 80) {
+        earnedCoins = (earnedCoins * 1.2).round(); // Bonus 20%
+      }
+      final earnedXp = attendedLessons * 25;
+      final earnedDiamonds = attendedLessons ~/ 20; // 1 diamond mỗi 20 tiết
       
       // Tính level từ XP
       int level = 1;
