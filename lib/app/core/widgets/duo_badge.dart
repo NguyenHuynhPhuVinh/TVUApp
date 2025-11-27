@@ -125,12 +125,13 @@ class DuoBadge extends StatelessWidget {
   }
 }
 
-/// Duolingo-style Solid Badge (filled background)
+/// Duolingo-style Solid Badge với 3D shadow effect
 class DuoSolidBadge extends StatelessWidget {
   final String text;
   final DuoBadgeVariant variant;
   final DuoBadgeSize size;
   final IconData? icon;
+  final bool inverted; // true = nền trắng, text màu
 
   const DuoSolidBadge({
     super.key,
@@ -138,9 +139,10 @@ class DuoSolidBadge extends StatelessWidget {
     this.variant = DuoBadgeVariant.primary,
     this.size = DuoBadgeSize.md,
     this.icon,
+    this.inverted = false,
   });
 
-  Color get _bgColor {
+  Color get _mainColor {
     switch (variant) {
       case DuoBadgeVariant.primary:
         return AppColors.primary;
@@ -178,17 +180,17 @@ class DuoSolidBadge extends StatelessWidget {
     switch (size) {
       case DuoBadgeSize.sm:
         return EdgeInsets.symmetric(
-          horizontal: AppStyles.space2,
+          horizontal: AppStyles.space3,
           vertical: AppStyles.space1,
         );
       case DuoBadgeSize.md:
         return EdgeInsets.symmetric(
-          horizontal: AppStyles.space3,
-          vertical: AppStyles.space1,
+          horizontal: AppStyles.space4,
+          vertical: AppStyles.space2,
         );
       case DuoBadgeSize.lg:
         return EdgeInsets.symmetric(
-          horizontal: AppStyles.space4,
+          horizontal: AppStyles.space5,
           vertical: AppStyles.space2,
         );
     }
@@ -205,17 +207,32 @@ class DuoSolidBadge extends StatelessWidget {
     }
   }
 
+  double get _shadowOffset {
+    switch (size) {
+      case DuoBadgeSize.sm:
+        return 2;
+      case DuoBadgeSize.md:
+        return 3;
+      case DuoBadgeSize.lg:
+        return 4;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final bgColor = inverted ? Colors.white : _mainColor;
+    final textColor = inverted ? _mainColor : Colors.white;
+    final shadow = inverted ? _shadowColor : _shadowColor;
+
     return Container(
       padding: _padding,
       decoration: BoxDecoration(
-        color: _bgColor,
+        color: bgColor,
         borderRadius: AppStyles.roundedFull,
         boxShadow: [
           BoxShadow(
-            color: _shadowColor,
-            offset: const Offset(0, 2),
+            color: shadow,
+            offset: Offset(0, _shadowOffset),
             blurRadius: 0,
           ),
         ],
@@ -224,15 +241,72 @@ class DuoSolidBadge extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (icon != null) ...[
-            Icon(icon, color: Colors.white, size: _fontSize + 2),
-            SizedBox(width: AppStyles.space1),
+            Icon(icon, color: textColor, size: _fontSize + 4),
+            SizedBox(width: AppStyles.space2),
           ],
           Text(
             text,
             style: TextStyle(
-              color: Colors.white,
+              color: textColor,
               fontSize: _fontSize,
               fontWeight: AppStyles.fontBold,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Duolingo-style Version Badge (đặc biệt cho version)
+class DuoVersionBadge extends StatelessWidget {
+  final String version;
+  final Color? backgroundColor;
+  final Color? textColor;
+  final Color? shadowColor;
+
+  const DuoVersionBadge({
+    super.key,
+    required this.version,
+    this.backgroundColor,
+    this.textColor,
+    this.shadowColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: AppStyles.space4,
+        vertical: AppStyles.space2,
+      ),
+      decoration: BoxDecoration(
+        color: backgroundColor ?? Colors.white,
+        borderRadius: AppStyles.roundedFull,
+        boxShadow: [
+          BoxShadow(
+            color: shadowColor ?? AppColors.primaryDark,
+            offset: const Offset(0, 3),
+            blurRadius: 0,
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.verified_rounded,
+            color: textColor ?? AppColors.primary,
+            size: AppStyles.iconSm,
+          ),
+          SizedBox(width: AppStyles.space2),
+          Text(
+            version,
+            style: TextStyle(
+              fontSize: AppStyles.textSm,
+              fontWeight: AppStyles.fontBold,
+              color: textColor ?? AppColors.primary,
             ),
           ),
         ],

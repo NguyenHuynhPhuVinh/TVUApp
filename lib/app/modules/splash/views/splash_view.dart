@@ -157,11 +157,15 @@ class SplashView extends GetView<SplashController> {
       padding: EdgeInsets.only(bottom: AppStyles.space6),
       child: Column(
         children: [
-          DuoSolidBadge(text: 'v1.0', variant: DuoBadgeVariant.primary),
-          SizedBox(height: AppStyles.space2),
+          const DuoVersionBadge(version: 'v1.0'),
+          SizedBox(height: AppStyles.space3),
           Text(
             'Tạo bởi TomiSakae',
-            style: TextStyle(fontSize: AppStyles.textXs, fontWeight: AppStyles.fontSemibold, color: AppColors.withAlpha(Colors.white, 0.8)),
+            style: TextStyle(
+              fontSize: AppStyles.textSm,
+              fontWeight: AppStyles.fontSemibold,
+              color: AppColors.withAlpha(Colors.white, 0.8),
+            ),
           ),
         ],
       ),
