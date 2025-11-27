@@ -64,3 +64,13 @@ flutter:
 
   assets:
     - assets/icon/
+    - assets/game/animal/
+    - assets/game/currency/
+    - assets/game/exclusive/
+    - assets/game/food/
+    - assets/game/item/
+    - assets/game/main/
+    - assets/game/nature/
+    - assets/game/player/
+    - assets/game/social/
+    - assets/game/ui/
