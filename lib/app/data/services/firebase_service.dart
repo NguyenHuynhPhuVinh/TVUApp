@@ -137,4 +137,70 @@ class FirebaseService extends GetxService {
       return false;
     }
   }
+
+  /// Lưu TKB của một học kỳ
+  Future<bool> saveSchedule(String mssv, int semester, Map<String, dynamic> schedule) async {
+    try {
+      await _firestore
+          .collection('students')
+          .doc(mssv)
+          .collection('schedules')
+          .doc(semester.toString())
+          .set({
+        'data': schedule,
+        'lastUpdated': FieldValue.serverTimestamp(),
+      });
+      return true;
+    } catch (e) {
+      print('Error saving schedule: $e');
+      return false;
+    }
+  }
+
+  /// Lưu danh sách học kỳ
+  Future<bool> saveSemesters(String mssv, Map<String, dynamic> semesters) async {
+    try {
+      await _firestore.collection('students').doc(mssv).set({
+        'semesters': semesters,
+        'lastUpdated': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+      return true;
+    } catch (e) {
+      print('Error saving semesters: $e');
+      return false;
+    }
+  }
+
+  /// Lấy danh sách học kỳ đã lưu trên Firebase
+  Future<List<int>> getSavedSemesters(String mssv) async {
+    try {
+      final snapshots = await _firestore
+          .collection('students')
+          .doc(mssv)
+          .collection('schedules')
+          .get();
+      return snapshots.docs.map((doc) => int.tryParse(doc.id) ?? 0).toList();
+    } catch (e) {
+      print('Error getting saved semesters: $e');
+      return [];
+    }
+  }
+
+  /// Lấy TKB của một học kỳ từ Firebase
+  Future<Map<String, dynamic>?> getSchedule(String mssv, int semester) async {
+    try {
+      final doc = await _firestore
+          .collection('students')
+          .doc(mssv)
+          .collection('schedules')
+          .doc(semester.toString())
+          .get();
+      if (doc.exists) {
+        return doc.data();
+      }
+    } catch (e) {
+      print('Error getting schedule: $e');
+    }
+    return null;
+  }
 }
