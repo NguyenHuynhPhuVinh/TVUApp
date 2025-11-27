@@ -34,13 +34,13 @@ class SplashController extends GetxController {
       }
 
       // Ưu tiên tải TKB học kỳ hiện tại trước
-      await _loadCurrentSemesterSchedule(mssv);
+      final currentScheduleData = await _loadCurrentSemesterSchedule(mssv);
 
       // Vào main ngay
       Get.offAllNamed(Routes.main);
 
-      // Chạy nền các sync khác
-      _syncInBackground(mssv);
+      // Chạy nền các sync khác (truyền data đã load để tránh gọi API lại)
+      _syncInBackground(mssv, currentScheduleData);
     } catch (e) {
       print('Splash error: $e');
       if (_authService.isLoggedIn.value) {
@@ -59,16 +59,20 @@ class SplashController extends GetxController {
   }
 
   /// Tải TKB học kỳ hiện tại (ưu tiên cao nhất)
-  Future<void> _loadCurrentSemesterSchedule(String mssv) async {
+  /// Returns: Map chứa oldSchedule và newSchedule để dùng cho sync sau
+  Future<Map<String, dynamic>?> _loadCurrentSemesterSchedule(String mssv) async {
     try {
       final semestersResponse = await _apiService.getSemesters();
       if (semestersResponse == null || semestersResponse['data'] == null) {
-        return;
+        return null;
       }
 
       final data = semestersResponse['data'];
       final currentSemester = data['hoc_ky_theo_ngay_hien_tai'] as int? ?? 0;
 
+      // Lưu old schedule trước khi ghi đè
+      final oldSchedule = _localStorage.getSchedule(currentSemester);
+      
       await _localStorage.saveSemesters({'data': data});
 
       if (currentSemester > 0) {
@@ -76,15 +80,24 @@ class SplashController extends GetxController {
         if (scheduleResponse != null && scheduleResponse['data'] != null) {
           await _localStorage.saveSchedule(
               currentSemester, scheduleResponse['data']);
+          
+          // Return để dùng cho sync Firebase sau
+          return {
+            'currentSemester': currentSemester,
+            'oldSchedule': oldSchedule,
+            'newSchedule': scheduleResponse['data'],
+          };
         }
       }
+      return null;
     } catch (e) {
       print('Load current schedule error: $e');
+      return null;
     }
   }
 
   /// Sync các dữ liệu khác chạy nền
-  Future<void> _syncInBackground(String mssv) async {
+  Future<void> _syncInBackground(String mssv, Map<String, dynamic>? currentScheduleData) async {
     try {
       // 1. Thông tin sinh viên (chỉ lưu local)
       final studentInfoResponse = await _apiService.getStudentInfo();
@@ -147,15 +160,15 @@ class SplashController extends GetxController {
         );
       }
 
-      // 7. Sync TKB các học kỳ còn lại
-      await _syncRemainingSchedules(mssv);
+      // 7. Sync TKB các học kỳ còn lại (truyền data đã load)
+      await _syncRemainingSchedules(mssv, currentScheduleData);
     } catch (e) {
       print('Background sync error: $e');
     }
   }
 
   /// Sync TKB các học kỳ còn lại (chạy nền)
-  Future<void> _syncRemainingSchedules(String mssv) async {
+  Future<void> _syncRemainingSchedules(String mssv, Map<String, dynamic>? currentScheduleData) async {
     try {
       final semestersData = _localStorage.getSemesters();
       if (semestersData == null) return;
@@ -179,29 +192,20 @@ class SplashController extends GetxController {
         }
       }
 
-      // TKB học kỳ hiện tại - lấy từ API để so sánh với local
-      if (currentSemester > 0) {
-        final oldSchedule = _localStorage.getSchedule(currentSemester);
-        final scheduleResponse = await _apiService.getSchedule(currentSemester);
-        if (scheduleResponse != null && scheduleResponse['data'] != null) {
-          final newSchedule = scheduleResponse['data'];
-          if (_isDataChanged(newSchedule, oldSchedule)) {
-            await _localStorage.saveSchedule(currentSemester, newSchedule);
-            await _firebaseService.saveSchedule(mssv, currentSemester, newSchedule);
-          }
+      // TKB học kỳ hiện tại - dùng data đã load, không gọi API lại
+      if (currentScheduleData != null) {
+        final oldSchedule = currentScheduleData['oldSchedule'];
+        final newSchedule = currentScheduleData['newSchedule'];
+        final semester = currentScheduleData['currentSemester'] as int;
+        
+        if (_isDataChanged(newSchedule, oldSchedule)) {
+          await _firebaseService.saveSchedule(mssv, semester, newSchedule);
         }
       }
 
-      // Semesters - lấy từ API để so sánh với local
-      final oldSemesters = _localStorage.getSemesters();
-      final semestersResponse = await _apiService.getSemesters();
-      if (semestersResponse != null && semestersResponse['data'] != null) {
-        final newSemestersData = {'data': semestersResponse['data']};
-        if (_isDataChanged(newSemestersData, oldSemesters)) {
-          await _localStorage.saveSemesters(newSemestersData);
-          await _firebaseService.saveSemesters(mssv, newSemestersData);
-        }
-      }
+      // Semesters - push Firebase nếu có thay đổi (đã lưu local ở _loadCurrentSemesterSchedule)
+      // Không cần gọi API lại vì đã có trong local
+      await _firebaseService.saveSemesters(mssv, semestersData);
     } catch (e) {
       print('Sync remaining schedules error: $e');
     }
