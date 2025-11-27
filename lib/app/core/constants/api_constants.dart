@@ -9,17 +9,17 @@ class ApiConstants {
   static const String schedule = '/api/sch/w-locdstkbtuanusertheohocky';
 
   // Grades
-  static const String grades = '/public/api/srm/w-locdsdiemsinhvien';
+  static const String grades = '/api/srm/w-locdsdiemsinhvien';
 
   // Tuition
-  static const String tuition = '/public/api/rms/w-locdstonghophocphisv';
+  static const String tuition = '/api/rms/w-locdstonghophocphisv';
 
   // Student Info
-  static const String studentInfo = '/public/api/dkmh/w-locsinhvieninfo';
+  static const String studentInfo = '/api/dkmh/w-locsinhvieninfo';
 
   // Curriculum
-  static const String curriculum = '/public/api/sch/w-locdsctdtsinhvien';
+  static const String curriculum = '/api/sch/w-locdsctdtsinhvien';
 
   // News
-  static const String news = '/public/api/web/w-locdsbaidang';
+  static const String news = '/api/web/w-locdsbaidang';
 }

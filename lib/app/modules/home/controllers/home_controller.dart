@@ -32,16 +32,15 @@ class HomeController extends GetxController {
   Future<void> loadStudentInfo() async {
     try {
       final response = await _apiService.getStudentInfo();
+      print('Student Info Response: $response');
       if (response != null && response['data'] != null) {
-        final student = response['data']['sinh_vien'];
-        if (student != null) {
-          studentName.value = student['ho_ten'] ?? '';
-          studentId.value = student['ma_sv'] ?? '';
-          className.value = student['lop'] ?? '';
-        }
+        final student = response['data'];
+        studentName.value = student['ten_day_du'] ?? '';
+        studentId.value = student['ma_sv'] ?? '';
+        className.value = student['lop'] ?? '';
       }
     } catch (e) {
-      // Handle error silently
+      print('Error loading student info: $e');
     }
   }
 

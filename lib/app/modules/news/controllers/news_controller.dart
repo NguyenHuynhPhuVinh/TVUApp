@@ -26,7 +26,7 @@ class NewsController extends GetxController {
         }
       }
     } catch (e) {
-      Get.snackbar('Lỗi', 'Không thể tải tin tức');
+      print('Error loading news: $e');
     } finally {
       isLoading.value = false;
     }

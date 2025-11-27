@@ -34,7 +34,7 @@ class TuitionController extends GetxController {
         totalPaid.value = paid;
       }
     } catch (e) {
-      Get.snackbar('Lỗi', 'Không thể tải thông tin học phí');
+      print('Error loading tuition: $e');
     } finally {
       isLoading.value = false;
     }

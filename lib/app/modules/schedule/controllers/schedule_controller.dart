@@ -31,7 +31,7 @@ class ScheduleController extends GetxController {
         }
       }
     } catch (e) {
-      Get.snackbar('Lỗi', 'Không thể tải thời khóa biểu');
+      print('Error loading schedule: $e');
     } finally {
       isLoading.value = false;
     }

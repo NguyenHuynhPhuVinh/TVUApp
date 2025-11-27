@@ -21,8 +21,9 @@ class ApiService extends GetxService {
 
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) {
-        if (_authService.accessToken.isNotEmpty) {
-          options.headers['Authorization'] = 'Bearer ${_authService.accessToken.value}';
+        final token = _authService.accessToken.value;
+        if (token.isNotEmpty) {
+          options.headers['Authorization'] = 'Bearer $token';
         }
         return handler.next(options);
       },
@@ -45,18 +46,13 @@ class ApiService extends GetxService {
       if (credentials['username'] == null || credentials['password'] == null) {
         return false;
       }
-
-      final response = await login(
-        credentials['username']!,
-        credentials['password']!,
-      );
-      
+      final response = await login(credentials['username']!, credentials['password']!);
       if (response != null && response['access_token'] != null) {
         await _authService.updateToken(response['access_token']);
         return true;
       }
     } catch (e) {
-      // Refresh failed
+      print('Refresh token failed: $e');
     }
     return false;
   }
@@ -64,31 +60,19 @@ class ApiService extends GetxService {
   Future<Response> _retry(RequestOptions requestOptions) async {
     final options = Options(
       method: requestOptions.method,
-      headers: {
-        ...requestOptions.headers,
-        'Authorization': 'Bearer ${_authService.accessToken.value}',
-      },
+      headers: {...requestOptions.headers, 'Authorization': 'Bearer ${_authService.accessToken.value}'},
     );
-    return _dio.request(
-      requestOptions.path,
-      data: requestOptions.data,
-      queryParameters: requestOptions.queryParameters,
-      options: options,
-    );
+    return _dio.request(requestOptions.path, data: requestOptions.data, queryParameters: requestOptions.queryParameters, options: options);
   }
 
   // Login API
   Future<Map<String, dynamic>?> login(String username, String password) async {
-    try {
-      final response = await _dio.post(
-        ApiConstants.login,
-        data: 'username=$username&password=$password&grant_type=password',
-        options: Options(contentType: 'application/x-www-form-urlencoded'),
-      );
-      return response.data;
-    } catch (e) {
-      rethrow;
-    }
+    final response = await _dio.post(
+      ApiConstants.login,
+      data: 'username=$username&password=$password&grant_type=password',
+      options: Options(contentType: 'application/x-www-form-urlencoded'),
+    );
+    return response.data;
   }
 
   // Schedule API
@@ -96,12 +80,16 @@ class ApiService extends GetxService {
     try {
       final response = await _dio.post(
         ApiConstants.schedule,
-        data: 'filter[hoc_ky]=$semester&filter[ten_hoc_ky]=&additional[paging][limit]=100&additional[paging][page]=1',
-        options: Options(contentType: 'application/x-www-form-urlencoded'),
+        data: {
+          'filter': {'hoc_ky': semester, 'ten_hoc_ky': ''},
+          'additional': {'paging': {'limit': 100, 'page': 1}, 'ordering': []}
+        },
+        options: Options(contentType: 'application/json'),
       );
       return response.data;
     } catch (e) {
-      rethrow;
+      print('Error getSchedule: $e');
+      return null;
     }
   }
 
@@ -110,15 +98,13 @@ class ApiService extends GetxService {
     try {
       final response = await _dio.post(
         ApiConstants.grades,
-        options: Options(
-          contentType: 'text/plain',
-          headers: {'hien_thi_mon_theo_hkdk': 'false'},
-        ),
-        data: null,
+        data: {'filter': {'is_tinh_diem': true}, 'additional': {'paging': {'limit': 1000, 'page': 1}}},
+        options: Options(contentType: 'application/json', headers: {'hien_thi_mon_theo_hkdk': 'false'}),
       );
       return response.data;
     } catch (e) {
-      rethrow;
+      print('Error getGrades: $e');
+      return null;
     }
   }
 
@@ -127,12 +113,13 @@ class ApiService extends GetxService {
     try {
       final response = await _dio.post(
         ApiConstants.tuition,
-        options: Options(contentType: 'text/plain'),
-        data: null,
+        data: {'filter': {}, 'additional': {'paging': {'limit': 100, 'page': 1}}},
+        options: Options(contentType: 'application/json'),
       );
       return response.data;
     } catch (e) {
-      rethrow;
+      print('Error getTuition: $e');
+      return null;
     }
   }
 
@@ -141,12 +128,14 @@ class ApiService extends GetxService {
     try {
       final response = await _dio.post(
         ApiConstants.studentInfo,
-        options: Options(contentType: 'text/plain'),
-        data: null,
+        data: {},
+        options: Options(contentType: 'application/json'),
       );
+      print('Student Info Response: ${response.data}');
       return response.data;
     } catch (e) {
-      rethrow;
+      print('Error getStudentInfo: $e');
+      return null;
     }
   }
 
@@ -157,16 +146,14 @@ class ApiService extends GetxService {
         ApiConstants.curriculum,
         data: {
           'filter': {'loai_chuong_trinh_dao_tao': 2},
-          'additional': {
-            'paging': {'limit': 500, 'page': 1},
-            'ordering': [{'name': null, 'order_type': null}],
-          },
+          'additional': {'paging': {'limit': 500, 'page': 1}, 'ordering': []}
         },
         options: Options(contentType: 'application/json'),
       );
       return response.data;
     } catch (e) {
-      rethrow;
+      print('Error getCurriculum: $e');
+      return null;
     }
   }
 
@@ -176,25 +163,18 @@ class ApiService extends GetxService {
       final response = await _dio.post(
         ApiConstants.news,
         data: {
-          'filter': {
-            'ky_hieu': type,
-            'is_hien_thi': true,
-            'is_hinh_dai_dien': true,
-            'is_quyen_xem': true,
-          },
+          'filter': {'ky_hieu': type, 'is_hien_thi': true, 'is_hinh_dai_dien': true, 'is_quyen_xem': true},
           'additional': {
             'paging': {'limit': limit, 'page': page},
-            'ordering': [
-              {'name': 'do_uu_tien', 'order_type': 1},
-              {'name': 'ngay_dang_tin', 'order_type': 1},
-            ],
-          },
+            'ordering': [{'name': 'do_uu_tien', 'order_type': 1}, {'name': 'ngay_dang_tin', 'order_type': 1}]
+          }
         },
         options: Options(contentType: 'application/json'),
       );
       return response.data;
     } catch (e) {
-      rethrow;
+      print('Error getNews: $e');
+      return null;
     }
   }
 }

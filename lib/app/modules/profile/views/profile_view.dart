@@ -59,7 +59,7 @@ class ProfileView extends GetView<ProfileController> {
           ),
           SizedBox(height: 16.h),
           Text(
-            controller.studentInfo['ho_ten'] ?? 'N/A',
+            controller.studentInfo['ten_day_du'] ?? 'N/A',
             style: TextStyle(
               fontSize: 22.sp,
               fontWeight: FontWeight.bold,
@@ -70,6 +70,11 @@ class ProfileView extends GetView<ProfileController> {
           Text(
             'MSSV: ${controller.studentInfo['ma_sv'] ?? 'N/A'}',
             style: TextStyle(fontSize: 16.sp, color: Colors.white70),
+          ),
+          SizedBox(height: 4.h),
+          Text(
+            controller.studentInfo['email'] ?? '',
+            style: TextStyle(fontSize: 14.sp, color: Colors.white60),
           ),
         ],
       ),
@@ -94,6 +99,16 @@ class ProfileView extends GetView<ProfileController> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
+            'Thông tin cá nhân',
+            style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 16.h),
+          _buildInfoRow(Iconsax.calendar, 'Ngày sinh', controller.studentInfo['ngay_sinh'] ?? 'N/A'),
+          _buildInfoRow(Iconsax.user, 'Giới tính', controller.studentInfo['gioi_tinh'] ?? 'N/A'),
+          _buildInfoRow(Iconsax.call, 'Điện thoại', controller.studentInfo['dien_thoai'] ?? 'N/A'),
+          _buildInfoRow(Iconsax.location, 'Nơi sinh', controller.studentInfo['noi_sinh'] ?? 'N/A'),
+          Divider(height: 24.h),
+          Text(
             'Thông tin học tập',
             style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
           ),
@@ -101,7 +116,8 @@ class ProfileView extends GetView<ProfileController> {
           _buildInfoRow(Iconsax.book, 'Lớp', controller.studentInfo['lop'] ?? 'N/A'),
           _buildInfoRow(Iconsax.teacher, 'Ngành', controller.studentInfo['nganh'] ?? 'N/A'),
           _buildInfoRow(Iconsax.building, 'Khoa', controller.studentInfo['khoa'] ?? 'N/A'),
-          _buildInfoRow(Iconsax.user_tick, 'CVHT', controller.studentInfo['cvht'] ?? 'N/A'),
+          _buildInfoRow(Iconsax.calendar_1, 'Niên khóa', controller.studentInfo['nien_khoa'] ?? 'N/A'),
+          _buildInfoRow(Iconsax.status, 'Trạng thái', controller.studentInfo['hien_dien_sv'] ?? 'N/A'),
         ],
       ),
     ));

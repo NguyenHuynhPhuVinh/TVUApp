@@ -32,7 +32,7 @@ class GradesController extends GetxController {
         gradesBySemester.value = semesters.map((e) => Map<String, dynamic>.from(e)).toList();
       }
     } catch (e) {
-      Get.snackbar('Lỗi', 'Không thể tải điểm học tập');
+      print('Error loading grades: $e');
     } finally {
       isLoading.value = false;
     }

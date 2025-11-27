@@ -24,7 +24,7 @@ class CurriculumController extends GetxController {
         }
       }
     } catch (e) {
-      Get.snackbar('Lỗi', 'Không thể tải chương trình đào tạo');
+      print('Error loading curriculum: $e');
     } finally {
       isLoading.value = false;
     }

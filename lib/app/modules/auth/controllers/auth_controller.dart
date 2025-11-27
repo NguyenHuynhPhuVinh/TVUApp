@@ -34,12 +34,15 @@ class AuthController extends GetxController {
         passwordController.text,
       );
 
+      print('Login response: $response');
       if (response != null && response['access_token'] != null) {
+        print('Token received: ${response['access_token'].toString().substring(0, 30)}...');
         await _authService.saveCredentials(
           token: response['access_token'],
           user: usernameController.text.trim(),
           password: passwordController.text,
         );
+        print('Token saved, navigating to main...');
         Get.offAllNamed(Routes.main);
       } else {
         errorMessage.value = 'Đăng nhập thất bại';

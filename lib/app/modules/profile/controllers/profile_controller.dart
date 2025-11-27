@@ -22,13 +22,10 @@ class ProfileController extends GetxController {
     try {
       final response = await _apiService.getStudentInfo();
       if (response != null && response['data'] != null) {
-        final student = response['data']['sinh_vien'];
-        if (student != null) {
-          studentInfo.value = Map<String, dynamic>.from(student);
-        }
+        studentInfo.value = Map<String, dynamic>.from(response['data']);
       }
     } catch (e) {
-      Get.snackbar('Lỗi', 'Không thể tải thông tin sinh viên');
+      print('Error loading profile: $e');
     } finally {
       isLoading.value = false;
     }
