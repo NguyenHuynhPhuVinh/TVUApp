@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/constants/app_assets.dart';
+import '../../../core/extensions/animation_extensions.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_styles.dart';
 import '../../../core/widgets/widgets.dart';
@@ -47,7 +47,7 @@ class _SummarySection extends StatelessWidget {
             totalDebt: controller.formatCurrency(controller.totalDebt.value),
             hasDebt: controller.totalDebt.value > 0,
           )),
-    ).animate().fadeIn(duration: 400.ms).slideY(begin: -0.1, end: 0);
+    ).animateFadeSlide(slideBegin: -0.1);
   }
 }
 
@@ -67,7 +67,7 @@ class _TuitionListSection extends StatelessWidget {
           subtitle: 'Thông tin sẽ được cập nhật khi có dữ liệu',
           iconColor: AppColors.textTertiary,
           iconBackgroundColor: AppColors.backgroundDark,
-        ).animate().fadeIn(duration: 300.ms);
+        ).animateFadeSlide();
       }
 
       final reversedList = controller.tuitionList.reversed.toList();
@@ -128,9 +128,7 @@ class _TuitionItem extends StatelessWidget {
               : null,
         );
       }),
-    ).animate()
-        .fadeIn(duration: 300.ms, delay: (index * 50).ms)
-        .slideX(begin: 0.05, end: 0);
+    ).animateFadeSlideRight(delay: (index * 50).toDouble(), slideBegin: 0.05);
   }
 
   Future<void> _claimBonus(BuildContext context) async {

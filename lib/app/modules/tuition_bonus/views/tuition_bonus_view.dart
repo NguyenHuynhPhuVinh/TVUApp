@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import '../../../core/constants/app_assets.dart';
+import '../../../core/extensions/animation_extensions.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_styles.dart';
 import '../../../core/utils/number_formatter.dart';
@@ -55,7 +56,7 @@ class TuitionBonusView extends GetView<TuitionBonusController> {
                       .animate(onPlay: (c) => c.repeat())
                       .shake(duration: 1000.ms, delay: 2500.ms),
                 ],
-              ).animate().fadeIn(duration: 400.ms).slideY(begin: -0.2),
+              ).animateFadeSlide(slideBegin: -0.2),
               
               SizedBox(height: AppStyles.space2),
               
@@ -67,7 +68,7 @@ class TuitionBonusView extends GetView<TuitionBonusController> {
                   color: AppColors.textSecondary,
                 ),
                 textAlign: TextAlign.center,
-              )).animate().fadeIn(delay: 200.ms),
+              )).animateFadeSlide(delay: 200),
               
               SizedBox(height: AppStyles.space6),
               
@@ -75,9 +76,7 @@ class TuitionBonusView extends GetView<TuitionBonusController> {
               Obx(() => _BonusAmountCard(
                 amount: controller.displayedBalance.value,
                 isAnimating: controller.isAnimating.value,
-              )).animate()
-                .fadeIn(delay: 600.ms)
-                .scale(begin: const Offset(0.9, 0.9)),
+              )).animateScaleFade(delay: 600, scaleBegin: 0.9),
               
               SizedBox(height: AppStyles.space3),
               
@@ -107,7 +106,7 @@ class TuitionBonusView extends GetView<TuitionBonusController> {
                     ),
                   ],
                 ),
-              ).animate().fadeIn(delay: 800.ms),
+              ).animateFadeSlide(delay: 800),
               
               SizedBox(height: AppStyles.space6),
               
@@ -122,9 +121,7 @@ class TuitionBonusView extends GetView<TuitionBonusController> {
                 onPressed: controller.isAnimating.value || controller.isClaiming.value
                     ? null
                     : controller.claimAndContinue,
-              )).animate()
-                .fadeIn(delay: 1000.ms)
-                .slideY(begin: 0.2),
+              )).animateFadeSlide(delay: 1000, slideBegin: 0.2),
               
               SizedBox(height: AppStyles.space2),
               
@@ -140,7 +137,7 @@ class TuitionBonusView extends GetView<TuitionBonusController> {
                           fontSize: AppStyles.textSm,
                         ),
                       ),
-                    ).animate().fadeIn(delay: 1200.ms),
+                    ).animateFadeSlide(delay: 1200),
               ),
               
               SizedBox(height: AppStyles.space2),

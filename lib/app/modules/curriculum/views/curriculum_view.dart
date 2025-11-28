@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:flutter_animate/flutter_animate.dart';
+import '../../../core/extensions/animation_extensions.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_styles.dart';
 import '../../../core/widgets/widgets.dart';
@@ -78,7 +78,7 @@ class _SummarySection extends StatelessWidget {
           }),
         ],
       ),
-    ).animate().fadeIn(duration: 400.ms).slideY(begin: -0.1, end: 0);
+    ).animateFadeSlide(slideBegin: -0.1);
   }
 }
 
@@ -197,8 +197,6 @@ class _SubjectItem extends StatelessWidget {
           onClaimReward: () => controller.claimSubjectReward(item),
         );
       }),
-    ).animate()
-        .fadeIn(duration: 300.ms, delay: (index * 30).ms)
-        .slideX(begin: 0.05, end: 0);
+    ).animateFadeSlideRight(delay: (index * 30).toDouble(), slideBegin: 0.05);
   }
 }

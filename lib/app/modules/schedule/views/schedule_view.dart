@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:flutter_animate/flutter_animate.dart';
+import '../../../core/extensions/animation_extensions.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_styles.dart';
 import '../../../core/widgets/widgets.dart';
@@ -131,7 +131,7 @@ class _ScheduleListSection extends StatelessWidget {
               : null,
           iconColor: AppColors.textTertiary,
           iconBackgroundColor: AppColors.backgroundDark,
-        ).animate().fadeIn(duration: 300.ms);
+        ).animateFadeSlide();
       }
 
       return ListView.builder(
@@ -239,9 +239,7 @@ class _ScheduleCardItem extends StatelessWidget {
         isExpired: isExpired,
         timeRemaining: timeRemaining,
         onCheckIn: () => _handleCheckIn(context),
-      ).animate()
-          .fadeIn(duration: 300.ms, delay: (index * 50).ms)
-          .slideX(begin: 0.1, end: 0);
+      ).animateFadeSlideRight(delay: (index * 50).toDouble(), slideBegin: 0.1);
     });
   }
 

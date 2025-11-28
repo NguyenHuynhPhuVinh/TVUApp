@@ -1,8 +1,8 @@
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import '../../../core/extensions/animation_extensions.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_styles.dart';
 import '../../../core/widgets/widgets.dart';
@@ -47,7 +47,7 @@ class GameRewardsView extends GetView<GameRewardsController> {
                         color: AppColors.green,
                       ),
                     ),
-                  ).animate().scale(duration: 400.ms, curve: Curves.easeOutBack),
+                  ).animateBounce(scaleBegin: 0),
 
                   SizedBox(height: AppStyles.space4),
 
@@ -59,7 +59,7 @@ class GameRewardsView extends GetView<GameRewardsController> {
                       fontWeight: AppStyles.fontBold,
                       color: AppColors.textPrimary,
                     ),
-                  ).animate().fadeIn(delay: 200.ms, duration: 300.ms),
+                  ).animateFadeSlide(delay: 200),
 
                   SizedBox(height: AppStyles.space1),
 
@@ -69,7 +69,7 @@ class GameRewardsView extends GetView<GameRewardsController> {
                       fontSize: AppStyles.textSm,
                       color: AppColors.textSecondary,
                     ),
-                  ).animate().fadeIn(delay: 300.ms, duration: 300.ms),
+                  ).animateFadeSlide(delay: 300),
 
                   SizedBox(height: 32.h),
 
@@ -78,10 +78,7 @@ class GameRewardsView extends GetView<GameRewardsController> {
                       ? DuoRewardTile.coin(
                           value: controller.animatedCoins.value,
                           size: DuoRewardTileSize.md,
-                        )
-                          .animate()
-                          .fadeIn(duration: 400.ms)
-                          .slideX(begin: -0.1, end: 0)
+                        ).animateFadeSlideLeft(slideBegin: -0.1)
                       : SizedBox(height: 72.h)),
 
                   SizedBox(height: 12.h),
@@ -91,10 +88,7 @@ class GameRewardsView extends GetView<GameRewardsController> {
                       ? DuoRewardTile.diamond(
                           value: controller.animatedDiamonds.value,
                           size: DuoRewardTileSize.md,
-                        )
-                          .animate()
-                          .fadeIn(duration: 400.ms)
-                          .slideX(begin: 0.1, end: 0)
+                        ).animateFadeSlideRight(slideBegin: 0.1)
                       : SizedBox(height: 72.h)),
 
                   SizedBox(height: 12.h),
@@ -107,10 +101,7 @@ class GameRewardsView extends GetView<GameRewardsController> {
                           totalXp: controller.earnedXp,
                           finalLevel: controller.level,
                           onComplete: () => controller.showButton.value = true,
-                        )
-                          .animate()
-                          .fadeIn(duration: 400.ms)
-                          .slideY(begin: 0.1, end: 0)
+                        ).animateFadeSlide()
                       : SizedBox(height: 120.h)),
 
                   SizedBox(height: 40.h),
@@ -121,10 +112,7 @@ class GameRewardsView extends GetView<GameRewardsController> {
                           text: 'Bắt đầu học',
                           variant: DuoButtonVariant.success,
                           onPressed: controller.continueToMain,
-                        )
-                          .animate()
-                          .fadeIn(duration: 400.ms)
-                          .slideY(begin: 0.1, end: 0)
+                        ).animateFadeSlide()
                       : const SizedBox.shrink()),
 
                   SizedBox(height: 20.h),

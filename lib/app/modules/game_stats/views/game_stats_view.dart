@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import '../../../core/extensions/animation_extensions.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_styles.dart';
 import '../../../core/widgets/widgets.dart';
@@ -36,7 +36,7 @@ class GameStatsView extends GetView<GameStatsController> {
                     color: AppColors.primary,
                   ),
                 ),
-              ).animate().scale(duration: 400.ms, curve: Curves.easeOutBack),
+              ).animateBounce(scaleBegin: 0),
 
               SizedBox(height: AppStyles.space4),
 
@@ -48,7 +48,7 @@ class GameStatsView extends GetView<GameStatsController> {
                   fontWeight: AppStyles.fontBold,
                   color: AppColors.textPrimary,
                 ),
-              ).animate().fadeIn(delay: 200.ms, duration: 300.ms),
+              ).animateFadeSlide(delay: 200),
 
               SizedBox(height: 32.h),
 
@@ -71,25 +71,19 @@ class GameStatsView extends GetView<GameStatsController> {
                     value: '${controller.missedLessons}',
                   ),
                 ],
-              )
-                  .animate()
-                  .fadeIn(delay: 300.ms, duration: 400.ms)
-                  .slideY(begin: 0.1, end: 0),
+              ).animateFadeSlide(delay: 300),
 
               SizedBox(height: 24.h),
 
               // Attendance Rate Card
               DuoAttendanceRateCard(rate: controller.attendanceRate)
-                  .animate()
-                  .fadeIn(delay: 500.ms, duration: 400.ms)
-                  .slideY(begin: 0.1, end: 0),
+                  .animateFadeSlide(delay: 500),
 
               SizedBox(height: 24.h),
 
               // Message Card
               DuoFeedbackCard.fromAttendanceRate(controller.attendanceRate)
-                  .animate()
-                  .fadeIn(delay: 700.ms, duration: 400.ms),
+                  .animateFadeSlide(delay: 700),
 
               SizedBox(height: 40.h),
 
@@ -98,10 +92,7 @@ class GameStatsView extends GetView<GameStatsController> {
                 text: 'Xem phần thưởng',
                 variant: DuoButtonVariant.success,
                 onPressed: controller.continueToRewards,
-              )
-                  .animate()
-                  .fadeIn(delay: 900.ms, duration: 400.ms)
-                  .slideY(begin: 0.2, end: 0),
+              ).animateFadeSlide(delay: 900, slideBegin: 0.2),
 
               SizedBox(height: 20.h),
             ],

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/constants/app_assets.dart';
+import '../../../core/extensions/animation_extensions.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_styles.dart';
 import '../../../core/utils/rank_helper.dart';
@@ -73,7 +73,7 @@ class GradesView extends GetView<GradesController> {
                 level: controller.currentLevel,
                 rankIndex: controller.rankIndex,
                 rankAsset: controller.rankAsset,
-              )).animate().fadeIn(duration: 400.ms).slideY(begin: -0.1, end: 0),
+              )).animateFadeSlide(slideBegin: -0.1),
           SizedBox(height: AppStyles.space4),
           Obx(() => DuoStatCard(
                 title: 'Điểm tích lũy',
@@ -82,7 +82,7 @@ class GradesView extends GetView<GradesController> {
                   DuoStatItem(label: 'GPA (Hệ 4)', value: controller.gpa4),
                   DuoStatItem(label: 'Tín chỉ', value: controller.totalCredits),
                 ],
-              )).animate().fadeIn(delay: 100.ms),
+              )).animateFadeSlide(delay: 100),
           SizedBox(height: AppStyles.space4),
           Obx(() => DuoRankProgress(
                 currentRankName: controller.rankName,
@@ -93,7 +93,7 @@ class GradesView extends GetView<GradesController> {
                 progress: controller.progressToNextRank,
                 rankColor: controller.rankColor,
                 isMaxRank: RankHelper.isMaxRank(controller.rankIndex),
-              )).animate().fadeIn(delay: 200.ms),
+              )).animateFadeSlide(delay: 200),
           SizedBox(height: AppStyles.space6),
         ],
       ),
@@ -195,7 +195,7 @@ class GradesView extends GetView<GradesController> {
                     score4: grade['diem_tk_so']?.toString(),
                     note: score.isEmpty ? 'Chưa có điểm' : null,
                   ),
-                ).animate().fadeIn(duration: 200.ms, delay: (index * 30).ms);
+                ).animateListItem(index: index, staggerDelay: 30, duration: 200);
               },
             );
           }),
@@ -215,7 +215,7 @@ class GradesView extends GetView<GradesController> {
                 totalSubjects: controller.totalSubjects,
                 passedSubjects: controller.passedSubjects,
                 excellentSubjects: controller.excellentSubjects,
-              )).animate().fadeIn(duration: 300.ms),
+              )).animateFadeSlide(),
           SizedBox(height: AppStyles.space4),
           Obx(() {
             final dist = controller.gradesByClassification;
@@ -230,7 +230,7 @@ class GradesView extends GetView<GradesController> {
               totalSubjects: controller.totalSubjects,
               getColor: controller.getClassificationColor,
             );
-          }).animate().fadeIn(delay: 100.ms),
+          }).animateFadeSlide(delay: 100),
           SizedBox(height: AppStyles.space4),
           Obx(() {
             final highest = controller.highestGrade;
@@ -268,7 +268,7 @@ class GradesView extends GetView<GradesController> {
                 ],
               ],
             );
-          }).animate().fadeIn(delay: 200.ms),
+          }).animateFadeSlide(delay: 200),
           SizedBox(height: AppStyles.space4),
           // Danh sách môn theo học lực
           Obx(() => _buildGradesByClassification()),

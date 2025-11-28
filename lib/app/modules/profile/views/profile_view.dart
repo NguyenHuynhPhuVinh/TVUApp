@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:flutter_animate/flutter_animate.dart';
+import '../../../core/extensions/animation_extensions.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_styles.dart';
 import '../../../core/widgets/widgets.dart';
@@ -42,7 +41,7 @@ class ProfileView extends GetView<ProfileController> {
           name: controller.studentInfo['ten_day_du'] ?? 'N/A',
           subtitle: 'MSSV: ${controller.studentInfo['ma_sv'] ?? 'N/A'}',
           email: controller.studentInfo['email'],
-        )).animate().fadeIn(duration: 400.ms).slideY(begin: -0.1, end: 0);
+        )).animateFadeSlide(slideBegin: -0.1);
   }
 
   Widget _buildPersonalInfo() {
@@ -75,7 +74,7 @@ class ProfileView extends GetView<ProfileController> {
               iconColor: AppColors.primary,
             ),
           ],
-        )).animate().fadeIn(duration: 400.ms, delay: 100.ms).slideY(begin: 0.1, end: 0);
+        )).animateFadeSlide(delay: 100);
   }
 
   Widget _buildAcademicInfo() {
@@ -114,7 +113,7 @@ class ProfileView extends GetView<ProfileController> {
               iconColor: AppColors.green,
             ),
           ],
-        )).animate().fadeIn(duration: 400.ms, delay: 200.ms).slideY(begin: 0.1, end: 0);
+        )).animateFadeSlide(delay: 200);
   }
 
   Widget _buildGameStats() {
@@ -195,10 +194,7 @@ class ProfileView extends GetView<ProfileController> {
           ],
         ),
       );
-    })
-        .animate()
-        .fadeIn(duration: 400.ms, delay: 50.ms)
-        .slideY(begin: 0.1, end: 0);
+    }).animateFadeSlide(delay: 50);
   }
 
   Widget _buildMenuSection() {
@@ -209,7 +205,7 @@ class ProfileView extends GetView<ProfileController> {
           title: 'Ví của tôi',
           subtitle: 'Xem số dư và lịch sử giao dịch',
           onTap: () => Get.toNamed(Routes.wallet),
-        ).animate().fadeIn(duration: 400.ms, delay: 300.ms).slideY(begin: 0.1, end: 0),
+        ).animateFadeSlide(delay: 300),
         SizedBox(height: AppStyles.space2),
         DuoMenuItem(
           icon: Iconsax.logout,
@@ -217,7 +213,7 @@ class ProfileView extends GetView<ProfileController> {
           subtitle: 'Thoát khỏi tài khoản hiện tại',
           onTap: controller.logout,
           isDestructive: true,
-        ).animate().fadeIn(duration: 400.ms, delay: 350.ms).slideY(begin: 0.1, end: 0),
+        ).animateFadeSlide(delay: 350),
       ],
     );
   }

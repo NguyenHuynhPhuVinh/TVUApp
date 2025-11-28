@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:flutter_animate/flutter_animate.dart';
+import '../../../core/extensions/animation_extensions.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_styles.dart';
 import '../../../core/widgets/widgets.dart';
@@ -27,7 +27,7 @@ class NewsView extends GetView<NewsController> {
             subtitle: 'Thông báo mới sẽ xuất hiện ở đây',
             iconColor: AppColors.textTertiary,
             iconBackgroundColor: AppColors.backgroundDark,
-          ).animate().fadeIn(duration: 300.ms);
+          ).animateFadeSlide();
         }
         return ListView.builder(
           padding: EdgeInsets.all(AppStyles.space4),
@@ -75,8 +75,6 @@ class _NotificationItem extends StatelessWidget {
           isPriority: isPriority,
         ),
       ),
-    ).animate()
-        .fadeIn(duration: 300.ms, delay: (index * 30).ms)
-        .slideX(begin: 0.05, end: 0);
+    ).animateFadeSlideRight(delay: (index * 30).toDouble(), slideBegin: 0.05);
   }
 }

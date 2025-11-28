@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:flutter_animate/flutter_animate.dart';
+import '../../../core/extensions/animation_extensions.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_styles.dart';
 import '../../../core/widgets/widgets.dart';
@@ -65,7 +65,7 @@ class _WelcomeSection extends StatelessWidget {
         coins: stats.coins,
         diamonds: stats.diamonds,
       );
-    }).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0);
+    }).animateFadeSlide();
   }
 }
 
@@ -131,9 +131,7 @@ class _QuickActionsSection extends StatelessWidget {
                 color: action['color'] as Color,
                 showBadge: _getBadgeState(badgeKey),
                 onTap: () => Get.toNamed(action['route'] as String),
-              )).animate()
-                  .fadeIn(duration: 300.ms, delay: (index * 50).ms)
-                  .scale(begin: const Offset(0.8, 0.8), end: const Offset(1, 1));
+              )).animateScaleFade(delay: (index * 50).toDouble(), scaleBegin: 0.8);
             }
             
             return DuoQuickAction(
@@ -141,9 +139,7 @@ class _QuickActionsSection extends StatelessWidget {
               label: action['label'] as String,
               color: action['color'] as Color,
               onTap: () => Get.toNamed(action['route'] as String),
-            ).animate()
-                .fadeIn(duration: 300.ms, delay: (index * 50).ms)
-                .scale(begin: const Offset(0.8, 0.8), end: const Offset(1, 1));
+            ).animateScaleFade(delay: (index * 50).toDouble(), scaleBegin: 0.8);
           },
         ),
       ],
@@ -179,9 +175,7 @@ class _TodayScheduleSection extends StatelessWidget {
               subtitle: 'Hãy tận hưởng ngày nghỉ!',
               iconColor: AppColors.green,
               iconBackgroundColor: AppColors.greenSoft,
-            ).animate()
-                .fadeIn(duration: 400.ms)
-                .scale(begin: const Offset(0.95, 0.95), end: const Offset(1, 1));
+            ).animateScaleFade(scaleBegin: 0.95);
           }
           return ListView.separated(
             shrinkWrap: true,
@@ -197,9 +191,7 @@ class _TodayScheduleSection extends StatelessWidget {
                 maPhong: item['ma_phong'] ?? 'N/A',
                 tenGiangVien: item['ten_giang_vien'] ?? 'N/A',
                 accentColor: _colors[index % _colors.length],
-              ).animate()
-                  .fadeIn(duration: 300.ms, delay: (index * 100).ms)
-                  .slideX(begin: 0.1, end: 0);
+              ).animateFadeSlideRight(delay: (index * 100).toDouble(), slideBegin: 0.1);
             },
           );
         }),
