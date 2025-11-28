@@ -17,6 +17,7 @@ export 'feedback/duo_tag.dart';
 export 'feedback/duo_update_dialog.dart';
 export 'feedback/duo_security_dialog.dart';
 export 'feedback/duo_terms_dialog.dart';
+export 'feedback/duo_notification_detail.dart';
 
 // Navigation widgets
 export 'navigation/duo_app_bar.dart';
@@ -40,6 +41,14 @@ export 'display/duo_message_card.dart';
 export 'display/duo_mini_stat.dart';
 export 'display/tvu_mascot.dart';
 export 'display/duo_info_row.dart';
+export 'display/duo_today_schedule_card.dart';
+export 'display/duo_quick_action.dart';
+export 'display/duo_welcome_card.dart';
+export 'display/duo_notification_card.dart';
+export 'display/duo_tuition_card.dart';
+export 'display/duo_tuition_summary.dart';
+export 'display/duo_curriculum_summary.dart';
+export 'display/duo_subject_card.dart';
 
 // Game widgets
 export 'game/duo_currency_card.dart';

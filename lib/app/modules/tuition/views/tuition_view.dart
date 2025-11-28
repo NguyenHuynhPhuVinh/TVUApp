@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -23,128 +22,42 @@ class TuitionView extends GetView<TuitionController> {
       ),
       body: Column(
         children: [
-          _buildSummaryCard(),
-          Expanded(child: _buildTuitionList()),
+          _SummarySection(controller: controller),
+          Expanded(child: _TuitionListSection(controller: controller)),
         ],
       ),
     );
   }
+}
 
-  Widget _buildSummaryCard() {
+/// Section tổng quan học phí
+class _SummarySection extends StatelessWidget {
+  final TuitionController controller;
+
+  const _SummarySection({required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.all(AppStyles.space4),
-      child: Obx(() {
-        final hasDebt = controller.totalDebt.value > 0;
-
-        return Container(
-          padding: EdgeInsets.all(AppStyles.space5),
-          decoration: BoxDecoration(
-            color: AppColors.primary,
-            borderRadius: AppStyles.rounded2xl,
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primaryDark,
-                offset: const Offset(0, 4),
-                blurRadius: 0,
-              ),
-            ],
-          ),
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildSummaryItem(
-                      'Tổng phải thu',
-                      controller.formatCurrency(controller.totalTuition.value),
-                      Iconsax.receipt,
-                      Colors.white,
-                    ),
-                  ),
-                  Container(
-                    width: 1,
-                    height: 50.h,
-                    color: AppColors.withAlpha(Colors.white, 0.3),
-                  ),
-                  Expanded(
-                    child: _buildSummaryItem(
-                      'Đã đóng',
-                      controller.formatCurrency(controller.totalPaid.value),
-                      Iconsax.tick_circle,
-                      AppColors.greenLight,
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: AppStyles.space4),
-              Container(
-                padding: EdgeInsets.all(AppStyles.space3),
-                decoration: BoxDecoration(
-                  color: hasDebt
-                      ? AppColors.withAlpha(AppColors.red, 0.3)
-                      : AppColors.withAlpha(AppColors.green, 0.3),
-                  borderRadius: AppStyles.roundedXl,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      hasDebt ? Iconsax.warning_2 : Iconsax.tick_circle,
-                      color: Colors.white,
-                      size: AppStyles.iconSm,
-                    ),
-                    SizedBox(width: AppStyles.space2),
-                    Text(
-                      hasDebt
-                          ? 'Còn nợ: ${controller.formatCurrency(controller.totalDebt.value)}'
-                          : 'Đã đóng đủ học phí',
-                      style: TextStyle(
-                        fontSize: AppStyles.textBase,
-                        fontWeight: AppStyles.fontBold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        );
-      }),
+      child: Obx(() => DuoTuitionSummary(
+            totalTuition: controller.formatCurrency(controller.totalTuition.value),
+            totalPaid: controller.formatCurrency(controller.totalPaid.value),
+            totalDebt: controller.formatCurrency(controller.totalDebt.value),
+            hasDebt: controller.totalDebt.value > 0,
+          )),
     ).animate().fadeIn(duration: 400.ms).slideY(begin: -0.1, end: 0);
   }
+}
 
-  Widget _buildSummaryItem(String label, String value, IconData icon, Color iconColor) {
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: AppStyles.iconXs, color: iconColor),
-            SizedBox(width: AppStyles.space1),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: AppStyles.textXs,
-                color: AppColors.withAlpha(Colors.white, 0.8),
-              ),
-            ),
-          ],
-        ),
-        SizedBox(height: AppStyles.space2),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: AppStyles.textLg,
-            fontWeight: AppStyles.fontBold,
-            color: Colors.white,
-          ),
-        ),
-      ],
-    );
-  }
+/// Section danh sách học phí
+class _TuitionListSection extends StatelessWidget {
+  final TuitionController controller;
 
-  Widget _buildTuitionList() {
+  const _TuitionListSection({required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
     return Obx(() {
       if (controller.tuitionList.isEmpty) {
         return DuoEmptyState(
@@ -161,12 +74,30 @@ class TuitionView extends GetView<TuitionController> {
       return ListView.builder(
         padding: EdgeInsets.symmetric(horizontal: AppStyles.space4),
         itemCount: reversedList.length,
-        itemBuilder: (context, index) => _buildTuitionCard(reversedList[index], index),
+        itemBuilder: (context, index) => _TuitionItem(
+          item: reversedList[index],
+          index: index,
+          controller: controller,
+        ),
       );
     });
   }
+}
 
-  Widget _buildTuitionCard(Map<String, dynamic> item, int index) {
+/// Item học phí
+class _TuitionItem extends StatelessWidget {
+  final Map<String, dynamic> item;
+  final int index;
+  final TuitionController controller;
+
+  const _TuitionItem({
+    required this.item,
+    required this.index,
+    required this.controller,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     final hocPhi = NumberFormatter.parseDouble(item['hoc_phi']);
     final mienGiam = NumberFormatter.parseDouble(item['mien_giam']);
     final duocHoTro = NumberFormatter.parseDouble(item['duoc_ho_tro']);
@@ -178,138 +109,19 @@ class TuitionView extends GetView<TuitionController> {
 
     return Container(
       margin: EdgeInsets.only(bottom: AppStyles.space3),
-      child: DuoCard(
-        padding: EdgeInsets.all(AppStyles.space4),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 4.w,
-                  height: 40.h,
-                  decoration: BoxDecoration(
-                    color: hasDebt ? AppColors.red : AppColors.green,
-                    borderRadius: AppStyles.roundedFull,
-                  ),
-                ),
-                SizedBox(width: AppStyles.space3),
-                Expanded(
-                  child: Text(
-                    item['ten_hoc_ky'] ?? 'N/A',
-                    style: TextStyle(
-                      fontSize: AppStyles.textBase,
-                      fontWeight: AppStyles.fontBold,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ),
-                Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: AppStyles.space3,
-                    vertical: AppStyles.space1,
-                  ),
-                  decoration: BoxDecoration(
-                    color: hasDebt ? AppColors.redSoft : AppColors.greenSoft,
-                    borderRadius: AppStyles.roundedFull,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        hasDebt ? Iconsax.warning_2 : Iconsax.tick_circle,
-                        size: 12.sp,
-                        color: hasDebt ? AppColors.red : AppColors.green,
-                      ),
-                      SizedBox(width: AppStyles.space1),
-                      Text(
-                        hasDebt ? 'Còn nợ' : 'Đã đóng đủ',
-                        style: TextStyle(
-                          fontSize: AppStyles.textXs,
-                          fontWeight: AppStyles.fontBold,
-                          color: hasDebt ? AppColors.red : AppColors.green,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: AppStyles.space4),
-            _buildTuitionRow('Học phí', controller.formatCurrency(hocPhi)),
-            if (mienGiam > 0)
-              _buildTuitionRow(
-                'Miễn giảm',
-                '-${controller.formatCurrency(mienGiam)}',
-                color: AppColors.orange,
-              ),
-            if (duocHoTro > 0)
-              _buildTuitionRow(
-                'Được hỗ trợ',
-                '-${controller.formatCurrency(duocHoTro)}',
-                color: AppColors.primary,
-              ),
-            Padding(
-              padding: EdgeInsets.symmetric(vertical: AppStyles.space2),
-              child: Divider(color: AppColors.border, height: 1),
-            ),
-            _buildTuitionRow(
-              'Phải thu',
-              controller.formatCurrency(phaiThu),
-              isBold: true,
-            ),
-            _buildTuitionRow(
-              'Đã đóng',
-              controller.formatCurrency(daThu),
-              color: AppColors.green,
-            ),
-            if (conNo > 0)
-              _buildTuitionRow(
-                'Còn nợ',
-                controller.formatCurrency(conNo),
-                color: AppColors.red,
-                isBold: true,
-              ),
-            if (donGia > 0) ...[
-              SizedBox(height: AppStyles.space2),
-              Text(
-                'Đơn giá: ${controller.formatCurrency(donGia)}/TC',
-                style: TextStyle(
-                  fontSize: AppStyles.textXs,
-                  color: AppColors.textTertiary,
-                  fontStyle: FontStyle.italic,
-                ),
-              ),
-            ],
-          ],
-        ),
+      child: DuoTuitionCard(
+        tenHocKy: item['ten_hoc_ky'] ?? 'N/A',
+        hocPhi: controller.formatCurrency(hocPhi),
+        mienGiam: mienGiam > 0 ? controller.formatCurrency(mienGiam) : null,
+        duocHoTro: duocHoTro > 0 ? controller.formatCurrency(duocHoTro) : null,
+        phaiThu: controller.formatCurrency(phaiThu),
+        daThu: controller.formatCurrency(daThu),
+        conNo: controller.formatCurrency(conNo),
+        donGia: donGia > 0 ? controller.formatCurrency(donGia) : null,
+        hasDebt: hasDebt,
       ),
-    ).animate().fadeIn(duration: 300.ms, delay: (index * 50).ms).slideX(begin: 0.05, end: 0);
-  }
-
-  Widget _buildTuitionRow(String label, String value, {Color? color, bool isBold = false}) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: AppStyles.space1),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: AppStyles.textSm,
-              color: AppColors.textSecondary,
-            ),
-          ),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: AppStyles.textSm,
-              fontWeight: isBold ? AppStyles.fontBold : AppStyles.fontMedium,
-              color: color ?? AppColors.textPrimary,
-            ),
-          ),
-        ],
-      ),
-    );
+    ).animate()
+        .fadeIn(duration: 300.ms, delay: (index * 50).ms)
+        .slideX(begin: 0.05, end: 0);
   }
 }
