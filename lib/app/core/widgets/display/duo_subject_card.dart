@@ -218,7 +218,7 @@ class DuoSubjectCard extends StatelessWidget {
               AppAssets.giftPurple,
               width: 16.w,
               height: 16.w,
-              errorBuilder: (_, __, ___) => Icon(
+              errorBuilder: (context, error, stackTrace) => Icon(
                 Iconsax.gift,
                 size: 14.sp,
                 color: Colors.white,

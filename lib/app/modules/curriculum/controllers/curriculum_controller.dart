@@ -1,5 +1,4 @@
 import 'package:get/get.dart';
-import '../../../core/enums/reward_claim_status.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../data/services/game_service.dart';

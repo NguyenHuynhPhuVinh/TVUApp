@@ -175,7 +175,7 @@ class DuoCurrencyRow extends StatelessWidget {
           assetPath,
           width: _iconSize,
           height: _iconSize,
-          errorBuilder: (_, __, ___) => Icon(
+          errorBuilder: (context, error, stackTrace) => Icon(
             fallbackIcon ?? Icons.star,
             size: _iconSize,
             color: color,
