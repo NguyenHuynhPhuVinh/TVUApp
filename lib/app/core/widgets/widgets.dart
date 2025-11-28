@@ -75,3 +75,5 @@ export 'game/duo_rank_card.dart';
 export 'game/duo_rank_progress.dart';
 export 'game/duo_grade_analysis.dart';
 export 'game/duo_grade_category.dart';
+export 'game/duo_rank_reward_item.dart';
+export 'game/duo_rank_rewards_sheet.dart';

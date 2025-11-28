@@ -1317,4 +1317,202 @@ class GameService extends GetxService {
       isLoading.value = false;
     }
   }
+
+  // ============ RANK REWARD SYSTEM ============
+
+  bool _isClaimingRankReward = false; // Lock ngăn race condition
+
+  /// Tính reward cho rank dựa trên tier và level
+  /// Base: 10K coins + 100 diamonds, tăng theo tier và level
+  static Map<String, int> calculateRankReward(int rankIndex) {
+    final tierIndex = rankIndex ~/ 7;
+    final level = (rankIndex % 7) + 1;
+    
+    final tierMultiplier = tierIndex + 1;
+    final baseCoins = 10000 * tierMultiplier;
+    final baseDiamonds = 100 * tierMultiplier;
+    
+    final levelBonus = level * 0.2;
+    
+    return {
+      'coins': (baseCoins * (1 + levelBonus)).round(),
+      'diamonds': (baseDiamonds * (1 + levelBonus)).round(),
+    };
+  }
+
+  /// Kiểm tra rank đã claim trên Firebase chưa
+  Future<bool> _checkRankClaimedOnFirebase(String mssv, int rankIndex) async {
+    if (mssv.isEmpty) return true;
+    
+    try {
+      final doc = await _firestore.collection('students').doc(mssv).get();
+      if (doc.exists && doc.data()?['gameStats'] != null) {
+        final gameStats = doc.data()!['gameStats'] as Map<String, dynamic>;
+        final claimed = gameStats['claimedRankRewards'] as List? ?? [];
+        return claimed.contains(rankIndex);
+      }
+      return false;
+    } catch (e) {
+      debugPrint('Error checking rank claimed on Firebase: $e');
+      return true; // Block nếu lỗi (an toàn hơn)
+    }
+  }
+
+  /// Nhận reward cho 1 rank
+  /// Flow: Check Firebase → Security → Validate → Update local → Sync Firebase
+  Future<Map<String, dynamic>?> claimRankReward({
+    required String mssv,
+    required int rankIndex,
+    required int currentRankIndex, // Rank hiện tại của user
+  }) async {
+    // 0. Check lock - ngăn double click
+    if (_isClaimingRankReward) {
+      debugPrint('⚠️ claimRankReward blocked: Already processing');
+      return null;
+    }
+    _isClaimingRankReward = true;
+    isLoading.value = true;
+    
+    try {
+      // 1. Validate: chỉ claim được rank đã đạt
+      if (rankIndex > currentRankIndex) {
+        debugPrint('⚠️ claimRankReward blocked: Rank $rankIndex not unlocked');
+        return null;
+      }
+      
+      // 2. Check đã claim trên Firebase chưa (source of truth)
+      final alreadyClaimed = await _checkRankClaimedOnFirebase(mssv, rankIndex);
+      if (alreadyClaimed || stats.value.isRankClaimed(rankIndex)) {
+        debugPrint('⚠️ claimRankReward blocked: Rank $rankIndex already claimed');
+        return null;
+      }
+      
+      // 3. Security check
+      if (!isSecure.value) {
+        await _checkSecurity();
+        if (!isSecure.value) {
+          debugPrint('⚠️ claimRankReward blocked: Security issues');
+          return null;
+        }
+      }
+      
+      // 4. Tính reward
+      final reward = calculateRankReward(rankIndex);
+      final earnedCoins = reward['coins']!;
+      final earnedDiamonds = reward['diamonds']!;
+      
+      // 5. Update stats
+      final newClaimedRanks = [...stats.value.claimedRankRewards, rankIndex];
+      stats.value = stats.value.copyWith(
+        coins: stats.value.coins + earnedCoins,
+        diamonds: stats.value.diamonds + earnedDiamonds,
+        claimedRankRewards: newClaimedRanks,
+      );
+      
+      // 6. Lưu local
+      await _saveLocalStats();
+      
+      // 7. Sync Firebase
+      await syncToFirebase(mssv);
+      
+      return {
+        'rankIndex': rankIndex,
+        'earnedCoins': earnedCoins,
+        'earnedDiamonds': earnedDiamonds,
+      };
+    } finally {
+      _isClaimingRankReward = false;
+      isLoading.value = false;
+    }
+  }
+
+  /// Nhận reward cho tất cả rank đã đạt nhưng chưa claim
+  /// Chỉ sync Firebase 1 lần cuối để tăng tốc
+  Future<Map<String, dynamic>?> claimAllRankRewards({
+    required String mssv,
+    required int currentRankIndex,
+  }) async {
+    if (_isClaimingRankReward) return null;
+    
+    _isClaimingRankReward = true;
+    isLoading.value = true;
+    
+    try {
+      // 1. Security check 1 lần
+      if (!isSecure.value) {
+        await _checkSecurity();
+        if (!isSecure.value) return null;
+      }
+      
+      // 2. Lấy danh sách đã claim từ Firebase 1 lần
+      Set<int> claimedOnFirebase = {};
+      try {
+        final doc = await _firestore.collection('students').doc(mssv).get();
+        if (doc.exists && doc.data()?['gameStats'] != null) {
+          final gameStats = doc.data()!['gameStats'] as Map<String, dynamic>;
+          final claimed = gameStats['claimedRankRewards'] as List? ?? [];
+          claimedOnFirebase = claimed.map((e) => e as int).toSet();
+        }
+      } catch (e) {
+        debugPrint('Error fetching claimed ranks: $e');
+      }
+      
+      // 3. Tính tổng reward và lọc rank chưa claim
+      int totalCoins = 0;
+      int totalDiamonds = 0;
+      List<int> newClaimedRanks = [...stats.value.claimedRankRewards];
+      int claimedCount = 0;
+      
+      for (int i = 0; i <= currentRankIndex; i++) {
+        // Skip nếu đã claim
+        if (claimedOnFirebase.contains(i)) continue;
+        if (newClaimedRanks.contains(i)) continue;
+        
+        // Tính reward
+        final reward = calculateRankReward(i);
+        totalCoins += reward['coins']!;
+        totalDiamonds += reward['diamonds']!;
+        newClaimedRanks.add(i);
+        claimedCount++;
+      }
+      
+      if (claimedCount == 0) return null;
+      
+      // 4. Update stats 1 lần
+      stats.value = stats.value.copyWith(
+        coins: stats.value.coins + totalCoins,
+        diamonds: stats.value.diamonds + totalDiamonds,
+        claimedRankRewards: newClaimedRanks,
+      );
+      
+      // 5. Lưu local 1 lần
+      await _saveLocalStats();
+      
+      // 6. Sync Firebase 1 lần
+      await syncToFirebase(mssv);
+      
+      return {
+        'claimedCount': claimedCount,
+        'earnedCoins': totalCoins,
+        'earnedDiamonds': totalDiamonds,
+      };
+    } finally {
+      _isClaimingRankReward = false;
+      isLoading.value = false;
+    }
+  }
+
+  /// Kiểm tra rank đã claim chưa (local check)
+  bool isRankClaimed(int rankIndex) {
+    return stats.value.isRankClaimed(rankIndex);
+  }
+
+  /// Đếm số rank chưa claim
+  int countUnclaimedRanks(int currentRankIndex) {
+    int count = 0;
+    for (int i = 0; i <= currentRankIndex; i++) {
+      if (!stats.value.isRankClaimed(i)) count++;
+    }
+    return count;
+  }
 }

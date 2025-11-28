@@ -75,7 +75,7 @@ class _QuickActionsSection extends StatelessWidget {
   
   static const _actions = [
     {'icon': Iconsax.calendar, 'label': 'Thời khóa biểu', 'route': '/schedule', 'color': AppColors.primary, 'badgeKey': 'schedule'},
-    {'icon': Iconsax.chart, 'label': 'Điểm học tập', 'route': '/grades', 'color': AppColors.green, 'badgeKey': null},
+    {'icon': Iconsax.chart, 'label': 'Điểm học tập', 'route': '/grades', 'color': AppColors.green, 'badgeKey': 'grades'},
     {'icon': Iconsax.wallet, 'label': 'Học phí', 'route': '/tuition', 'color': AppColors.orange, 'badgeKey': 'tuition'},
     {'icon': Iconsax.book_1, 'label': 'CTĐT', 'route': '/curriculum', 'color': AppColors.purple, 'badgeKey': 'curriculum'},
     {'icon': Iconsax.shop, 'label': 'Cửa hàng', 'route': '/shop', 'color': AppColors.yellow, 'badgeKey': null},
@@ -89,6 +89,8 @@ class _QuickActionsSection extends StatelessWidget {
       return controller.hasUnclaimedTuitionBonus.value;
     } else if (badgeKey == 'curriculum') {
       return controller.hasUnclaimedCurriculumReward.value;
+    } else if (badgeKey == 'grades') {
+      return controller.hasUnclaimedRankReward.value;
     }
     return false;
   }

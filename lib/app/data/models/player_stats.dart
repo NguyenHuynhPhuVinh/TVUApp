@@ -13,6 +13,7 @@ class PlayerStats {
   final bool tuitionBonusClaimed; // Đã nhận bonus từ học phí chưa (full claim từ setup)
   final List<String> claimedTuitionSemesters; // Danh sách học kỳ đã claim
   final List<String> claimedSubjects; // Danh sách môn học đã claim reward (mã môn)
+  final List<int> claimedRankRewards; // Danh sách rank đã claim reward (rankIndex)
 
   const PlayerStats({
     this.coins = 0,
@@ -28,6 +29,7 @@ class PlayerStats {
     this.tuitionBonusClaimed = false,
     this.claimedTuitionSemesters = const [],
     this.claimedSubjects = const [],
+    this.claimedRankRewards = const [],
   });
 
   /// XP cần để lên level tiếp theo
@@ -53,6 +55,11 @@ class PlayerStats {
     return claimedSubjects.contains(maMon);
   }
 
+  /// Kiểm tra rank đã claim reward chưa
+  bool isRankClaimed(int rankIndex) {
+    return claimedRankRewards.contains(rankIndex);
+  }
+
   PlayerStats copyWith({
     int? coins,
     int? diamonds,
@@ -67,6 +74,7 @@ class PlayerStats {
     bool? tuitionBonusClaimed,
     List<String>? claimedTuitionSemesters,
     List<String>? claimedSubjects,
+    List<int>? claimedRankRewards,
   }) {
     return PlayerStats(
       coins: coins ?? this.coins,
@@ -82,6 +90,7 @@ class PlayerStats {
       tuitionBonusClaimed: tuitionBonusClaimed ?? this.tuitionBonusClaimed,
       claimedTuitionSemesters: claimedTuitionSemesters ?? this.claimedTuitionSemesters,
       claimedSubjects: claimedSubjects ?? this.claimedSubjects,
+      claimedRankRewards: claimedRankRewards ?? this.claimedRankRewards,
     );
   }
 
@@ -99,6 +108,7 @@ class PlayerStats {
     'tuitionBonusClaimed': tuitionBonusClaimed,
     'claimedTuitionSemesters': claimedTuitionSemesters,
     'claimedSubjects': claimedSubjects,
+    'claimedRankRewards': claimedRankRewards,
   };
 
   factory PlayerStats.fromJson(Map<String, dynamic> json) => PlayerStats(
@@ -119,5 +129,7 @@ class PlayerStats {
         ?.map((e) => e.toString()).toList() ?? [],
     claimedSubjects: (json['claimedSubjects'] as List?)
         ?.map((e) => e.toString()).toList() ?? [],
+    claimedRankRewards: (json['claimedRankRewards'] as List?)
+        ?.map((e) => e as int).toList() ?? [],
   );
 }

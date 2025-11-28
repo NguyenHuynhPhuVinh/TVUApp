@@ -2,15 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/rank_helper.dart';
+import '../../../core/widgets/widgets.dart';
+import '../../../data/services/auth_service.dart';
+import '../../../data/services/game_service.dart';
 import '../../../data/services/local_storage_service.dart';
 
 class GradesController extends GetxController {
   final LocalStorageService _localStorage = Get.find<LocalStorageService>();
+  final GameService _gameService = Get.find<GameService>();
+  final AuthService _authService = Get.find<AuthService>();
 
   final gradesBySemester = <Map<String, dynamic>>[].obs;
   final gradedSubjects = <Map<String, dynamic>>[].obs;
   final selectedTab = 0.obs;
   final selectedSemesterIndex = 0.obs;
+  
+  // Rank rewards
+  final isClaimingAll = false.obs; // Loading cho nút "Nhận tất cả"
+  final claimingRankIndex = Rxn<int>(); // Loading cho từng rank
 
   // Tích lũy
   String get gpa10 => _latestSemester?['dtb_tich_luy_he_10']?.toString() ?? '0';
@@ -184,5 +193,113 @@ class GradesController extends GetxController {
 
   void selectSemester(int index) {
     selectedSemesterIndex.value = index;
+  }
+
+  // === RANK REWARDS ===
+  
+  String get _mssv => _authService.username.value;
+  
+  /// Danh sách rank đã claim
+  List<int> get claimedRankRewards => _gameService.stats.value.claimedRankRewards;
+  
+  /// Số rank chưa claim
+  int get unclaimedRankCount => _gameService.countUnclaimedRanks(rankIndex);
+  
+  /// Có rank chưa claim không
+  bool get hasUnclaimedRewards => unclaimedRankCount > 0;
+
+  /// Mở bottom sheet rank rewards
+  void openRankRewardsSheet() {
+    Get.bottomSheet(
+      Obx(() => DuoRankRewardsSheet(
+        currentRankIndex: rankIndex,
+        claimedRanks: claimedRankRewards,
+        isClaimingAll: isClaimingAll.value,
+        claimingRankIndex: claimingRankIndex.value,
+        onClaimRank: claimRankReward,
+        onClaimAll: claimAllRankRewards,
+      )),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+    );
+  }
+
+  /// Claim reward cho 1 rank
+  Future<void> claimRankReward(int rankIdx) async {
+    if (claimingRankIndex.value != null || isClaimingAll.value) return;
+    
+    claimingRankIndex.value = rankIdx;
+    
+    try {
+      final result = await _gameService.claimRankReward(
+        mssv: _mssv,
+        rankIndex: rankIdx,
+        currentRankIndex: rankIndex,
+      );
+      
+      if (result != null) {
+        // Hiển thị dialog nhận thưởng
+        DuoRewardDialog.showCustom(
+          title: 'Nhận thưởng Rank!',
+          subtitle: RankHelper.getRankNameFromIndex(rankIdx),
+          rewards: [
+            RewardItem(
+              icon: 'assets/game/currency/coin_golden_coin_1st_64px.png',
+              label: 'Coins',
+              value: result['earnedCoins'],
+              color: AppColors.yellow,
+            ),
+            RewardItem(
+              icon: 'assets/game/currency/diamond_blue_diamond_1st_64px.png',
+              label: 'Diamonds',
+              value: result['earnedDiamonds'],
+              color: AppColors.primary,
+            ),
+          ],
+        );
+      }
+    } finally {
+      claimingRankIndex.value = null;
+    }
+  }
+
+  /// Claim tất cả rank rewards
+  Future<void> claimAllRankRewards() async {
+    if (isClaimingAll.value || claimingRankIndex.value != null) return;
+    
+    isClaimingAll.value = true;
+    
+    try {
+      final result = await _gameService.claimAllRankRewards(
+        mssv: _mssv,
+        currentRankIndex: rankIndex,
+      );
+      
+      if (result != null) {
+        Get.back(); // Đóng bottom sheet
+        
+        // Hiển thị dialog nhận thưởng
+        DuoRewardDialog.showCustom(
+          title: 'Nhận tất cả thưởng!',
+          subtitle: '${result['claimedCount']} rank',
+          rewards: [
+            RewardItem(
+              icon: 'assets/game/currency/coin_golden_coin_1st_64px.png',
+              label: 'Coins',
+              value: result['earnedCoins'],
+              color: AppColors.yellow,
+            ),
+            RewardItem(
+              icon: 'assets/game/currency/diamond_blue_diamond_1st_64px.png',
+              label: 'Diamonds',
+              value: result['earnedDiamonds'],
+              color: AppColors.primary,
+            ),
+          ],
+        );
+      }
+    } finally {
+      isClaimingAll.value = false;
+    }
   }
 }

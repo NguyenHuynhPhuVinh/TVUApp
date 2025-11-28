@@ -29,6 +29,10 @@ class GradesView extends GetView<GradesController> {
               color: Colors.white,
             ),
           ),
+          actions: [
+            // Icon gift với badge chấm đỏ
+            Obx(() => _buildGiftButton()),
+          ],
           bottom: TabBar(
             onTap: controller.selectTab,
             labelColor: Colors.white,
@@ -268,6 +272,52 @@ class GradesView extends GetView<GradesController> {
           // Danh sách môn theo học lực
           Obx(() => _buildGradesByClassification()),
           SizedBox(height: AppStyles.space6),
+        ],
+      ),
+    );
+  }
+
+  /// Nút gift trên AppBar với badge chấm đỏ nếu có reward chưa nhận
+  Widget _buildGiftButton() {
+    final hasUnclaimed = controller.hasUnclaimedRewards;
+    final unclaimedCount = controller.unclaimedRankCount;
+    
+    return Padding(
+      padding: EdgeInsets.only(right: AppStyles.space2),
+      child: Stack(
+        children: [
+          IconButton(
+            onPressed: controller.openRankRewardsSheet,
+            icon: Image.asset(
+              'assets/game/item/gift_purple_gift_1st_64px.png',
+              width: 28,
+              height: 28,
+            ),
+          ),
+          // Badge chấm đỏ
+          if (hasUnclaimed)
+            Positioned(
+              right: 6,
+              top: 6,
+              child: Container(
+                padding: EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: AppColors.red,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 1.5),
+                ),
+                constraints: BoxConstraints(minWidth: 18, minHeight: 18),
+                child: Text(
+                  unclaimedCount > 9 ? '9+' : unclaimedCount.toString(),
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: AppStyles.fontBold,
+                    color: Colors.white,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
         ],
       ),
     );

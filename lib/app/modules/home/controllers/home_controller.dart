@@ -20,6 +20,7 @@ class HomeController extends GetxController {
   final hasPendingCheckIn = false.obs;
   final hasUnclaimedTuitionBonus = false.obs;
   final hasUnclaimedCurriculumReward = false.obs;
+  final hasUnclaimedRankReward = false.obs;
 
   // Game stats - expose reactive stats directly
   PlayerStats get gameStats => _gameService.stats.value;
@@ -38,6 +39,7 @@ class HomeController extends GetxController {
     ever(_gameService.stats, (_) {
       checkUnclaimedTuitionBonus();
       checkUnclaimedCurriculumReward();
+      checkUnclaimedRankReward();
     });
   }
 
@@ -47,6 +49,7 @@ class HomeController extends GetxController {
     checkPendingCheckIn();
     checkUnclaimedTuitionBonus();
     checkUnclaimedCurriculumReward();
+    checkUnclaimedRankReward();
   }
 
   void loadStudentInfo() {
@@ -205,5 +208,29 @@ class HomeController extends GetxController {
       }
     }
     hasUnclaimedCurriculumReward.value = false;
+  }
+
+  /// Kiểm tra có rank nào chưa nhận thưởng không
+  void checkUnclaimedRankReward() {
+    final gradesData = _localStorage.getGrades();
+    if (gradesData == null || gradesData['data'] == null) {
+      hasUnclaimedRankReward.value = false;
+      return;
+    }
+
+    // Tính rank index từ GPA
+    final semesters = gradesData['data']['ds_diem_hocky'] as List? ?? [];
+    if (semesters.isEmpty) {
+      hasUnclaimedRankReward.value = false;
+      return;
+    }
+
+    final latestSemester = semesters.first as Map<String, dynamic>;
+    final gpa10Str = latestSemester['dtb_tich_luy_he_10']?.toString() ?? '0';
+    final gpa = double.tryParse(gpa10Str) ?? 0;
+    final rankIndex = ((gpa / 10) * 55).floor().clamp(0, 55);
+
+    // Kiểm tra có rank nào chưa claim không
+    hasUnclaimedRankReward.value = _gameService.countUnclaimedRanks(rankIndex) > 0;
   }
 }
