@@ -94,7 +94,8 @@ class DuoListTile extends StatelessWidget {
   }
 }
 
-/// Duolingo-style Schedule Item
+/// Duolingo-style Schedule Item - tái sử dụng base decoration
+/// Hiển thị đầy đủ: subject, time, room, teacher
 class DuoScheduleItem extends StatelessWidget {
   final String subject;
   final String time;
@@ -123,14 +124,10 @@ class DuoScheduleItem extends StatelessWidget {
       onTap: onTap,
       child: Container(
         padding: EdgeInsets.all(AppStyles.space4),
-        decoration: BoxDecoration(
-          color: AppColors.backgroundWhite,
-          borderRadius: AppStyles.roundedXl,
-          border: Border.all(color: AppColors.border, width: AppStyles.border2),
-          boxShadow: AppColors.cardBoxShadow(),
-        ),
+        decoration: _cardDecoration,
         child: Row(
           children: [
+            // Accent bar
             Container(
               width: 4,
               height: 80,
@@ -140,6 +137,7 @@ class DuoScheduleItem extends StatelessWidget {
               ),
             ),
             SizedBox(width: AppStyles.space3),
+            // Content
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -155,51 +153,43 @@ class DuoScheduleItem extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   SizedBox(height: AppStyles.space2),
-                  _buildInfoRow(Icons.access_time_rounded, time),
+                  _InfoRow(icon: Icons.access_time_rounded, text: time),
                   SizedBox(height: AppStyles.space1),
-                  _buildInfoRow(Icons.location_on_outlined, room),
+                  _InfoRow(icon: Icons.location_on_outlined, text: room),
                   SizedBox(height: AppStyles.space1),
-                  _buildInfoRow(Icons.person_outline_rounded, teacher),
+                  _InfoRow(icon: Icons.person_outline_rounded, text: teacher),
                 ],
               ),
             ),
-            if (lessonCount > 0)
-              Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: AppStyles.space3,
-                  vertical: AppStyles.space2,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.withAlpha(color, 0.1),
-                  borderRadius: AppStyles.roundedLg,
-                ),
-                child: Column(
-                  children: [
-                    Text(
-                      '$lessonCount',
-                      style: TextStyle(
-                        fontSize: AppStyles.textXl,
-                        fontWeight: AppStyles.fontBold,
-                        color: color,
-                      ),
-                    ),
-                    Text(
-                      'tiết',
-                      style: TextStyle(
-                        fontSize: AppStyles.textXs,
-                        color: color,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+            // Lesson badge
+            if (lessonCount > 0) ...[
+              SizedBox(width: AppStyles.space3),
+              _LessonBadge(count: lessonCount, color: color),
+            ],
           ],
         ),
       ),
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String text) {
+  /// Shared card decoration - tái sử dụng style từ DuoListTile
+  static BoxDecoration get _cardDecoration => BoxDecoration(
+        color: AppColors.backgroundWhite,
+        borderRadius: AppStyles.roundedXl,
+        border: Border.all(color: AppColors.border, width: AppStyles.border2),
+        boxShadow: AppColors.cardBoxShadow(),
+      );
+}
+
+/// Info row widget - dùng chung cho schedule items
+class _InfoRow extends StatelessWidget {
+  final IconData icon;
+  final String text;
+
+  const _InfoRow({required this.icon, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
     return Row(
       children: [
         Icon(icon, size: AppStyles.iconXs, color: AppColors.textTertiary),
@@ -218,4 +208,48 @@ class DuoScheduleItem extends StatelessWidget {
     );
   }
 }
+
+/// Lesson count badge - dùng chung cho schedule items
+class _LessonBadge extends StatelessWidget {
+  final int count;
+  final Color color;
+
+  const _LessonBadge({required this.count, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: AppStyles.space3,
+        vertical: AppStyles.space2,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.withAlpha(color, 0.1),
+        borderRadius: AppStyles.roundedLg,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            '$count',
+            style: TextStyle(
+              fontSize: AppStyles.textXl,
+              fontWeight: AppStyles.fontBold,
+              color: color,
+            ),
+          ),
+          Text(
+            'tiết',
+            style: TextStyle(
+              fontSize: AppStyles.textXs,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+
 

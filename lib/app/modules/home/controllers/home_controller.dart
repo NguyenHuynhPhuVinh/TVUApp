@@ -1,6 +1,5 @@
 import 'package:get/get.dart';
 import '../../../core/game_rules/check_in_manager.dart';
-import '../../../core/utils/date_formatter.dart';
 import '../../../core/utils/number_formatter.dart';
 import '../../../core/utils/rank_helper.dart';
 import '../../../data/models/player_stats.dart';
@@ -76,31 +75,32 @@ class HomeController extends GetxController {
     final semestersData = _storage.getSemesters();
     if (semestersData == null || semestersData['data'] == null) return;
 
-    final currentSemester = semestersData['data']['hoc_ky_theo_ngay_hien_tai'] as int? ?? 0;
+    final currentSemester =
+        semestersData['data']['hoc_ky_theo_ngay_hien_tai'] as int? ?? 0;
     if (currentSemester == 0) return;
 
     final scheduleData = _storage.getSchedule(currentSemester);
     if (scheduleData != null) {
       final weeks = scheduleData['ds_tuan_tkb'] as List? ?? [];
+
+      // Sử dụng CheckInManager để tìm tuần hiện tại
+      final currentWeek = _checkInManager.findCurrentWeek(weeks);
+      if (currentWeek == null) {
+        todaySchedule.value = [];
+        return;
+      }
+
       final now = DateTime.now();
       final todayWeekday = now.weekday + 1; // API uses 2=Mon, 3=Tue, etc.
 
-      final List<Map<String, dynamic>> todayItems = [];
-      for (var week in weeks) {
-        // Check if current date is in this week
-        final startStr = week['ngay_bat_dau'] as String?;
-        final endStr = week['ngay_ket_thuc'] as String?;
-        if (DateFormatter.isDateInRange(now, startStr, endStr)) {
-          final schedules = week['ds_thoi_khoa_bieu'] as List? ?? [];
-          for (var schedule in schedules) {
-            if (schedule['thu_kieu_so'] == todayWeekday) {
-              todayItems.add(Map<String, dynamic>.from(schedule));
-            }
-          }
-          break;
-        }
-      }
-      todayItems.sort((a, b) => (a['tiet_bat_dau'] ?? 0).compareTo(b['tiet_bat_dau'] ?? 0));
+      final schedules = currentWeek['ds_thoi_khoa_bieu'] as List? ?? [];
+      final todayItems = schedules
+          .where((s) => s['thu_kieu_so'] == todayWeekday)
+          .map((s) => Map<String, dynamic>.from(s))
+          .toList();
+
+      todayItems.sort(
+          (a, b) => (a['tiet_bat_dau'] ?? 0).compareTo(b['tiet_bat_dau'] ?? 0));
       todaySchedule.value = todayItems;
     }
   }

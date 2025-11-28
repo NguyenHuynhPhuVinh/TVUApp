@@ -182,8 +182,8 @@ class _SubjectItem extends StatelessWidget {
       margin: EdgeInsets.only(bottom: AppStyles.space3),
       child: Obx(() {
         // Đọc observable để trigger rebuild khi claiming hoặc isClaimingAll thay đổi
-        final _ = controller.claimingSubject.value;
-        final __ = controller.isClaimingAll.value;
+        controller.claimingSubject.value;
+        controller.isClaimingAll.value;
         
         return DuoSubjectCard(
           tenMon: item['ten_mon'] ?? 'N/A',
