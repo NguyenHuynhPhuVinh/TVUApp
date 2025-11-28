@@ -11,6 +11,7 @@ import 'app/data/services/firebase_service.dart';
 import 'app/data/services/game_service.dart';
 import 'app/data/services/local_storage_service.dart';
 import 'app/data/services/update_service.dart';
+import 'app/data/services/security_service.dart';
 import 'app/routes/app_pages.dart';
 import 'app/core/theme/app_theme.dart';
 
@@ -38,6 +39,7 @@ Future<void> initServices() async {
   await Get.putAsync(() => LocalStorageService().init());
   await Get.putAsync(() => AuthService().init());
   await Get.putAsync(() => FirebaseService().init());
+  await Get.putAsync(() => SecurityService().init());
   await Get.putAsync(() => GameService().init());
   await Get.putAsync(() => UpdateService().init());
   Get.put(ApiService());

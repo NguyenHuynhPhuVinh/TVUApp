@@ -1,25 +1,43 @@
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/player_stats.dart';
 import 'local_storage_service.dart';
+import 'security_service.dart';
 
 /// Service quản lý hệ thống game: coins, diamonds, level, XP
 class GameService extends GetxService {
   late final SharedPreferences _prefs;
   late final FirebaseFirestore _firestore;
+  late final SecurityService _security;
   
   static const String _statsKey = 'player_stats';
   
   final stats = PlayerStats().obs;
   final isLoading = false.obs;
+  final isSecure = true.obs;
+  final securityIssues = <String>[].obs;
 
   Future<GameService> init() async {
     _prefs = await SharedPreferences.getInstance();
     _firestore = FirebaseFirestore.instance;
+    _security = Get.find<SecurityService>();
     await _loadLocalStats();
+    await _checkSecurity();
     return this;
+  }
+
+  /// Kiểm tra security khi khởi động
+  Future<void> _checkSecurity() async {
+    final result = await _security.performSecurityCheck();
+    isSecure.value = result.isSecure;
+    securityIssues.value = result.issues;
+    
+    if (!result.isSecure) {
+      debugPrint('⚠️ Security issues detected: ${result.issues}');
+    }
   }
 
   /// Load stats từ local storage
@@ -55,18 +73,23 @@ class GameService extends GetxService {
     return false;
   }
 
-  /// Sync stats lên Firebase
+  /// Sync stats lên Firebase (với security check)
   Future<bool> syncToFirebase(String mssv) async {
     if (mssv.isEmpty) return false;
     
     try {
+      // Sign data với checksum
+      final signedStats = _security.signData(stats.value.toJson());
+      
       await _firestore.collection('students').doc(mssv).set({
-        'gameStats': stats.value.toJson(),
+        'gameStats': signedStats,
+        'deviceFingerprint': _security.deviceFingerprint.value,
+        'isSecureDevice': isSecure.value,
         'lastUpdated': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
       return true;
     } catch (e) {
-      print('Error syncing game stats to Firebase: $e');
+      debugPrint('Error syncing game stats to Firebase: $e');
       return false;
     }
   }

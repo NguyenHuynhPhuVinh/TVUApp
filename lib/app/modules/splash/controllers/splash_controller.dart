@@ -8,6 +8,7 @@ import '../../../data/services/firebase_service.dart';
 import '../../../data/services/game_service.dart';
 import '../../../data/services/local_storage_service.dart';
 import '../../../data/services/update_service.dart';
+import '../../../data/services/security_service.dart';
 import '../../../routes/app_routes.dart';
 
 class SplashController extends GetxController {
@@ -17,6 +18,7 @@ class SplashController extends GetxController {
   final GameService _gameService = Get.find<GameService>();
   final LocalStorageService _localStorage = Get.find<LocalStorageService>();
   final UpdateService _updateService = Get.find<UpdateService>();
+  final SecurityService _securityService = Get.find<SecurityService>();
 
   // Progress cho UI
   final syncProgress = 0.0.obs;
@@ -32,7 +34,15 @@ class SplashController extends GetxController {
   /// Kiểm tra cập nhật trước, sau đó load app
   Future<void> _checkUpdateAndLoad() async {
     try {
-      // Kiểm tra update từ GitHub
+      // 1. Kiểm tra security trước
+      final securityResult = await _securityService.performSecurityCheck();
+      if (!securityResult.isSecure) {
+        // Thiết bị không an toàn -> hiện dialog và block
+        await DuoSecurityDialog.show(securityResult.issues);
+        return;
+      }
+
+      // 2. Kiểm tra update từ GitHub
       final hasUpdate = await _updateService.checkForUpdate();
       
       if (hasUpdate) {
