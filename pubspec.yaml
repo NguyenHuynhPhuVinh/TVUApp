@@ -82,3 +82,11 @@ flutter:
     - assets/game/player/
     - assets/game/social/
     - assets/game/ui/
+    - assets/game/rank/wood/
+    - assets/game/rank/stone/
+    - assets/game/rank/bronze/
+    - assets/game/rank/silver/
+    - assets/game/rank/gold/
+    - assets/game/rank/platinum/
+    - assets/game/rank/amethyst/
+    - assets/game/rank/onyx/
