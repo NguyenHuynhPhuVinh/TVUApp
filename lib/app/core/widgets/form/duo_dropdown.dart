@@ -35,7 +35,7 @@ class DuoDropdown<T> extends StatelessWidget {
         boxShadow: AppColors.cardBoxShadow(),
       ),
       child: DropdownButtonFormField<T>(
-        value: value,
+        initialValue: value,
         decoration: InputDecoration(
           labelText: label,
           hintText: hint,

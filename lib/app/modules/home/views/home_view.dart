@@ -181,7 +181,7 @@ class _TodayScheduleSection extends StatelessWidget {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: controller.todaySchedule.length,
-            separatorBuilder: (_, __) => SizedBox(height: AppStyles.space3),
+            separatorBuilder: (context, index) => SizedBox(height: AppStyles.space3),
             itemBuilder: (context, index) {
               final item = controller.todaySchedule[index];
               return DuoTodayScheduleCard(

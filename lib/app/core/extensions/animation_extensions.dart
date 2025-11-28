@@ -149,7 +149,7 @@ extension DuoAnimateExtension on Widget {
   }
 }
 
-/// Extension cho List<Widget> - animate cả list
+/// Extension cho `List<Widget>` - animate cả list
 extension DuoAnimateListExtension on List<Widget> {
   /// Animate tất cả items trong list với stagger effect
   List<Widget> animateStaggered({

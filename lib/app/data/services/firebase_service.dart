@@ -44,22 +44,6 @@ class FirebaseService extends GetxService {
     }
   }
 
-  /// Generic: Lấy data từ student document
-  Future<Map<String, dynamic>?> _getStudentField(
-      String mssv, String field) async {
-    if (mssv.isEmpty) return null;
-
-    try {
-      final doc = await _firestore.collection('students').doc(mssv).get();
-      if (doc.exists && doc.data()?[field] != null) {
-        return doc.data()![field] as Map<String, dynamic>;
-      }
-    } catch (e) {
-      debugPrint('Error getting $field: $e');
-    }
-    return null;
-  }
-
   // ============ SYNC ALL ============
 
   Future<bool> syncAllStudentData({

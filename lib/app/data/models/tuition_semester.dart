@@ -1,7 +1,7 @@
 import '../../core/utils/number_formatter.dart';
 
 /// Model cho học phí theo học kỳ
-/// Thay thế Map<String, dynamic> để đảm bảo Type Safety
+/// Thay thế `Map<String, dynamic>` để đảm bảo Type Safety
 class TuitionSemester {
   final String tenHocKy;
   final double phaiThu;

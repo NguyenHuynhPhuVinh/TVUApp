@@ -49,7 +49,7 @@ class DuoLevelBadge extends StatelessWidget {
                   iconPath!,
                   width: 32.w,
                   height: 32.w,
-                  errorBuilder: (_, __, ___) => Icon(
+                  errorBuilder: (context, error, stackTrace) => Icon(
                     Icons.star_rounded,
                     size: 32.w,
                     color: AppColors.yellow,

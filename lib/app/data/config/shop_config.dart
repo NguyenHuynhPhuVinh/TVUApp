@@ -1,5 +1,5 @@
-/// Cấu hình Shop - tách data ra khỏi Controller
-/// Có thể chuyển sang Remote Config (Firebase) sau này
+// Cấu hình Shop - tách data ra khỏi Controller
+// Có thể chuyển sang Remote Config (Firebase) sau này
 
 /// Package Diamond - mua bằng DuoCash
 class DiamondPackage {
