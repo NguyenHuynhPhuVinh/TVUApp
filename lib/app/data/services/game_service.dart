@@ -354,14 +354,19 @@ class GameService extends GetxService {
       final attendedLessons = (totalLessons - missedLessons).clamp(0, totalLessons);
       
       // ============ BẢNG THƯỞNG CHỐT HẠ ============
+      // 1 tiết:
+      //   - 250,000 coins
+      //   - 2,500 XP
+      //   - 413 diamonds
+      //
       // 1 buổi (4 tiết):
       //   - 1,000,000 coins (1M)
-      //   - 5,000 XP
-      //   - 1,650 diamonds (~11 lần quay gacha)
+      //   - 10,000 XP
+      //   - 1,652 diamonds (~11 lần quay gacha)
       //
       // 4 năm (~6000 tiết, chuyên cần >= 90%):
       //   - Coins: 2.25 TỶ
-      //   - XP: 11.25M → Level ~1,500
+      //   - XP: 22.5M → Level ~2,100
       //   - Diamonds: 3.7M → ~24,700 lần quay
       //
       // Bonus chuyên cần: +50% (>=90%), +25% (>=80%)
@@ -369,7 +374,7 @@ class GameService extends GetxService {
       final attendanceRate = totalLessons > 0 ? (attendedLessons / totalLessons) * 100 : 100.0;
       var earnedCoins = attendedLessons * 250000;
       var earnedDiamonds = attendedLessons * 413;
-      var earnedXp = attendedLessons * 1250;
+      var earnedXp = attendedLessons * 2500;
       
       if (attendanceRate >= 90) {
         earnedCoins = (earnedCoins * 1.5).round(); // Bonus 50%
@@ -550,8 +555,10 @@ class GameService extends GetxService {
     }
     
     if (attended) {
-      final earnedCoins = lessons * 10;
-      final earnedXp = lessons * 5;
+      // Tính thưởng: mỗi tiết = 250,000 coins + 2,500 XP + 413 diamonds
+      final earnedCoins = lessons * 250000;
+      final earnedXp = lessons * 2500;
+      final earnedDiamonds = lessons * 413;
       
       // 2. Tính XP và level
       int newXp = stats.value.currentXp + earnedXp;
@@ -568,6 +575,7 @@ class GameService extends GetxService {
       stats.value = stats.value.copyWith(
         totalLessonsAttended: stats.value.totalLessonsAttended + lessons,
         coins: stats.value.coins + earnedCoins,
+        diamonds: stats.value.diamonds + earnedDiamonds,
         currentXp: newXp,
         level: newLevel,
       );
@@ -580,6 +588,7 @@ class GameService extends GetxService {
       
       return {
         'earnedCoins': earnedCoins,
+        'earnedDiamonds': earnedDiamonds,
         'earnedXp': earnedXp,
         'leveledUp': leveledUp,
         'newLevel': newLevel,
@@ -1052,9 +1061,9 @@ class GameService extends GetxService {
       }
     }
     
-    // 2. Tính thưởng: mỗi tiết = 250,000 coins + 1,250 XP + 413 diamonds
+    // 2. Tính thưởng: mỗi tiết = 250,000 coins + 2,500 XP + 413 diamonds
     final earnedCoins = soTiet * 250000;
-    final earnedXp = soTiet * 1250;
+    final earnedXp = soTiet * 2500;
     final earnedDiamonds = soTiet * 413;
     
     // 3. Tính XP và level mới
@@ -1097,12 +1106,15 @@ class GameService extends GetxService {
   // ============ SUBJECT REWARD SYSTEM (CTDT) ============
 
   /// Tính reward cho môn học đạt dựa trên số tín chỉ
-  /// Quy đổi: 1 TC = 50,000 coins + 200 XP + 100 diamonds
+  /// 1 TC = 15 tiết LT + 30 tiết TH = 45 tiết
+  /// 1 TC = 45 × (250,000 coins + 2,500 XP + 413 diamonds)
+  /// = 11,250,000 coins + 112,500 XP + 18,585 diamonds
+  /// 4 năm (~140 TC): 1.575 TỶ coins + 15.75M XP + 2.6M diamonds
   static Map<String, int> calculateSubjectReward(int soTinChi) {
     return {
-      'coins': soTinChi * 50000,
-      'xp': soTinChi * 200,
-      'diamonds': soTinChi * 100,
+      'coins': soTinChi * 11250000,
+      'xp': soTinChi * 112500,
+      'diamonds': soTinChi * 18585,
     };
   }
 
@@ -1322,21 +1334,42 @@ class GameService extends GetxService {
 
   bool _isClaimingRankReward = false; // Lock ngăn race condition
 
-  /// Tính reward cho rank dựa trên tier và level
-  /// Base: 10K coins + 100 diamonds, tăng theo tier và level
+  /// Tính reward cho rank dựa trên tier và level (GPA-based)
+  /// Rank càng cao (GPA càng cao) → reward tăng CỰC MẠNH (3^tierIndex)
+  /// 
+  /// 8 tiers: Wood → Stone → Bronze → Silver → Gold → Platinum → Amethyst → Onyx
+  /// Mỗi tier có 7 levels (I → VII)
+  /// 
+  /// Base reward (Wood I): 10M coins + 41,300 diamonds
+  /// Tier multiplier: 3^tierIndex (1, 3, 9, 27, 81, 243, 729, 2187)
+  /// Level bonus: +100% mỗi level
+  /// 
+  /// Ví dụ:
+  /// - Wood I (rank 0): 10M coins, 41K diamonds
+  /// - Bronze I (rank 14): 90M coins, 372K diamonds
+  /// - Gold I (rank 28): 810M coins, 3.3M diamonds
+  /// - Onyx I (rank 49): 21.87 TỶ coins, 90M diamonds
+  /// - Onyx VII (rank 55): 153 TỶ coins, 634M diamonds 🔥
   static Map<String, int> calculateRankReward(int rankIndex) {
     final tierIndex = rankIndex ~/ 7;
     final level = (rankIndex % 7) + 1;
     
-    final tierMultiplier = tierIndex + 1;
-    final baseCoins = 10000 * tierMultiplier;
-    final baseDiamonds = 100 * tierMultiplier;
+    // SUPER Exponential tier multiplier: 3^tierIndex
+    // Wood=1, Stone=3, Bronze=9, Silver=27, Gold=81, Platinum=243, Amethyst=729, Onyx=2187
+    int tierMultiplier = 1;
+    for (int i = 0; i < tierIndex; i++) {
+      tierMultiplier *= 3;
+    }
     
-    final levelBonus = level * 0.2;
+    final baseCoins = 10000000 * tierMultiplier; // 10M base
+    final baseDiamonds = 41300 * tierMultiplier; // 41.3K base
+    
+    // Level bonus: +100% mỗi level (1x, 2x, 3x, 4x, 5x, 6x, 7x)
+    final levelMultiplier = level.toDouble();
     
     return {
-      'coins': (baseCoins * (1 + levelBonus)).round(),
-      'diamonds': (baseDiamonds * (1 + levelBonus)).round(),
+      'coins': (baseCoins * levelMultiplier).round(),
+      'diamonds': (baseDiamonds * levelMultiplier).round(),
     };
   }
 
