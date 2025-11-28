@@ -6,6 +6,21 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_styles.dart';
 import '../base/duo_button.dart';
 
+/// Model cho custom reward item
+class RewardItem {
+  final String icon;
+  final String label;
+  final int value;
+  final Color color;
+
+  const RewardItem({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+}
+
 /// Dialog hiển thị phần thưởng sau khi điểm danh
 class DuoRewardDialog extends StatelessWidget {
   final String tenMon;
@@ -14,6 +29,8 @@ class DuoRewardDialog extends StatelessWidget {
   final int earnedXp;
   final bool leveledUp;
   final int? newLevel;
+  final String? customTitle;
+  final List<RewardItem>? customRewards;
 
   const DuoRewardDialog({
     super.key,
@@ -23,8 +40,11 @@ class DuoRewardDialog extends StatelessWidget {
     required this.earnedXp,
     this.leveledUp = false,
     this.newLevel,
+    this.customTitle,
+    this.customRewards,
   });
 
+  /// Show dialog với rewards từ check-in
   static void show({
     required String tenMon,
     required Map<String, dynamic> rewards,
@@ -37,6 +57,25 @@ class DuoRewardDialog extends StatelessWidget {
         earnedXp: rewards['earnedXp'] ?? 0,
         leveledUp: rewards['leveledUp'] == true,
         newLevel: rewards['newLevel'],
+      ),
+      barrierDismissible: true,
+    );
+  }
+
+  /// Show dialog với custom rewards (cho wallet, shop...)
+  static Future<void> showCustom({
+    required String title,
+    required List<RewardItem> rewards,
+    String? subtitle,
+  }) async {
+    await Get.dialog(
+      DuoRewardDialog(
+        tenMon: subtitle ?? '',
+        earnedCoins: 0,
+        earnedDiamonds: 0,
+        earnedXp: 0,
+        customTitle: title,
+        customRewards: rewards,
       ),
       barrierDismissible: true,
     );
@@ -91,12 +130,13 @@ class DuoRewardDialog extends StatelessWidget {
 
   Widget _buildTitle() {
     return Text(
-      'Điểm danh thành công!',
+      customTitle ?? 'Điểm danh thành công!',
       style: TextStyle(
         fontSize: AppStyles.textXl,
         fontWeight: AppStyles.fontBold,
         color: AppColors.green,
       ),
+      textAlign: TextAlign.center,
     );
   }
 
@@ -112,6 +152,39 @@ class DuoRewardDialog extends StatelessWidget {
   }
 
   Widget _buildRewardsSection() {
+    // Nếu có custom rewards thì hiển thị custom
+    if (customRewards != null && customRewards!.isNotEmpty) {
+      return Container(
+        padding: EdgeInsets.all(AppStyles.space4),
+        decoration: BoxDecoration(
+          color: AppColors.background,
+          borderRadius: AppStyles.roundedXl,
+        ),
+        child: Column(
+          children: [
+            Text(
+              'Phần thưởng',
+              style: TextStyle(
+                fontSize: AppStyles.textSm,
+                fontWeight: AppStyles.fontBold,
+                color: AppColors.textSecondary,
+              ),
+            ),
+            SizedBox(height: AppStyles.space3),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: customRewards!.map((item) => _DuoRewardItem(
+                assetPath: item.icon,
+                value: '+${_formatNumber(item.value)}',
+                label: item.label,
+              )).toList(),
+            ),
+          ],
+        ),
+      ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.2);
+    }
+
+    // Default rewards cho check-in
     return Container(
       padding: EdgeInsets.all(AppStyles.space4),
       decoration: BoxDecoration(

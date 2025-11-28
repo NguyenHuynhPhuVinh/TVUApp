@@ -13,4 +13,8 @@ abstract class Routes {
   static const gameSetup = '/game-setup';
   static const gameStats = '/game-stats';
   static const gameRewards = '/game-rewards';
+  static const tuitionBonus = '/tuition-bonus';
+  static const wallet = '/wallet';
+  static const diamondShop = '/diamond-shop';
+  static const coinShop = '/coin-shop';
 }

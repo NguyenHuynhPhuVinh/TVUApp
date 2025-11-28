@@ -1,12 +1,19 @@
 import 'package:get/get.dart';
+import '../../../core/utils/number_formatter.dart';
+import '../../../data/services/local_storage_service.dart';
 import '../../../routes/app_routes.dart';
 
 class GameRewardsController extends GetxController {
+  final LocalStorageService _localStorage = Get.find<LocalStorageService>();
+
   // Data từ tính toán
   late final int earnedCoins;
   late final int earnedDiamonds;
   late final int earnedXp;
   late final int level;
+
+  // Tuition data
+  final hasTuitionBonus = false.obs;
 
   // Animation states
   final showCoins = false.obs;
@@ -24,6 +31,7 @@ class GameRewardsController extends GetxController {
   void onInit() {
     super.onInit();
     _loadData();
+    _checkTuitionBonus();
     _startAnimations();
   }
 
@@ -39,6 +47,21 @@ class GameRewardsController extends GetxController {
       earnedDiamonds = 0;
       earnedXp = 0;
       level = 1;
+    }
+  }
+
+  /// Kiểm tra có học phí đã đóng không
+  void _checkTuitionBonus() {
+    final tuitionData = _localStorage.getTuition();
+    if (tuitionData != null && tuitionData['data'] != null) {
+      final list = tuitionData['data']['ds_hoc_phi_hoc_ky'] as List? ?? [];
+      
+      int totalPaid = 0;
+      for (var item in list) {
+        totalPaid += NumberFormatter.parseInt(item['da_thu']);
+      }
+      
+      hasTuitionBonus.value = totalPaid > 0;
     }
   }
 
@@ -85,6 +108,11 @@ class GameRewardsController extends GetxController {
   }
 
   void continueToMain() {
-    Get.offAllNamed(Routes.main);
+    // Nếu có học phí đã đóng, chuyển sang trang tuition bonus
+    if (hasTuitionBonus.value) {
+      Get.offAllNamed(Routes.tuitionBonus);
+    } else {
+      Get.offAllNamed(Routes.main);
+    }
   }
 }

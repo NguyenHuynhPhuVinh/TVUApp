@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/player_stats.dart';
+import '../models/wallet_transaction.dart';
 import 'local_storage_service.dart';
 import 'security_service.dart';
 
@@ -14,8 +15,10 @@ class GameService extends GetxService {
   late final SecurityService _security;
   
   static const String _statsKey = 'player_stats';
+  static const String _transactionsKey = 'wallet_transactions';
   
   final stats = PlayerStats().obs;
+  final transactions = <WalletTransaction>[].obs;
   final isLoading = false.obs;
   final isSecure = true.obs;
   final securityIssues = <String>[].obs;
@@ -25,8 +28,45 @@ class GameService extends GetxService {
     _firestore = FirebaseFirestore.instance;
     _security = Get.find<SecurityService>();
     await _loadLocalStats();
+    await _loadLocalTransactions();
     await _checkSecurity();
     return this;
+  }
+
+  /// Load transactions từ local storage
+  Future<void> _loadLocalTransactions() async {
+    final str = _prefs.getString(_transactionsKey);
+    if (str != null) {
+      final list = jsonDecode(str) as List;
+      transactions.value = list.map((e) => WalletTransaction.fromJson(e)).toList();
+    }
+  }
+
+  /// Lưu transactions vào local
+  Future<void> _saveLocalTransactions() async {
+    await _prefs.setString(
+      _transactionsKey,
+      jsonEncode(transactions.map((e) => e.toJson()).toList()),
+    );
+  }
+
+  /// Thêm transaction mới
+  Future<void> _addTransaction({
+    required TransactionType type,
+    required int amount,
+    required String description,
+    Map<String, dynamic>? metadata,
+  }) async {
+    final transaction = WalletTransaction(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      type: type,
+      amount: amount,
+      description: description,
+      createdAt: DateTime.now(),
+      metadata: metadata,
+    );
+    transactions.insert(0, transaction);
+    await _saveLocalTransactions();
   }
 
   /// Kiểm tra security khi khởi động
@@ -564,7 +604,230 @@ class GameService extends GetxService {
   /// Reset game (cho testing)
   Future<void> resetGame() async {
     stats.value = const PlayerStats();
+    transactions.clear();
     await _prefs.remove(_statsKey);
+    await _prefs.remove(_transactionsKey);
+  }
+
+  // ============ TUITION BONUS SYSTEM ============
+
+  /// Tính tiền ảo từ học phí đã đóng
+  /// Quy đổi: 1 VND = 1 tiền ảo (1:1)
+  int calculateVirtualBalanceFromTuition(int tuitionPaid) {
+    return tuitionPaid;
+  }
+
+  /// Kiểm tra đã nhận bonus học phí trên Firebase chưa
+  Future<bool> _checkTuitionBonusClaimedOnFirebase(String mssv) async {
+    if (mssv.isEmpty) return true;
+    
+    try {
+      final doc = await _firestore.collection('students').doc(mssv).get();
+      if (doc.exists && doc.data()?['gameStats'] != null) {
+        final gameStats = doc.data()!['gameStats'] as Map<String, dynamic>;
+        return gameStats['tuitionBonusClaimed'] == true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('Error checking tuition bonus on Firebase: $e');
+      return true; // Block nếu lỗi (an toàn hơn)
+    }
+  }
+
+  /// Nhận bonus từ học phí đã đóng
+  /// Flow: Check Firebase → Validate → Update local → Sync Firebase
+  Future<Map<String, dynamic>?> claimTuitionBonus({
+    required String mssv,
+    required int tuitionPaid, // Số tiền đã đóng (VND)
+  }) async {
+    isLoading.value = true;
+    
+    try {
+      // 1. Check đã claim trên Firebase chưa
+      final alreadyClaimed = await _checkTuitionBonusClaimedOnFirebase(mssv);
+      if (alreadyClaimed || stats.value.tuitionBonusClaimed) {
+        debugPrint('⚠️ claimTuitionBonus blocked: Already claimed');
+        return null;
+      }
+      
+      // 2. Security check
+      if (!isSecure.value) {
+        await _checkSecurity();
+        if (!isSecure.value) {
+          debugPrint('⚠️ claimTuitionBonus blocked: Security issues');
+          return null;
+        }
+      }
+      
+      // 3. Validate amount
+      if (tuitionPaid <= 0) {
+        debugPrint('⚠️ claimTuitionBonus blocked: Invalid amount');
+        return null;
+      }
+      
+      // 4. Tính tiền ảo
+      final virtualBalance = calculateVirtualBalanceFromTuition(tuitionPaid);
+      
+      // 5. Update stats
+      stats.value = stats.value.copyWith(
+        virtualBalance: virtualBalance,
+        totalTuitionPaid: tuitionPaid,
+        tuitionBonusClaimed: true,
+      );
+      
+      // 6. Lưu local
+      await _saveLocalStats();
+      
+      // 7. Thêm transaction
+      await _addTransaction(
+        type: TransactionType.tuitionBonus,
+        amount: virtualBalance,
+        description: 'Nhận thưởng từ học phí đã đóng',
+        metadata: {'tuitionPaid': tuitionPaid},
+      );
+      
+      // 8. Sync Firebase
+      await syncToFirebase(mssv);
+      
+      return {
+        'tuitionPaid': tuitionPaid,
+        'virtualBalance': virtualBalance,
+      };
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  // ============ DIAMOND SHOP ============
+
+  bool _isBuyingDiamonds = false; // Lock ngăn race condition
+
+  /// Mua diamond bằng tiền ảo
+  /// Tỷ giá chuẩn game online: giá theo gói, gói lớn có bonus
+  Future<Map<String, dynamic>?> buyDiamonds({
+    required String mssv,
+    required int diamondAmount,
+    required int cost, // Giá tiền ảo
+  }) async {
+    // 0. Check lock - ngăn double click
+    if (_isBuyingDiamonds) {
+      debugPrint('⚠️ buyDiamonds blocked: Already processing');
+      return null;
+    }
+    _isBuyingDiamonds = true;
+    isLoading.value = true;
+    
+    try {
+      // 1. Security check
+      if (!isSecure.value) {
+        await _checkSecurity();
+        if (!isSecure.value) return null;
+      }
+      
+      // 2. Validate input
+      if (diamondAmount <= 0 || cost <= 0) return null;
+      
+      if (stats.value.virtualBalance < cost) {
+        debugPrint('⚠️ buyDiamonds blocked: Insufficient balance');
+        return null;
+      }
+      
+      // 3. Update stats (local cache)
+      stats.value = stats.value.copyWith(
+        virtualBalance: stats.value.virtualBalance - cost,
+        diamonds: stats.value.diamonds + diamondAmount,
+      );
+      
+      // 4. Lưu local
+      await _saveLocalStats();
+      
+      // 5. Thêm transaction
+      await _addTransaction(
+        type: TransactionType.buyDiamond,
+        amount: -cost,
+        description: 'Mua $diamondAmount diamond',
+        metadata: {'diamonds': diamondAmount, 'cost': cost},
+      );
+      
+      // 6. Sync Firebase (source of truth)
+      await syncToFirebase(mssv);
+      
+      return {
+        'diamondAmount': diamondAmount,
+        'cost': cost,
+        'newBalance': stats.value.virtualBalance,
+        'newDiamonds': stats.value.diamonds,
+      };
+    } finally {
+      _isBuyingDiamonds = false; // Release lock
+      isLoading.value = false;
+    }
+  }
+
+  // ============ COIN SHOP ============
+
+  bool _isBuyingCoins = false; // Lock ngăn race condition
+
+  /// Mua coin bằng diamond
+  /// Tỷ giá: 1 diamond = 10,000 coins
+  Future<Map<String, dynamic>?> buyCoins({
+    required String mssv,
+    required int diamondAmount,
+  }) async {
+    // 0. Check lock - ngăn double click
+    if (_isBuyingCoins) {
+      debugPrint('⚠️ buyCoins blocked: Already processing');
+      return null;
+    }
+    _isBuyingCoins = true;
+    isLoading.value = true;
+    
+    try {
+      // 1. Security check
+      if (!isSecure.value) {
+        await _checkSecurity();
+        if (!isSecure.value) return null;
+      }
+      
+      // 2. Validate input
+      if (diamondAmount <= 0) return null;
+      if (stats.value.diamonds < diamondAmount) {
+        debugPrint('⚠️ buyCoins blocked: Insufficient diamonds');
+        return null;
+      }
+      
+      final coinAmount = diamondAmount * 10000; // 1 diamond = 10,000 coins
+      
+      // 3. Update stats (local cache)
+      stats.value = stats.value.copyWith(
+        diamonds: stats.value.diamonds - diamondAmount,
+        coins: stats.value.coins + coinAmount,
+      );
+      
+      // 4. Lưu local
+      await _saveLocalStats();
+      
+      // 5. Thêm transaction
+      await _addTransaction(
+        type: TransactionType.buyCoin,
+        amount: coinAmount,
+        description: 'Đổi $diamondAmount diamond lấy ${coinAmount ~/ 1000}K coins',
+        metadata: {'diamonds': diamondAmount, 'coins': coinAmount},
+      );
+      
+      // 6. Sync Firebase (source of truth)
+      await syncToFirebase(mssv);
+      
+      return {
+        'diamondAmount': diamondAmount,
+        'coinAmount': coinAmount,
+        'newDiamonds': stats.value.diamonds,
+        'newCoins': stats.value.coins,
+      };
+    } finally {
+      _isBuyingCoins = false; // Release lock
+      isLoading.value = false;
+    }
   }
 
   // ============ LESSON CHECK-IN SYSTEM ============

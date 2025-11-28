@@ -6,6 +6,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_styles.dart';
 import '../../../core/widgets/widgets.dart';
+import '../../../routes/app_routes.dart';
 import '../controllers/profile_controller.dart';
 
 class ProfileView extends GetView<ProfileController> {
@@ -201,12 +202,23 @@ class ProfileView extends GetView<ProfileController> {
   }
 
   Widget _buildMenuSection() {
-    return DuoMenuItem(
-      icon: Iconsax.logout,
-      title: 'Đăng xuất',
-      subtitle: 'Thoát khỏi tài khoản hiện tại',
-      onTap: controller.logout,
-      isDestructive: true,
-    ).animate().fadeIn(duration: 400.ms, delay: 300.ms).slideY(begin: 0.1, end: 0);
+    return Column(
+      children: [
+        DuoMenuItem(
+          icon: Iconsax.wallet,
+          title: 'Ví của tôi',
+          subtitle: 'Xem số dư và lịch sử giao dịch',
+          onTap: () => Get.toNamed(Routes.wallet),
+        ).animate().fadeIn(duration: 400.ms, delay: 300.ms).slideY(begin: 0.1, end: 0),
+        SizedBox(height: AppStyles.space2),
+        DuoMenuItem(
+          icon: Iconsax.logout,
+          title: 'Đăng xuất',
+          subtitle: 'Thoát khỏi tài khoản hiện tại',
+          onTap: controller.logout,
+          isDestructive: true,
+        ).animate().fadeIn(duration: 400.ms, delay: 350.ms).slideY(begin: 0.1, end: 0),
+      ],
+    );
   }
 }

@@ -63,4 +63,10 @@ export 'game/duo_attendance_card.dart';
 export 'game/duo_attendance_rate_card.dart';
 export 'game/duo_lesson_checkin.dart';
 export 'game/duo_schedule_card.dart';
-export 'game/duo_reward_dialog.dart';
+export 'game/duo_reward_dialog.dart'; // Includes RewardItem
+export 'game/duo_wallet_balance_card.dart';
+export 'game/duo_tuition_bonus_card.dart';
+export 'game/duo_tuition_preview_card.dart';
+export 'game/duo_transaction_item.dart';
+export 'game/duo_shop_package_card.dart';
+export 'game/duo_shop_balance_header.dart';
