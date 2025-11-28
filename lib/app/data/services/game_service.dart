@@ -57,18 +57,25 @@ class GameService extends GetxService {
   bool get isInitialized => stats.value.isInitialized;
 
   /// Sync stats từ Firebase (nếu có)
+  /// Firebase là source of truth - luôn ưu tiên data từ Firebase
   Future<bool> syncFromFirebase(String mssv) async {
     if (mssv.isEmpty) return false;
     
     try {
       final doc = await _firestore.collection('students').doc(mssv).get();
       if (doc.exists && doc.data()?['gameStats'] != null) {
-        stats.value = PlayerStats.fromJson(doc.data()!['gameStats']);
+        final firebaseStats = PlayerStats.fromJson(doc.data()!['gameStats']);
+        
+        // Firebase là source of truth - luôn dùng data từ Firebase
+        // Điều này ngăn chặn hack bằng cách xóa app data
+        stats.value = firebaseStats;
         await _saveLocalStats();
+        
+        debugPrint('✅ Synced game stats from Firebase: Level ${firebaseStats.level}, Coins ${firebaseStats.coins}');
         return true;
       }
     } catch (e) {
-      print('Error syncing game stats from Firebase: $e');
+      debugPrint('Error syncing game stats from Firebase: $e');
     }
     return false;
   }
@@ -90,6 +97,73 @@ class GameService extends GetxService {
       return true;
     } catch (e) {
       debugPrint('Error syncing game stats to Firebase: $e');
+      return false;
+    }
+  }
+
+  // ============ CHECK-IN SYNC ============
+
+  /// Lưu check-in lên Firebase
+  Future<bool> saveCheckInToFirebase({
+    required String mssv,
+    required String checkInKey,
+    required Map<String, dynamic> checkInData,
+  }) async {
+    if (mssv.isEmpty) return false;
+    
+    try {
+      await _firestore
+          .collection('students')
+          .doc(mssv)
+          .collection('checkIns')
+          .doc(checkInKey)
+          .set({
+        ...checkInData,
+        'syncedAt': FieldValue.serverTimestamp(),
+      });
+      return true;
+    } catch (e) {
+      debugPrint('Error saving check-in to Firebase: $e');
+      return false;
+    }
+  }
+
+  /// Lấy danh sách check-ins từ Firebase
+  Future<Map<String, dynamic>> getCheckInsFromFirebase(String mssv) async {
+    if (mssv.isEmpty) return {};
+    
+    try {
+      final snapshot = await _firestore
+          .collection('students')
+          .doc(mssv)
+          .collection('checkIns')
+          .get();
+      
+      final checkIns = <String, dynamic>{};
+      for (var doc in snapshot.docs) {
+        checkIns[doc.id] = doc.data();
+      }
+      return checkIns;
+    } catch (e) {
+      debugPrint('Error getting check-ins from Firebase: $e');
+      return {};
+    }
+  }
+
+  /// Kiểm tra đã check-in trên Firebase chưa
+  Future<bool> hasCheckedInOnFirebase(String mssv, String checkInKey) async {
+    if (mssv.isEmpty) return false;
+    
+    try {
+      final doc = await _firestore
+          .collection('students')
+          .doc(mssv)
+          .collection('checkIns')
+          .doc(checkInKey)
+          .get();
+      return doc.exists;
+    } catch (e) {
+      debugPrint('Error checking check-in on Firebase: $e');
       return false;
     }
   }

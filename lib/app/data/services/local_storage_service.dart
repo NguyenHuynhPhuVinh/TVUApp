@@ -163,6 +163,24 @@ class LocalStorageService extends GetxService {
     return allCheckIns[checkInKey] as Map<String, dynamic>?;
   }
 
+  /// Merge check-ins từ Firebase vào local
+  /// Firebase là source of truth - nếu Firebase có mà local không có thì thêm vào
+  Future<void> mergeCheckInsFromFirebase(Map<String, dynamic> firebaseCheckIns) async {
+    final localCheckIns = getLessonCheckIns();
+    bool hasChanges = false;
+    
+    for (var entry in firebaseCheckIns.entries) {
+      if (!localCheckIns.containsKey(entry.key)) {
+        localCheckIns[entry.key] = entry.value;
+        hasChanges = true;
+      }
+    }
+    
+    if (hasChanges) {
+      await _prefs.setString(_lessonCheckInsKey, jsonEncode(localCheckIns));
+    }
+  }
+
   // Xóa tất cả data
   Future<void> clearAll() async {
     await _prefs.remove(_gradesKey);

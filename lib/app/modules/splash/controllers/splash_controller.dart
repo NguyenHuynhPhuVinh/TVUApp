@@ -120,8 +120,15 @@ class SplashController extends GetxController {
         // Đã có data -> load nhanh TKB hiện tại, sync nền
         final currentScheduleData = await _loadCurrentSemesterSchedule(mssv);
         
-        // Check game setup
+        // Check game setup - sync từ Firebase (source of truth)
         await _gameService.syncFromFirebase(mssv);
+        
+        // Sync check-ins từ Firebase về local (ngăn hack bằng xóa app data)
+        final firebaseCheckIns = await _gameService.getCheckInsFromFirebase(mssv);
+        if (firebaseCheckIns.isNotEmpty) {
+          await _localStorage.mergeCheckInsFromFirebase(firebaseCheckIns);
+        }
+        
         if (!_gameService.isInitialized) {
           Get.offAllNamed(Routes.gameSetup);
         } else {
@@ -202,6 +209,12 @@ class SplashController extends GetxController {
         curriculum: curriculumData,
         tuition: tuitionData,
       );
+      
+      // 7.1 Sync check-ins từ Firebase về local (ngăn hack bằng xóa app data)
+      final firebaseCheckIns = await _gameService.getCheckInsFromFirebase(mssv);
+      if (firebaseCheckIns.isNotEmpty) {
+        await _localStorage.mergeCheckInsFromFirebase(firebaseCheckIns);
+      }
 
       // Sync tất cả TKB lên Firebase
       if (allSchedulesData != null) {

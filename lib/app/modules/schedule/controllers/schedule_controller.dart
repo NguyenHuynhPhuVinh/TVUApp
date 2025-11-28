@@ -25,6 +25,8 @@ class ScheduleController extends GetxController {
     _gameService = Get.find<GameService>();
     _authService = Get.find<AuthService>();
     loadSemesters();
+    // Sync check-ins từ Firebase
+    syncCheckInsFromFirebase();
   }
 
   void loadSemesters() {
@@ -161,28 +163,39 @@ class ScheduleController extends GetxController {
   }
 
   /// Check-in buổi học và nhận thưởng
+  /// TUÂN THỦ 3 BƯỚC: 1. Check Firebase → 2. Lưu Local → 3. Sync Firebase
+  /// Firebase là SOURCE OF TRUTH - Local chỉ là cache
   /// Returns: Map rewards nếu thành công, null nếu thất bại
   Future<Map<String, dynamic>?> checkInLesson(Map<String, dynamic> lesson) async {
     final key = _createCheckInKey(lesson);
-    
-    // Kiểm tra đã check-in chưa
-    if (_localStorage.hasCheckedIn(key)) {
-      return null;
-    }
-    
-    // Kiểm tra có thể check-in không (thời gian)
-    if (!canCheckInLesson(lesson)) {
-      return null;
-    }
+    final mssv = _authService.username.value;
     
     // Đánh dấu đang loading
     checkingInKeys.add(key);
     
     try {
-      final soTiet = lesson['so_tiet'] as int? ?? 1;
-      final mssv = _authService.username.value;
+      // ========== BƯỚC 1: CHECK FIREBASE (Source of Truth) ==========
+      // Kiểm tra trên Firebase trước - ngăn chặn hack bằng xóa local data
+      final alreadyCheckedInOnFirebase = await _gameService.hasCheckedInOnFirebase(mssv, key);
+      if (alreadyCheckedInOnFirebase) {
+        // Đã check-in trên Firebase -> cập nhật local cache và return
+        checkInStates[key] = true;
+        return null;
+      }
       
-      // Gọi game service để nhận thưởng (bao gồm security check + local + firebase)
+      // Kiểm tra local cache (để UX nhanh hơn nếu đã sync)
+      if (_localStorage.hasCheckedIn(key)) {
+        return null;
+      }
+      
+      // Kiểm tra có thể check-in không (thời gian)
+      if (!canCheckInLesson(lesson)) {
+        return null;
+      }
+      
+      final soTiet = lesson['so_tiet'] as int? ?? 1;
+      
+      // Gọi game service để nhận thưởng (bao gồm security check)
       final rewards = await _gameService.checkInLesson(
         mssv: mssv,
         soTiet: soTiet,
@@ -193,13 +206,23 @@ class ScheduleController extends GetxController {
         return null;
       }
       
-      // Lưu check-in vào local storage
-      await _localStorage.saveLessonCheckIn(key, {
+      final checkInData = {
         'checkedAt': DateTime.now().toIso8601String(),
         'soTiet': soTiet,
         'tenMon': lesson['ten_mon'],
+        'maMon': lesson['ma_mon'],
         'rewards': rewards,
-      });
+      };
+      
+      // ========== BƯỚC 2: LƯU LOCAL (Cache) ==========
+      await _localStorage.saveLessonCheckIn(key, checkInData);
+      
+      // ========== BƯỚC 3: SYNC FIREBASE (Source of Truth) ==========
+      await _gameService.saveCheckInToFirebase(
+        mssv: mssv,
+        checkInKey: key,
+        checkInData: checkInData,
+      );
       
       // Cập nhật state UI
       checkInStates[key] = true;
@@ -221,6 +244,31 @@ class ScheduleController extends GetxController {
       }
     } catch (e) {
       // Ignore errors during loading check-in states
+    }
+  }
+
+  /// Sync check-ins từ Firebase về local
+  Future<void> syncCheckInsFromFirebase() async {
+    final mssv = _authService.username.value;
+    if (mssv.isEmpty) return;
+
+    try {
+      final firebaseCheckIns = await _gameService.getCheckInsFromFirebase(mssv);
+      
+      for (var entry in firebaseCheckIns.entries) {
+        final key = entry.key;
+        final data = entry.value as Map<String, dynamic>;
+        
+        // Nếu local chưa có, lưu vào local
+        if (!_localStorage.hasCheckedIn(key)) {
+          await _localStorage.saveLessonCheckIn(key, data);
+        }
+      }
+      
+      // Reload check-in states
+      _loadCheckInStates();
+    } catch (e) {
+      // Ignore errors during sync
     }
   }
 }
