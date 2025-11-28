@@ -250,12 +250,20 @@ class GradesController extends GetxController {
               color: AppColors.yellow,
             ),
             RewardItem(
+              icon: 'assets/game/main/golden_star_1st_256px.png',
+              label: 'XP',
+              value: result['earnedXp'],
+              color: AppColors.purple,
+            ),
+            RewardItem(
               icon: 'assets/game/currency/diamond_blue_diamond_1st_256px.png',
               label: 'Diamonds',
               value: result['earnedDiamonds'],
               color: AppColors.primary,
             ),
           ],
+          leveledUp: result['leveledUp'] ?? false,
+          newLevel: result['newLevel'],
         );
       }
     } finally {
@@ -290,12 +298,20 @@ class GradesController extends GetxController {
               color: AppColors.yellow,
             ),
             RewardItem(
+              icon: 'assets/game/main/golden_star_1st_256px.png',
+              label: 'XP',
+              value: result['earnedXp'],
+              color: AppColors.purple,
+            ),
+            RewardItem(
               icon: 'assets/game/currency/diamond_blue_diamond_1st_256px.png',
               label: 'Diamonds',
               value: result['earnedDiamonds'],
               color: AppColors.primary,
             ),
           ],
+          leveledUp: result['leveledUp'] ?? false,
+          newLevel: result['newLevel'],
         );
       }
     } finally {

@@ -197,38 +197,57 @@ class DuoRankRewardsSheet extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: 4.h),
-                  Row(
-                    children: [
-                      Image.asset(
-                        'assets/game/currency/coin_golden_coin_1st_256px.png',
-                        width: 16.w,
-                        height: 16.w,
-                      ),
-                      SizedBox(width: 4.w),
-                      Text(
-                        _formatNumber(rewards['coins']!),
-                        style: TextStyle(
-                          fontSize: AppStyles.textSm,
-                          fontWeight: AppStyles.fontSemibold,
-                          color: AppColors.yellowLight,
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Row(
+                      children: [
+                        Image.asset(
+                          'assets/game/currency/coin_golden_coin_1st_256px.png',
+                          width: 16.w,
+                          height: 16.w,
                         ),
-                      ),
-                      SizedBox(width: AppStyles.space3),
-                      Image.asset(
-                        'assets/game/currency/diamond_blue_diamond_1st_256px.png',
-                        width: 16.w,
-                        height: 16.w,
-                      ),
-                      SizedBox(width: 4.w),
-                      Text(
-                        _formatNumber(rewards['diamonds']!),
-                        style: TextStyle(
-                          fontSize: AppStyles.textSm,
-                          fontWeight: AppStyles.fontSemibold,
-                          color: AppColors.primaryLight,
+                        SizedBox(width: 4.w),
+                        Text(
+                          _formatNumber(rewards['coins']!),
+                          style: TextStyle(
+                            fontSize: AppStyles.textSm,
+                            fontWeight: AppStyles.fontSemibold,
+                            color: AppColors.yellowLight,
+                          ),
                         ),
-                      ),
-                    ],
+                        SizedBox(width: AppStyles.space2),
+                        Image.asset(
+                          'assets/game/main/golden_star_1st_256px.png',
+                          width: 16.w,
+                          height: 16.w,
+                        ),
+                        SizedBox(width: 4.w),
+                        Text(
+                          _formatNumber(rewards['xp']!),
+                          style: TextStyle(
+                            fontSize: AppStyles.textSm,
+                            fontWeight: AppStyles.fontSemibold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        SizedBox(width: AppStyles.space2),
+                        Image.asset(
+                          'assets/game/currency/diamond_blue_diamond_1st_256px.png',
+                          width: 16.w,
+                          height: 16.w,
+                        ),
+                        SizedBox(width: 4.w),
+                        Text(
+                          _formatNumber(rewards['diamonds']!),
+                          style: TextStyle(
+                            fontSize: AppStyles.textSm,
+                            fontWeight: AppStyles.fontSemibold,
+                            color: AppColors.primaryLight,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),

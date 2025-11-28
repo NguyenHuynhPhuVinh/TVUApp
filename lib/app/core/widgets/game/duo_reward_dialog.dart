@@ -89,6 +89,8 @@ class DuoRewardDialog extends StatelessWidget {
     required String title,
     required List<RewardItem> rewards,
     String? subtitle,
+    bool leveledUp = false,
+    int? newLevel,
   }) async {
     await Get.dialog(
       DuoRewardDialog(
@@ -98,6 +100,8 @@ class DuoRewardDialog extends StatelessWidget {
         earnedXp: 0,
         customTitle: title,
         customRewards: rewards,
+        leveledUp: leveledUp,
+        newLevel: newLevel ?? 1,
       ),
       barrierDismissible: true,
     );
