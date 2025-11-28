@@ -115,89 +115,108 @@ class DuoScheduleCard extends StatelessWidget {
   }
 
   Widget _buildCheckInSection() {
-    return Row(
-      children: [
-        Expanded(child: _buildRewardPreview()),
-        SizedBox(width: AppStyles.space2),
-        DuoLessonCheckIn(
-          canCheckIn: canCheckIn,
-          hasCheckedIn: hasCheckedIn,
-          isLoading: isCheckingIn,
-          isBeforeGameInit: isBeforeGameInit,
-          isExpired: isExpired,
-          timeRemaining: timeRemaining,
-          soTiet: soTiet,
-          onCheckIn: onCheckIn,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildRewardPreview() {
     final coins = soTiet * 250000;
     final xp = soTiet * 1250;
     final diamonds = soTiet * 413;
 
+    // Style theo trạng thái giống CTDT
+    Color bgColor;
+    Color borderColor;
+    double borderWidth;
+    Color labelColor;
+    Color textColor;
+
+    if (hasCheckedIn) {
+      bgColor = AppColors.greenSoft;
+      borderColor = AppColors.green.withValues(alpha: 0.3);
+      borderWidth = 1;
+      labelColor = AppColors.green;
+      textColor = AppColors.green;
+    } else if (canCheckIn) {
+      bgColor = AppColors.yellowSoft;
+      borderColor = AppColors.yellow;
+      borderWidth = 2;
+      labelColor = AppColors.yellowDark;
+      textColor = AppColors.textPrimary;
+    } else {
+      bgColor = AppColors.background;
+      borderColor = AppColors.border;
+      borderWidth = 1;
+      labelColor = AppColors.textTertiary;
+      textColor = AppColors.textTertiary;
+    }
+
     return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: AppStyles.space2,
-        vertical: AppStyles.space2,
-      ),
+      padding: EdgeInsets.all(AppStyles.space3),
       decoration: BoxDecoration(
-        color: AppColors.yellowSoft,
+        color: bgColor,
         borderRadius: AppStyles.roundedLg,
+        border: Border.all(color: borderColor, width: borderWidth),
       ),
-      child: FittedBox(
-        fit: BoxFit.scaleDown,
-        alignment: Alignment.centerLeft,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Image.asset(
-              'assets/game/item/gift_red_gift_1st_64px.png',
-              width: 14.w,
-              height: 14.w,
-              errorBuilder: (_, __, ___) =>
-                  Icon(Iconsax.gift, color: AppColors.yellow, size: 12.w),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  hasCheckedIn ? 'Đã nhận thưởng' : 'Phần thưởng',
+                  style: TextStyle(
+                    fontSize: AppStyles.textXs,
+                    fontWeight: AppStyles.fontSemibold,
+                    color: labelColor,
+                  ),
+                ),
+                SizedBox(height: AppStyles.space1),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Row(
+                    children: [
+                      _buildRewardItem('assets/game/currency/coin_golden_coin_1st_64px.png', coins, textColor),
+                      SizedBox(width: AppStyles.space2),
+                      _buildRewardItem('assets/game/currency/diamond_blue_diamond_1st_64px.png', diamonds, textColor),
+                      SizedBox(width: AppStyles.space2),
+                      _buildRewardItem('assets/game/main/star_golden_star_1st_64px.png', xp, textColor),
+                    ],
+                  ),
+                ),
+              ],
             ),
-            SizedBox(width: AppStyles.space1),
-            _buildRewardItem(
-              'assets/game/currency/coin_golden_coin_1st_64px.png',
-              coins,
-            ),
-            SizedBox(width: AppStyles.space1),
-            _buildRewardItem(
-              'assets/game/currency/diamond_blue_diamond_1st_64px.png',
-              diamonds,
-            ),
-            SizedBox(width: AppStyles.space1),
-            _buildRewardItem(
-              'assets/game/main/star_golden_star_1st_64px.png',
-              xp,
-            ),
-          ],
-        ),
+          ),
+          SizedBox(width: AppStyles.space2),
+          DuoLessonCheckIn(
+            canCheckIn: canCheckIn,
+            hasCheckedIn: hasCheckedIn,
+            isLoading: isCheckingIn,
+            isBeforeGameInit: isBeforeGameInit,
+            isExpired: isExpired,
+            timeRemaining: timeRemaining,
+            soTiet: soTiet,
+            onCheckIn: onCheckIn,
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildRewardItem(String assetPath, int value) {
+  Widget _buildRewardItem(String assetPath, int value, Color textColor) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Image.asset(
           assetPath,
-          width: 12.w,
-          height: 12.w,
+          width: 14.w,
+          height: 14.w,
           errorBuilder: (_, __, ___) => const SizedBox.shrink(),
         ),
         SizedBox(width: 2.w),
         Text(
-          '+${_formatNumber(value)}',
+          _formatNumber(value),
           style: TextStyle(
-            fontSize: 10.sp,
+            fontSize: AppStyles.textXs,
             fontWeight: AppStyles.fontBold,
-            color: AppColors.yellowDark,
+            color: textColor,
           ),
         ),
       ],
