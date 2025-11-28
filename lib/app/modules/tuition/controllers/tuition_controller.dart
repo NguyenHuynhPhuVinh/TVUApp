@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import '../../../core/utils/number_formatter.dart';
+import '../../../data/models/tuition_semester.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../data/services/game_service.dart';
 import '../../../data/services/local_storage_service.dart';
@@ -9,7 +10,7 @@ class TuitionController extends GetxController {
   final GameService _gameService = Get.find<GameService>();
   final AuthService _authService = Get.find<AuthService>();
 
-  final tuitionList = <Map<String, dynamic>>[].obs;
+  final tuitionList = <TuitionSemester>[].obs;
   final totalTuition = 0.0.obs;
   final totalPaid = 0.0.obs;
   final totalDebt = 0.0.obs;
@@ -28,15 +29,17 @@ class TuitionController extends GetxController {
     if (tuitionData != null && tuitionData['data'] != null) {
       final data = tuitionData['data'];
       final list = data['ds_hoc_phi_hoc_ky'] as List? ?? [];
-      tuitionList.value = list.map((e) => Map<String, dynamic>.from(e)).toList();
+      tuitionList.value = list
+          .map((e) => TuitionSemester.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
 
       double tuition = 0;
       double paid = 0;
       double debt = 0;
       for (var item in tuitionList) {
-        tuition += NumberFormatter.parseDouble(item['phai_thu']);
-        paid += NumberFormatter.parseDouble(item['da_thu']);
-        debt += NumberFormatter.parseDouble(item['con_no']);
+        tuition += item.phaiThu;
+        paid += item.daThu;
+        debt += item.conNo;
       }
       totalTuition.value = tuition;
       totalPaid.value = paid;
@@ -50,26 +53,21 @@ class TuitionController extends GetxController {
   }
 
   /// Kiểm tra có thể claim học kỳ này không (đã đóng tiền và chưa claim)
-  bool canClaimSemester(Map<String, dynamic> item) {
-    final daThu = NumberFormatter.parseInt(item['da_thu']);
-    final semesterId = item['ten_hoc_ky'] ?? '';
-    return daThu > 0 && !isSemesterClaimed(semesterId);
+  bool canClaimSemester(TuitionSemester item) {
+    return item.paidAmount > 0 && !isSemesterClaimed(item.tenHocKy);
   }
 
   /// Claim bonus cho 1 học kỳ
-  Future<Map<String, dynamic>?> claimSemesterBonus(Map<String, dynamic> item) async {
-    final semesterId = item['ten_hoc_ky'] ?? '';
-    final daThu = NumberFormatter.parseInt(item['da_thu']);
-    
-    if (semesterId.isEmpty || daThu <= 0) return null;
+  Future<Map<String, dynamic>?> claimSemesterBonus(TuitionSemester item) async {
+    if (item.tenHocKy.isEmpty || item.paidAmount <= 0) return null;
     if (claimingId.value.isNotEmpty) return null; // Đang claim học kỳ khác
     
-    claimingId.value = semesterId;
+    claimingId.value = item.tenHocKy;
     try {
       final result = await _gameService.claimTuitionBonusBySemester(
         mssv: mssv,
-        semesterId: semesterId,
-        tuitionPaid: daThu,
+        semesterId: item.tenHocKy,
+        tuitionPaid: item.paidAmount,
       );
       return result;
     } finally {

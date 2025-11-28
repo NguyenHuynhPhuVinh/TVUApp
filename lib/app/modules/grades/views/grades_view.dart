@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../../core/constants/app_assets.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_styles.dart';
 import '../../../core/utils/rank_helper.dart';
@@ -289,7 +290,7 @@ class GradesView extends GetView<GradesController> {
           IconButton(
             onPressed: controller.openRankRewardsSheet,
             icon: Image.asset(
-              'assets/game/item/purple_gift_1st_256px.png',
+              AppAssets.giftPurple,
               width: 28,
               height: 28,
             ),

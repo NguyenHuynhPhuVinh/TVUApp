@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../constants/app_assets.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_styles.dart';
 import '../feedback/duo_progress.dart';
@@ -277,10 +278,10 @@ class DuoStreakCard extends StatelessWidget {
           children: [
             // Fire icon
             Image.asset(
-              'assets/game/main/fire_1st_outline_256px.png',
+              AppAssets.fire,
               width: 40.w,
               height: 40.w,
-              errorBuilder: (_, __, ___) => Icon(
+              errorBuilder: (_, _, _) => Icon(
                 Icons.local_fire_department_rounded,
                 size: 40.w,
                 color: isActive ? Colors.white : AppColors.textTertiary,

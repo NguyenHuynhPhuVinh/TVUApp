@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../constants/app_assets.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_styles.dart';
 import '../../utils/number_formatter.dart';
@@ -56,7 +55,7 @@ class DuoRewardRow extends StatelessWidget {
                       iconPath!,
                       width: 32.w,
                       height: 32.w,
-                      errorBuilder: (_, __, ___) => Icon(
+                      errorBuilder: (_, _, _) => Icon(
                         fallbackIcon,
                         size: 32.w,
                         color: color,

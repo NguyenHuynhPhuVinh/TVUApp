@@ -326,7 +326,7 @@ class _DuoRewardItem extends StatelessWidget {
           assetPath,
           width: 32.w,
           height: 32.w,
-          errorBuilder: (_, __, ___) => Icon(
+          errorBuilder: (_, _, _) => Icon(
             Icons.card_giftcard,
             size: 32.w,
             color: AppColors.yellow,

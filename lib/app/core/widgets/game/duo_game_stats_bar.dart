@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../constants/app_assets.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_styles.dart';
 import '../../utils/number_formatter.dart';
@@ -38,14 +39,14 @@ class DuoGameStatsBar extends StatelessWidget {
           ),
           _buildDivider(),
           _DuoStatItem(
-            iconPath: 'assets/game/currency/coin_golden_coin_1st_256px.png',
+            iconPath: AppAssets.coin,
             fallbackIcon: Icons.monetization_on_rounded,
             value: NumberFormatter.compact(coins),
             color: AppColors.yellow,
           ),
           _buildDivider(),
           _DuoStatItem(
-            iconPath: 'assets/game/currency/diamond_blue_diamond_1st_256px.png',
+            iconPath: AppAssets.diamond,
             fallbackIcon: Icons.diamond_rounded,
             value: NumberFormatter.compact(diamonds),
             color: Colors.cyan,
@@ -89,7 +90,7 @@ class _DuoStatItem extends StatelessWidget {
             iconPath!,
             width: 18.w,
             height: 18.w,
-            errorBuilder: (_, __, ___) => Icon(
+            errorBuilder: (_, _, _) => Icon(
               fallbackIcon ?? Icons.star,
               size: 18.w,
               color: color,

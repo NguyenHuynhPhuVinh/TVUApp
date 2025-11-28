@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../data/services/game_service.dart';
+import '../../constants/app_assets.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_styles.dart';
 import '../../utils/number_formatter.dart';
@@ -84,7 +85,7 @@ class DuoRankRewardsSheet extends StatelessWidget {
             child: Row(
               children: [
                 Image.asset(
-                  'assets/game/item/purple_gift_1st_256px.png',
+                  AppAssets.giftPurple,
                   width: 32.w,
                   height: 32.w,
                 ),
@@ -178,7 +179,7 @@ class DuoRankRewardsSheet extends StatelessWidget {
                 borderRadius: AppStyles.roundedMd,
               ),
               child: Image.asset(
-                'assets/game/item/chest_1st_256px.png',
+                AppAssets.chest,
                 width: 32.w,
                 height: 32.w,
               ),
@@ -203,7 +204,7 @@ class DuoRankRewardsSheet extends StatelessWidget {
                     child: Row(
                       children: [
                         Image.asset(
-                          'assets/game/currency/coin_golden_coin_1st_256px.png',
+                          AppAssets.coin,
                           width: 16.w,
                           height: 16.w,
                         ),
@@ -218,7 +219,7 @@ class DuoRankRewardsSheet extends StatelessWidget {
                         ),
                         SizedBox(width: AppStyles.space2),
                         Image.asset(
-                          'assets/game/main/golden_star_1st_256px.png',
+                          AppAssets.xpStar,
                           width: 16.w,
                           height: 16.w,
                         ),
@@ -233,7 +234,7 @@ class DuoRankRewardsSheet extends StatelessWidget {
                         ),
                         SizedBox(width: AppStyles.space2),
                         Image.asset(
-                          'assets/game/currency/diamond_blue_diamond_1st_256px.png',
+                          AppAssets.diamond,
                           width: 16.w,
                           height: 16.w,
                         ),

@@ -32,6 +32,9 @@ class AppAssets {
   static const String xpStar = 'assets/game/main/golden_star_1st_256px.png';
   static const String xpStarOutline = 'assets/game/main/golden_star_1st_outline_256px.png';
 
+  /// Fire - streak indicator
+  static const String fire = 'assets/game/main/fire_1st_outline_256px.png';
+
   // ============================================
   // UI - Checkmarks, buttons, etc.
   // ============================================

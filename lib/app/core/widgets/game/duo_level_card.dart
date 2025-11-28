@@ -174,7 +174,7 @@ class DuoLevelCard extends StatelessWidget {
           AppAssets.xpStar,
           width: 32.w,
           height: 32.w,
-          errorBuilder: (_, __, ___) => Icon(
+          errorBuilder: (_, _, _) => Icon(
             Icons.star_rounded,
             size: 32.w,
             color: AppColors.yellow,

@@ -5,8 +5,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/constants/app_assets.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_styles.dart';
-import '../../../core/utils/number_formatter.dart';
 import '../../../core/widgets/widgets.dart';
+import '../../../data/models/tuition_semester.dart';
 import '../controllers/tuition_controller.dart';
 
 class TuitionView extends GetView<TuitionController> {
@@ -87,7 +87,7 @@ class _TuitionListSection extends StatelessWidget {
 
 /// Item học phí
 class _TuitionItem extends StatelessWidget {
-  final Map<String, dynamic> item;
+  final TuitionSemester item;
   final int index;
   final TuitionController controller;
 
@@ -99,44 +99,30 @@ class _TuitionItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hocPhi = NumberFormatter.parseDouble(item['hoc_phi']);
-    final mienGiam = NumberFormatter.parseDouble(item['mien_giam']);
-    final duocHoTro = NumberFormatter.parseDouble(item['duoc_ho_tro']);
-    final phaiThu = NumberFormatter.parseDouble(item['phai_thu']);
-    final daThu = NumberFormatter.parseDouble(item['da_thu']);
-    final conNo = NumberFormatter.parseDouble(item['con_no']);
-    final donGia = NumberFormatter.parseDouble(item['don_gia']);
-    final hasDebt = conNo > 0;
-    final daThuInt = NumberFormatter.parseInt(item['da_thu']);
-    final semesterId = item['ten_hoc_ky'] ?? '';
-
     return Container(
       margin: EdgeInsets.only(bottom: AppStyles.space3),
       child: Obx(() {
         // Xác định trạng thái bonus
         TuitionBonusState bonusState;
-        if (daThuInt <= 0) {
+        if (item.paidAmount <= 0) {
           bonusState = TuitionBonusState.noPaid;
-        } else if (controller.isSemesterClaimed(semesterId)) {
+        } else if (controller.isSemesterClaimed(item.tenHocKy)) {
           bonusState = TuitionBonusState.claimed;
-        } else if (controller.claimingId.value == semesterId) {
+        } else if (controller.claimingId.value == item.tenHocKy) {
           bonusState = TuitionBonusState.loading;
         } else {
           bonusState = TuitionBonusState.canClaim;
         }
 
         return DuoTuitionCard(
-          tenHocKy: semesterId.isNotEmpty ? semesterId : 'N/A',
-          hocPhi: controller.formatCurrency(hocPhi),
-          mienGiam: mienGiam > 0 ? controller.formatCurrency(mienGiam) : null,
-          duocHoTro: duocHoTro > 0 ? controller.formatCurrency(duocHoTro) : null,
-          phaiThu: controller.formatCurrency(phaiThu),
-          daThu: controller.formatCurrency(daThu),
-          conNo: controller.formatCurrency(conNo),
-          donGia: donGia > 0 ? controller.formatCurrency(donGia) : null,
-          hasDebt: hasDebt,
+          tenHocKy: item.tenHocKy.isNotEmpty ? item.tenHocKy : 'N/A',
+          hocPhi: controller.formatCurrency(item.phaiThu), // phaiThu = hocPhi sau miễn giảm
+          phaiThu: controller.formatCurrency(item.phaiThu),
+          daThu: controller.formatCurrency(item.daThu),
+          conNo: controller.formatCurrency(item.conNo),
+          hasDebt: item.conNo > 0,
           bonusState: bonusState,
-          daThuAmount: daThuInt,
+          daThuAmount: item.paidAmount,
           onClaimBonus: bonusState == TuitionBonusState.canClaim
               ? () => _claimBonus(context)
               : null,

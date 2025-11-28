@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../constants/app_assets.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_styles.dart';
 import '../../utils/number_formatter.dart';
@@ -26,7 +27,7 @@ class DuoCurrencyCard extends StatelessWidget {
   /// Factory cho Coins
   factory DuoCurrencyCard.coins(int value) {
     return DuoCurrencyCard(
-      iconPath: 'assets/game/currency/coin_golden_coin_1st_256px.png',
+      iconPath: AppAssets.coin,
       fallbackIcon: Icons.monetization_on_rounded,
       label: 'Coins',
       value: value,
@@ -38,7 +39,7 @@ class DuoCurrencyCard extends StatelessWidget {
   /// Factory cho Diamonds
   factory DuoCurrencyCard.diamonds(int value) {
     return DuoCurrencyCard(
-      iconPath: 'assets/game/currency/diamond_blue_diamond_1st_256px.png',
+      iconPath: AppAssets.diamond,
       fallbackIcon: Icons.diamond_rounded,
       label: 'Diamonds',
       value: value,
@@ -63,7 +64,7 @@ class DuoCurrencyCard extends StatelessWidget {
               iconPath!,
               width: 32.w,
               height: 32.w,
-              errorBuilder: (_, __, ___) =>
+              errorBuilder: (_, _, _) =>
                   Icon(fallbackIcon, size: 32.w, color: color),
             )
           else

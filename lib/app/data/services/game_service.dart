@@ -403,46 +403,19 @@ class GameService extends GetxService {
       final missedLessons = missedSessions * 4; // 1 buổi = 4 tiết
       final attendedLessons = (totalLessons - missedLessons).clamp(0, totalLessons);
       
-      // ============ BẢNG THƯỞNG CHỐT HẠ ============
-      // 1 tiết:
-      //   - 250,000 coins
-      //   - 2,500 XP
-      //   - 413 diamonds
-      //
-      // 1 buổi (4 tiết):
-      //   - 1,000,000 coins (1M)
-      //   - 10,000 XP
-      //   - 1,652 diamonds (~11 lần quay gacha)
-      //
-      // 4 năm (~6000 tiết, chuyên cần >= 90%):
-      //   - Coins: 2.25 TỶ
-      //   - XP: 22.5M → Level ~2,100
-      //   - Diamonds: 3.7M → ~24,700 lần quay
-      //
-      // Bonus chuyên cần: +50% (>=90%), +25% (>=80%)
-      // =============================================
-      final attendanceRate = totalLessons > 0 ? (attendedLessons / totalLessons) * 100 : 100.0;
-      var earnedCoins = attendedLessons * coinsPerLesson;
-      var earnedDiamonds = attendedLessons * diamondsPerLesson;
-      var earnedXp = attendedLessons * xpPerLesson;
+      // Delegate tính toán reward cho RewardCalculator
+      final attendanceReward = RewardCalculator.calculateAttendanceReward(
+        attendedLessons: attendedLessons,
+        totalLessons: totalLessons,
+      );
+      final earnedCoins = attendanceReward['coins']!;
+      final earnedDiamonds = attendanceReward['diamonds']!;
+      final earnedXp = attendanceReward['xp']!;
       
-      if (attendanceRate >= 90) {
-        earnedCoins = (earnedCoins * 1.5).round(); // Bonus 50%
-        earnedDiamonds = (earnedDiamonds * 1.5).round(); // Bonus 50%
-        earnedXp = (earnedXp * 1.5).round(); // Bonus 50%
-      } else if (attendanceRate >= 80) {
-        earnedCoins = (earnedCoins * 1.25).round(); // Bonus 25%
-        earnedDiamonds = (earnedDiamonds * 1.25).round(); // Bonus 25%
-        earnedXp = (earnedXp * 1.25).round(); // Bonus 25%
-      }
-      
-      // Tính level từ XP (mỗi level cần level * 100 XP)
-      int level = 1;
-      int remainingXp = earnedXp;
-      while (remainingXp >= level * 100) {
-        remainingXp -= level * 100;
-        level++;
-      }
+      // Delegate tính level cho RewardCalculator
+      final levelResult = RewardCalculator.calculateLevelFromXp(earnedXp);
+      final level = levelResult['level']!;
+      final remainingXp = levelResult['currentXp']!;
       
       // 2. Cập nhật stats (lưu thời điểm khởi tạo)
       stats.value = PlayerStats(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../core/constants/app_assets.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/rank_helper.dart';
 import '../../../core/widgets/widgets.dart';
@@ -244,19 +245,19 @@ class GradesController extends GetxController {
           subtitle: RankHelper.getRankNameFromIndex(rankIdx),
           rewards: [
             RewardItem(
-              icon: 'assets/game/currency/coin_golden_coin_1st_256px.png',
+              icon: AppAssets.coin,
               label: 'Coins',
               value: result['earnedCoins'],
               color: AppColors.yellow,
             ),
             RewardItem(
-              icon: 'assets/game/main/golden_star_1st_256px.png',
+              icon: AppAssets.xpStar,
               label: 'XP',
               value: result['earnedXp'],
               color: AppColors.purple,
             ),
             RewardItem(
-              icon: 'assets/game/currency/diamond_blue_diamond_1st_256px.png',
+              icon: AppAssets.diamond,
               label: 'Diamonds',
               value: result['earnedDiamonds'],
               color: AppColors.primary,
@@ -292,19 +293,19 @@ class GradesController extends GetxController {
           subtitle: '${result['claimedCount']} rank',
           rewards: [
             RewardItem(
-              icon: 'assets/game/currency/coin_golden_coin_1st_256px.png',
+              icon: AppAssets.coin,
               label: 'Coins',
               value: result['earnedCoins'],
               color: AppColors.yellow,
             ),
             RewardItem(
-              icon: 'assets/game/main/golden_star_1st_256px.png',
+              icon: AppAssets.xpStar,
               label: 'XP',
               value: result['earnedXp'],
               color: AppColors.purple,
             ),
             RewardItem(
-              icon: 'assets/game/currency/diamond_blue_diamond_1st_256px.png',
+              icon: AppAssets.diamond,
               label: 'Diamonds',
               value: result['earnedDiamonds'],
               color: AppColors.primary,

@@ -181,7 +181,7 @@ class DuoRewardCard extends StatelessWidget {
         iconAsset!,
         width: 48.w,
         height: 48.w,
-        errorBuilder: (_, __, ___) => Icon(
+        errorBuilder: (_, _, _) => Icon(
           fallbackIcon ?? Icons.star,
           size: 48.w,
           color: iconColor,
@@ -422,7 +422,7 @@ class DuoBigRewardRow extends StatelessWidget {
         iconAsset!,
         width: 52.w,
         height: 52.w,
-        errorBuilder: (_, __, ___) => Icon(
+        errorBuilder: (_, _, _) => Icon(
           fallbackIcon ?? Icons.star,
           size: 52.w,
           color: color,
@@ -541,7 +541,7 @@ class DuoMediumRewardRow extends StatelessWidget {
         iconAsset!,
         width: 36.w,
         height: 36.w,
-        errorBuilder: (_, __, ___) => Icon(
+        errorBuilder: (_, _, _) => Icon(
           fallbackIcon ?? Icons.star,
           size: 36.w,
           color: color,
