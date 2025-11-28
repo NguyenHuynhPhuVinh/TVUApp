@@ -1,18 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
+
+import '../../../../core/components/widgets.dart';
 import '../../../../core/extensions/animation_extensions.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_styles.dart';
-import '../../../../core/components/widgets.dart';
 import '../../../../features/academic/widgets/academic_widgets.dart';
 import '../../../../features/gamification/widgets/game_widgets.dart';
+import '../../models/schedule_model.dart';
 import '../controllers/schedule_controller.dart';
 
 class ScheduleView extends GetView<ScheduleController> {
   const ScheduleView({super.key});
 
-  static const _days = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'CN'];
+  static const _days = [
+    'Thứ 2',
+    'Thứ 3',
+    'Thứ 4',
+    'Thứ 5',
+    'Thứ 6',
+    'Thứ 7',
+    'CN'
+  ];
   static const _dayColors = [
     AppColors.primary,
     AppColors.green,
@@ -48,10 +58,8 @@ class ScheduleView extends GetView<ScheduleController> {
   }
 }
 
-/// Section chọn học kỳ
 class _SemesterSection extends StatelessWidget {
   final ScheduleController controller;
-
   const _SemesterSection({required this.controller});
 
   @override
@@ -61,7 +69,8 @@ class _SemesterSection extends StatelessWidget {
         (s) => s['hoc_ky'] == controller.selectedSemester.value,
       );
       final tenHocKy = selected?['ten_hoc_ky'] as String? ?? 'Chọn học kỳ';
-      final isCurrent = controller.selectedSemester.value == controller.currentSemester.value;
+      final isCurrent =
+          controller.selectedSemester.value == controller.currentSemester.value;
 
       return DuoSemesterSelector(
         tenHocKy: tenHocKy,
@@ -77,10 +86,8 @@ class _SemesterSection extends StatelessWidget {
   }
 }
 
-/// Section chọn tuần
 class _WeekSection extends StatelessWidget {
   final ScheduleController controller;
-
   const _WeekSection({required this.controller});
 
   @override
@@ -97,11 +104,10 @@ class _WeekSection extends StatelessWidget {
           items: controller.weeks.asMap().entries.map((entry) {
             final index = entry.key;
             final week = entry.value;
-            final hasSchedule = (week['ds_thoi_khoa_bieu'] as List?)?.isNotEmpty ?? false;
             return DuoChipItem<int>(
               value: index,
-              label: 'Tuần ${week['tuan_hoc_ky'] ?? index + 1}',
-              hasContent: hasSchedule,
+              label: 'Tuần ${week.tuanHocKy}',
+              hasContent: week.lessons.isNotEmpty,
             );
           }).toList(),
           onSelected: controller.selectWeek,
@@ -111,16 +117,15 @@ class _WeekSection extends StatelessWidget {
   }
 }
 
-/// Section danh sách lịch học
+
 class _ScheduleListSection extends StatelessWidget {
   final ScheduleController controller;
-
   const _ScheduleListSection({required this.controller});
 
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      if (controller.currentWeekSchedule.isEmpty) {
+      if (controller.currentWeekLessons.isEmpty) {
         final week = controller.weeks.isNotEmpty &&
                 controller.selectedWeekIndex.value < controller.weeks.length
             ? controller.weeks[controller.selectedWeekIndex.value]
@@ -129,7 +134,7 @@ class _ScheduleListSection extends StatelessWidget {
           icon: Iconsax.calendar_remove,
           title: 'Không có lịch học tuần này',
           subtitle: week != null
-              ? '${week['ngay_bat_dau']} - ${week['ngay_ket_thuc']}'
+              ? '${week.ngayBatDau} - ${week.ngayKetThuc}'
               : null,
           iconColor: AppColors.textTertiary,
           iconBackgroundColor: AppColors.backgroundDark,
@@ -155,11 +160,10 @@ class _ScheduleListSection extends StatelessWidget {
   }
 }
 
-/// Group lịch học theo ngày
 class _DayScheduleGroup extends StatelessWidget {
   final String day;
   final Color color;
-  final List<Map<String, dynamic>> schedules;
+  final List<ScheduleLesson> schedules;
   final ScheduleController controller;
 
   const _DayScheduleGroup({
@@ -178,7 +182,7 @@ class _DayScheduleGroup extends StatelessWidget {
         SizedBox(height: AppStyles.space3),
         ...schedules.asMap().entries.map((entry) {
           return _ScheduleCardItem(
-            item: entry.value,
+            lesson: entry.value,
             accentColor: color,
             index: entry.key,
             controller: controller,
@@ -190,15 +194,14 @@ class _DayScheduleGroup extends StatelessWidget {
   }
 }
 
-/// Item card lịch học
 class _ScheduleCardItem extends StatelessWidget {
-  final Map<String, dynamic> item;
+  final ScheduleLesson lesson;
   final Color accentColor;
   final int index;
   final ScheduleController controller;
 
   const _ScheduleCardItem({
-    required this.item,
+    required this.lesson,
     required this.accentColor,
     required this.index,
     required this.controller,
@@ -215,24 +218,24 @@ class _ScheduleCardItem extends StatelessWidget {
       Duration? timeRemaining;
 
       try {
-        hasCheckedIn = controller.hasCheckedInLesson(item);
-        canCheckIn = controller.canCheckInLesson(item);
-        isCheckingIn = controller.isCheckingIn(item);
-        isBeforeGameInit = controller.isLessonBeforeGameInit(item);
-        isExpired = controller.isLessonExpired(item);
-        timeRemaining = controller.getTimeUntilCheckIn(item);
+        hasCheckedIn = controller.hasCheckedInLesson(lesson);
+        canCheckIn = controller.canCheckInLesson(lesson);
+        isCheckingIn = controller.isCheckingIn(lesson);
+        isBeforeGameInit = controller.isLessonBeforeGameInit(lesson);
+        isExpired = controller.isLessonExpired(lesson);
+        timeRemaining = controller.getTimeUntilCheckIn(lesson);
       } catch (e) {
         // Ignore errors
       }
 
       return DuoScheduleCard(
-        tenMon: item['ten_mon']?.toString() ?? 'N/A',
-        soTinChi: _parseInt(item['so_tin_chi']),
-        tietBatDau: _parseInt(item['tiet_bat_dau']),
-        soTiet: _parseInt(item['so_tiet']),
-        maPhong: item['ma_phong']?.toString() ?? 'N/A',
-        tenGiangVien: item['ten_giang_vien']?.toString() ?? 'N/A',
-        maNhom: item['ma_nhom']?.toString(),
+        tenMon: lesson.tenMon,
+        soTinChi: lesson.soTiet, // Note: Model có thể cần thêm field soTinChi
+        tietBatDau: lesson.tietBatDau,
+        soTiet: lesson.soTiet,
+        maPhong: lesson.maPhong,
+        tenGiangVien: lesson.tenGiangVien,
+        maNhom: null,
         accentColor: accentColor,
         canCheckIn: canCheckIn,
         hasCheckedIn: hasCheckedIn,
@@ -246,10 +249,10 @@ class _ScheduleCardItem extends StatelessWidget {
   }
 
   void _handleCheckIn(BuildContext context) async {
-    final rewards = await controller.checkInLesson(item);
+    final rewards = await controller.checkInLesson(lesson);
     if (rewards != null) {
       DuoRewardDialog.show(
-        tenMon: item['ten_mon']?.toString() ?? '',
+        tenMon: lesson.tenMon,
         rewards: rewards,
       );
     } else {
@@ -265,14 +268,4 @@ class _ScheduleCardItem extends StatelessWidget {
       );
     }
   }
-
-  int _parseInt(dynamic value) {
-    if (value == null) return 0;
-    if (value is int) return value;
-    if (value is String) return int.tryParse(value) ?? 0;
-    return 0;
-  }
 }
-
-
-

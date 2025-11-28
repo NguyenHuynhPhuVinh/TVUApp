@@ -1,3 +1,3 @@
 // User feature barrel file
-// Export user-related modules here
+export 'models/student_model.dart';
 

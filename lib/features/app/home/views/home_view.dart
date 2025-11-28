@@ -56,12 +56,11 @@ class _WelcomeSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Listen cả studentName/studentId và gameService.stats
     return Obx(() {
       final stats = controller.gameStats;
       return DuoWelcomeCard(
-        name: controller.studentName.value,
-        studentId: controller.studentId.value,
+        name: controller.studentName,
+        studentId: controller.studentId,
         level: stats.level,
         coins: stats.coins,
         diamonds: stats.diamonds,
@@ -184,13 +183,13 @@ class _TodayScheduleSection extends StatelessWidget {
             itemCount: controller.todaySchedule.length,
             separatorBuilder: (context, index) => SizedBox(height: AppStyles.space3),
             itemBuilder: (context, index) {
-              final item = controller.todaySchedule[index];
+              final lesson = controller.todaySchedule[index];
               return DuoTodayScheduleCard(
-                tenMon: item['ten_mon'] ?? 'N/A',
-                tietBatDau: item['tiet_bat_dau'] ?? 0,
-                soTiet: item['so_tiet'] ?? 0,
-                maPhong: item['ma_phong'] ?? 'N/A',
-                tenGiangVien: item['ten_giang_vien'] ?? 'N/A',
+                tenMon: lesson.tenMon,
+                tietBatDau: lesson.tietBatDau,
+                soTiet: lesson.soTiet,
+                maPhong: lesson.maPhong,
+                tenGiangVien: lesson.tenGiangVien,
                 accentColor: _colors[index % _colors.length],
               ).animateFadeSlideRight(delay: (index * 100).toDouble(), slideBegin: 0.1);
             },

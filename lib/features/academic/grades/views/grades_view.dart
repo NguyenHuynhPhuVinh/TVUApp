@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
+
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/extensions/animation_extensions.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_styles.dart';
-import '../../../../features/gamification/utils/rank_helper.dart';
 import '../../../../core/components/widgets.dart';
+import '../../../../features/gamification/utils/rank_helper.dart';
 import '../../../../features/gamification/widgets/game_widgets.dart';
 import '../controllers/grades_controller.dart';
 
@@ -32,7 +33,6 @@ class GradesView extends GetView<GradesController> {
             ),
           ),
           actions: [
-            // Icon gift với badge chấm đỏ
             Obx(() => _buildGiftButton()),
           ],
           bottom: TabBar(
@@ -63,7 +63,6 @@ class GradesView extends GetView<GradesController> {
     );
   }
 
-  // === TAB 1: RANK ===
   Widget _buildRankTab() {
     return SingleChildScrollView(
       padding: EdgeInsets.all(AppStyles.space4),
@@ -101,15 +100,17 @@ class GradesView extends GetView<GradesController> {
     );
   }
 
-  // === TAB 2: SEMESTER ===
+
   Widget _buildSemesterTab() {
     return Column(
       children: [
-        // Semester selector
         Obx(() {
-          if (controller.gradesBySemester.isEmpty) return const SizedBox.shrink();
+          if (controller.gradesBySemester.isEmpty) {
+            return const SizedBox.shrink();
+          }
           return Padding(
-            padding: EdgeInsets.only(top: AppStyles.space3, bottom: AppStyles.space2),
+            padding: EdgeInsets.only(
+                top: AppStyles.space3, bottom: AppStyles.space2),
             child: DuoChipSelector<int>(
               selectedValue: controller.selectedSemesterIndex.value,
               activeColor: AppColors.primary,
@@ -117,13 +118,11 @@ class GradesView extends GetView<GradesController> {
               items: controller.gradesBySemester.asMap().entries.map((entry) {
                 final index = entry.key;
                 final semester = entry.value;
-                final tenHK = semester['ten_hoc_ky'] as String? ?? '';
-                final shortName = tenHK.replaceAll('Học kỳ ', 'HK').replaceAll(' - Năm học ', ' ');
-                final hasGrades = (semester['ds_diem_mon_hoc'] as List?)?.any((g) {
-                      final score = g['diem_tk']?.toString() ?? '';
-                      return score.isNotEmpty;
-                    }) ??
-                    false;
+                final shortName = semester.tenHocKy
+                    .replaceAll('Học kỳ ', 'HK')
+                    .replaceAll(' - Năm học ', ' ');
+                final hasGrades = semester.subjects
+                    .any((g) => g.diemTongKet != null);
                 return DuoChipItem<int>(
                   value: index,
                   label: shortName,
@@ -134,7 +133,6 @@ class GradesView extends GetView<GradesController> {
             ),
           );
         }),
-        // Semester info
         Obx(() {
           final gpa10 = controller.semesterGpa10;
           final gpa4 = controller.semesterGpa4;
@@ -167,7 +165,6 @@ class GradesView extends GetView<GradesController> {
           );
         }),
         SizedBox(height: AppStyles.space3),
-        // Grades list
         Expanded(
           child: Obx(() {
             final grades = controller.currentSemesterGrades;
@@ -188,12 +185,12 @@ class GradesView extends GetView<GradesController> {
                 return Padding(
                   padding: EdgeInsets.only(bottom: AppStyles.space3),
                   child: DuoGradeCard(
-                    subject: grade['ten_mon'] ?? 'N/A',
-                    credits: grade['so_tin_chi']?.toString() ?? '0',
-                    group: grade['nhom_to']?.toString(),
+                    subject: grade.tenMon,
+                    credits: grade.soTinChi.toString(),
+                    group: null,
                     score: score,
-                    letterGrade: grade['diem_tk_chu']?.toString(),
-                    score4: grade['diem_tk_so']?.toString(),
+                    letterGrade: grade.diemChu,
+                    score4: grade.diemHe4?.toStringAsFixed(1),
                     note: score.isEmpty ? 'Chưa có điểm' : null,
                   ),
                 ).animateListItem(index: index, staggerDelay: 30, duration: 200);
@@ -205,7 +202,7 @@ class GradesView extends GetView<GradesController> {
     );
   }
 
-  // === TAB 3: ANALYSIS ===
+
   Widget _buildAnalysisTab() {
     return SingleChildScrollView(
       padding: EdgeInsets.all(AppStyles.space4),
@@ -252,7 +249,7 @@ class GradesView extends GetView<GradesController> {
                 SizedBox(height: AppStyles.space3),
                 DuoGradeHighlight(
                   title: 'Điểm cao nhất',
-                  subject: highest['ten_mon'] ?? '',
+                  subject: highest.tenMon,
                   score: controller.getScore(highest),
                   color: AppColors.green,
                   isHighest: true,
@@ -261,7 +258,7 @@ class GradesView extends GetView<GradesController> {
                   SizedBox(height: AppStyles.space3),
                   DuoGradeHighlight(
                     title: 'Điểm thấp nhất',
-                    subject: lowest['ten_mon'] ?? '',
+                    subject: lowest.tenMon,
                     score: controller.getScore(lowest),
                     color: AppColors.orange,
                     isHighest: false,
@@ -271,7 +268,6 @@ class GradesView extends GetView<GradesController> {
             );
           }).animateFadeSlide(delay: 200),
           SizedBox(height: AppStyles.space4),
-          // Danh sách môn theo học lực
           Obx(() => _buildGradesByClassification()),
           SizedBox(height: AppStyles.space6),
         ],
@@ -279,36 +275,30 @@ class GradesView extends GetView<GradesController> {
     );
   }
 
-  /// Nút gift trên AppBar với badge chấm đỏ nếu có reward chưa nhận
   Widget _buildGiftButton() {
     final hasUnclaimed = controller.hasUnclaimedRewards;
     final unclaimedCount = controller.unclaimedRankCount;
-    
+
     return Padding(
       padding: EdgeInsets.only(right: AppStyles.space2),
       child: Stack(
         children: [
           IconButton(
             onPressed: controller.openRankRewardsSheet,
-            icon: Image.asset(
-              AppAssets.giftPurple,
-              width: 28,
-              height: 28,
-            ),
+            icon: Image.asset(AppAssets.giftPurple, width: 28, height: 28),
           ),
-          // Badge chấm đỏ
           if (hasUnclaimed)
             Positioned(
               right: 6,
               top: 6,
               child: Container(
-                padding: EdgeInsets.all(4),
+                padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
                   color: AppColors.red,
                   shape: BoxShape.circle,
                   border: Border.all(color: Colors.white, width: 1.5),
                 ),
-                constraints: BoxConstraints(minWidth: 18, minHeight: 18),
+                constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
                 child: Text(
                   unclaimedCount > 9 ? '9+' : unclaimedCount.toString(),
                   style: TextStyle(
@@ -350,9 +340,9 @@ class GradesView extends GetView<GradesController> {
             color: color,
             items: grades
                 .map((g) => DuoGradeCategoryItem(
-                      subject: g['ten_mon'] ?? '',
+                      subject: g.tenMon,
                       score: controller.getScore(g),
-                      letterGrade: g['diem_tk_chu']?.toString() ?? '',
+                      letterGrade: g.diemChu ?? '',
                     ))
                 .toList(),
           );
@@ -361,7 +351,3 @@ class GradesView extends GetView<GradesController> {
     );
   }
 }
-
-
-
-

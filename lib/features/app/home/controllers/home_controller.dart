@@ -1,11 +1,14 @@
 import 'package:get/get.dart';
-import '../../../../features/gamification/core/check_in_manager.dart';
+
 import '../../../../core/utils/number_formatter.dart';
-import '../../../../features/gamification/utils/rank_helper.dart';
-import '../../../../features/gamification/models/player_stats.dart';
 import '../../../../features/auth/data/auth_service.dart';
+import '../../../../features/gamification/core/check_in_manager.dart';
 import '../../../../features/gamification/core/game_service.dart';
+import '../../../../features/gamification/models/player_stats.dart';
+import '../../../../features/gamification/utils/rank_helper.dart';
+import '../../../../features/user/models/student_model.dart';
 import '../../../../infrastructure/storage/storage_service.dart';
+import '../../../academic/models/schedule_model.dart';
 
 class HomeController extends GetxController {
   final StorageService _storage = Get.find<StorageService>();
@@ -13,18 +16,21 @@ class HomeController extends GetxController {
   final GameService _gameService = Get.find<GameService>();
   late final CheckInManager _checkInManager;
 
-  final studentName = ''.obs;
-  final studentId = ''.obs;
-  final className = ''.obs;
-  final todaySchedule = <Map<String, dynamic>>[].obs;
-  
+  final studentInfo = Rxn<StudentInfo>();
+  final todaySchedule = <ScheduleLesson>[].obs;
+
   // Badge indicators
   final hasPendingCheckIn = false.obs;
   final hasUnclaimedTuitionBonus = false.obs;
   final hasUnclaimedCurriculumReward = false.obs;
   final hasUnclaimedRankReward = false.obs;
 
-  // Game stats - expose reactive stats directly
+  // Getters for student info
+  String get studentName => studentInfo.value?.tenDayDu ?? '';
+  String get studentId => studentInfo.value?.mssv ?? _authService.username.value;
+  String get className => studentInfo.value?.lop ?? '';
+
+  // Game stats
   PlayerStats get gameStats => _gameService.stats.value;
   int get coins => _gameService.stats.value.coins;
   int get diamonds => _gameService.stats.value.diamonds;
@@ -40,9 +46,7 @@ class HomeController extends GetxController {
       storage: _storage,
     );
     loadData();
-    
-    // Listen game stats changes để cập nhật tất cả badges
-    // Khi ScheduleController check-in, stats sẽ thay đổi -> trigger recheck
+
     ever(_gameService.stats, (_) {
       checkPendingCheckIn();
       checkUnclaimedTuitionBonus();
@@ -61,15 +65,9 @@ class HomeController extends GetxController {
   }
 
   void loadStudentInfo() {
-    // Lấy MSSV từ auth service
-    studentId.value = _authService.username.value;
-    
-    // Lấy thông tin sinh viên từ local
     final studentInfoData = _storage.getStudentInfo();
     if (studentInfoData != null && studentInfoData['data'] != null) {
-      final student = studentInfoData['data'];
-      studentName.value = student['ten_day_du'] ?? '';
-      className.value = student['lop'] ?? '';
+      studentInfo.value = StudentInfo.fromJson(studentInfoData['data']);
     }
   }
 
@@ -84,8 +82,6 @@ class HomeController extends GetxController {
     final scheduleData = _storage.getSchedule(currentSemester);
     if (scheduleData != null) {
       final weeks = scheduleData['ds_tuan_tkb'] as List? ?? [];
-
-      // Sử dụng CheckInManager để tìm tuần hiện tại
       final currentWeek = _checkInManager.findCurrentWeek(weeks);
       if (currentWeek == null) {
         todaySchedule.value = [];
@@ -93,45 +89,40 @@ class HomeController extends GetxController {
       }
 
       final now = DateTime.now();
-      final todayWeekday = now.weekday + 1; // API uses 2=Mon, 3=Tue, etc.
+      final todayWeekday = now.weekday + 1;
 
-      final schedules = currentWeek['ds_thoi_khoa_bieu'] as List? ?? [];
-      final todayItems = schedules
-          .where((s) => s['thu_kieu_so'] == todayWeekday)
-          .map((s) => Map<String, dynamic>.from(s))
-          .toList();
-
-      todayItems.sort(
-          (a, b) => (a['tiet_bat_dau'] ?? 0).compareTo(b['tiet_bat_dau'] ?? 0));
-      todaySchedule.value = todayItems;
+      final week = ScheduleWeek.fromJson(currentWeek);
+      todaySchedule.value = week.getLessonsByDay(todayWeekday);
     }
   }
 
-  /// Kiểm tra có buổi học nào có thể điểm danh hôm nay không
-  /// Sử dụng CheckInManager để tập trung logic
+
   void checkPendingCheckIn() {
     final semestersData = _storage.getSemesters();
-    final currentSemester = semestersData?['data']?['hoc_ky_theo_ngay_hien_tai'] as int? ?? 0;
-    
-    // Tìm tuần hiện tại
+    final currentSemester =
+        semestersData?['data']?['hoc_ky_theo_ngay_hien_tai'] as int? ?? 0;
+
     final scheduleData = _storage.getSchedule(currentSemester);
     if (scheduleData == null) {
       hasPendingCheckIn.value = false;
       return;
     }
-    
+
     final weeks = scheduleData['ds_tuan_tkb'] as List? ?? [];
     final currentWeek = _checkInManager.findCurrentWeek(weeks);
     final weekNumber = _checkInManager.getWeekNumber(currentWeek);
-    
+
+    // Convert ScheduleLesson to Map for CheckInManager
+    final todayScheduleMap =
+        todaySchedule.map((l) => l.toJson()).toList();
+
     hasPendingCheckIn.value = _checkInManager.hasPendingCheckIn(
-      todaySchedule: todaySchedule,
+      todaySchedule: todayScheduleMap,
       currentSemester: currentSemester,
       currentWeek: weekNumber,
     );
   }
 
-  /// Kiểm tra có học phí nào chưa claim bonus không
   void checkUnclaimedTuitionBonus() {
     final tuitionData = _storage.getTuition();
     if (tuitionData == null || tuitionData['data'] == null) {
@@ -139,14 +130,13 @@ class HomeController extends GetxController {
       return;
     }
 
-    final tuitionList = tuitionData['data']['ds_hoc_phi_hoc_ky'] as List? ?? [];
-    
+    final tuitionList =
+        tuitionData['data']['ds_hoc_phi_hoc_ky'] as List? ?? [];
+
     for (var item in tuitionList) {
-      // Dùng NumberFormatter để parse vì data có thể là String hoặc int
       final daThu = NumberFormatter.parseInt(item['da_thu']);
       final semesterId = item['ten_hoc_ky']?.toString() ?? '';
-      
-      // Nếu đã đóng tiền và chưa claim bonus
+
       if (daThu > 0 && semesterId.isNotEmpty) {
         if (!_gameService.stats.value.isSemesterClaimed(semesterId)) {
           hasUnclaimedTuitionBonus.value = true;
@@ -157,7 +147,6 @@ class HomeController extends GetxController {
     hasUnclaimedTuitionBonus.value = false;
   }
 
-  /// Kiểm tra có môn học nào đạt chưa nhận thưởng không
   void checkUnclaimedCurriculumReward() {
     final curriculumData = _storage.getCurriculum();
     if (curriculumData == null || curriculumData['data'] == null) {
@@ -166,14 +155,13 @@ class HomeController extends GetxController {
     }
 
     final semList = curriculumData['data']['ds_CTDT_hocky'] as List? ?? [];
-    
+
     for (var semester in semList) {
       final subjects = semester['ds_CTDT_mon_hoc'] as List? ?? [];
       for (var sub in subjects) {
         final isCompleted = sub['mon_da_dat'] == 'x';
         final maMon = sub['ma_mon'] as String? ?? '';
-        
-        // Nếu môn đã đạt và chưa claim reward
+
         if (isCompleted && maMon.isNotEmpty) {
           if (!_gameService.stats.value.isSubjectClaimed(maMon)) {
             hasUnclaimedCurriculumReward.value = true;
@@ -185,7 +173,6 @@ class HomeController extends GetxController {
     hasUnclaimedCurriculumReward.value = false;
   }
 
-  /// Kiểm tra có rank nào chưa nhận thưởng không
   void checkUnclaimedRankReward() {
     final gradesData = _storage.getGrades();
     if (gradesData == null || gradesData['data'] == null) {
@@ -193,7 +180,6 @@ class HomeController extends GetxController {
       return;
     }
 
-    // Tính rank index từ GPA
     final semesters = gradesData['data']['ds_diem_hocky'] as List? ?? [];
     if (semesters.isEmpty) {
       hasUnclaimedRankReward.value = false;
@@ -205,10 +191,7 @@ class HomeController extends GetxController {
     final gpa = double.tryParse(gpa10Str) ?? 0;
     final rankIndex = RankHelper.getRankIndexFromGpa(gpa);
 
-    // Kiểm tra có rank nào chưa claim không
-    hasUnclaimedRankReward.value = _gameService.countUnclaimedRanks(rankIndex) > 0;
+    hasUnclaimedRankReward.value =
+        _gameService.countUnclaimedRanks(rankIndex) > 0;
   }
 }
-
-
-
