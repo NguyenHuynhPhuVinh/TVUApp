@@ -11,6 +11,7 @@ import 'app/data/services/firebase_service.dart';
 import 'app/data/services/game_service.dart';
 import 'app/data/services/game_security_guard.dart';
 import 'app/data/services/game_sync_service.dart';
+import 'app/data/services/data_sync_manager.dart';
 import 'app/data/services/storage_service.dart';
 import 'app/data/services/update_service.dart';
 import 'app/data/services/security_service.dart';
@@ -56,6 +57,9 @@ Future<void> initServices() async {
   // Other services
   await Get.putAsync(() => UpdateService().init());
   Get.put(ApiService());
+
+  // Data sync manager (depends on api, storage, firebase, game)
+  await Get.putAsync(() => DataSyncManager().init());
 }
 
 class TVUApp extends StatelessWidget {

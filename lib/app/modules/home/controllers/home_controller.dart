@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import '../../../core/game_rules/check_in_manager.dart';
 import '../../../core/utils/date_formatter.dart';
 import '../../../core/utils/number_formatter.dart';
 import '../../../data/models/player_stats.dart';
@@ -10,6 +11,7 @@ class HomeController extends GetxController {
   final StorageService _storage = Get.find<StorageService>();
   final AuthService _authService = Get.find<AuthService>();
   final GameService _gameService = Get.find<GameService>();
+  late final CheckInManager _checkInManager;
 
   final studentName = ''.obs;
   final studentId = ''.obs;
@@ -33,6 +35,10 @@ class HomeController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    _checkInManager = CheckInManager(
+      gameService: _gameService,
+      storage: _storage,
+    );
     loadData();
     
     // Listen game stats changes để cập nhật badge
@@ -99,61 +105,27 @@ class HomeController extends GetxController {
   }
 
   /// Kiểm tra có buổi học nào có thể điểm danh hôm nay không
+  /// Sử dụng CheckInManager để tập trung logic
   void checkPendingCheckIn() {
-    final now = DateTime.now();
-    
-    for (var lesson in todaySchedule) {
-      final tietBatDau = lesson['tiet_bat_dau'] as int? ?? 1;
-      final soTiet = lesson['so_tiet'] as int? ?? 1;
-      
-      // Tính thời gian có thể check-in (30p trước giờ học)
-      final checkInStart = GameService.calculateCheckInStartTime(now, tietBatDau);
-      final checkInDeadline = GameService.calculateCheckInDeadline(now);
-      final endTime = GameService.calculateLessonEndTime(now, tietBatDau, soTiet);
-      
-      // Kiểm tra buổi học có sau thời điểm init game không
-      final initializedAt = _gameService.stats.value.initializedAt;
-      if (initializedAt != null && endTime.isBefore(initializedAt)) {
-        continue; // Buổi học trước khi init game
-      }
-      
-      // Kiểm tra có trong khoảng thời gian điểm danh không
-      if (now.isAfter(checkInStart) && now.isBefore(checkInDeadline)) {
-        // Kiểm tra đã điểm danh chưa
-        final checkInKey = _createCheckInKey(lesson, now);
-        if (!_storage.hasCheckedIn(checkInKey)) {
-          hasPendingCheckIn.value = true;
-          return;
-        }
-      }
-    }
-    hasPendingCheckIn.value = false;
-  }
-
-  /// Tạo key check-in cho buổi học
-  String _createCheckInKey(Map<String, dynamic> lesson, DateTime date) {
     final semestersData = _storage.getSemesters();
     final currentSemester = semestersData?['data']?['hoc_ky_theo_ngay_hien_tai'] as int? ?? 0;
     
     // Tìm tuần hiện tại
     final scheduleData = _storage.getSchedule(currentSemester);
-    int week = 0;
-    if (scheduleData != null) {
-      final weeks = scheduleData['ds_tuan_tkb'] as List? ?? [];
-      for (var w in weeks) {
-        final startStr = w['ngay_bat_dau'] as String?;
-        final endStr = w['ngay_ket_thuc'] as String?;
-        if (DateFormatter.isDateInRange(date, startStr, endStr)) {
-          week = w['tuan_hoc_ky'] ?? 0;
-          break;
-        }
-      }
+    if (scheduleData == null) {
+      hasPendingCheckIn.value = false;
+      return;
     }
     
-    final day = lesson['thu_kieu_so'] ?? 0;
-    final tietBatDau = lesson['tiet_bat_dau'] ?? 0;
-    final maMon = lesson['ma_mon'] ?? '';
-    return '${currentSemester}_${week}_${day}_${tietBatDau}_$maMon';
+    final weeks = scheduleData['ds_tuan_tkb'] as List? ?? [];
+    final currentWeek = _checkInManager.findCurrentWeek(weeks);
+    final weekNumber = _checkInManager.getWeekNumber(currentWeek);
+    
+    hasPendingCheckIn.value = _checkInManager.hasPendingCheckIn(
+      todaySchedule: todaySchedule,
+      currentSemester: currentSemester,
+      currentWeek: weekNumber,
+    );
   }
 
   /// Kiểm tra có học phí nào chưa claim bonus không

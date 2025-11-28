@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import '../../../core/game_rules/check_in_manager.dart';
 import '../../../core/utils/date_formatter.dart';
 import '../../../data/services/storage_service.dart';
 import '../../../data/services/game_service.dart';
@@ -9,6 +10,7 @@ class ScheduleController extends GetxController {
   late final StorageService _storage;
   late final GameService _gameService;
   late final AuthService _authService;
+  late final CheckInManager _checkInManager;
 
   final selectedWeekIndex = 0.obs;
   final weeks = <Map<String, dynamic>>[].obs;
@@ -25,6 +27,10 @@ class ScheduleController extends GetxController {
     _storage = Get.find<StorageService>();
     _gameService = Get.find<GameService>();
     _authService = Get.find<AuthService>();
+    _checkInManager = CheckInManager(
+      gameService: _gameService,
+      storage: _storage,
+    );
     loadSemesters();
     // Sync check-ins từ Firebase
     syncCheckInsFromFirebase();
@@ -99,82 +105,66 @@ class ScheduleController extends GetxController {
 
   // ============ LESSON CHECK-IN ============
 
-  /// Tạo key duy nhất cho buổi học
+  /// Lấy semester và week hiện tại
+  int get _currentSemester => selectedSemester.value ?? 0;
+  int get _currentWeek {
+    if (weeks.isEmpty || selectedWeekIndex.value >= weeks.length) return 0;
+    return weeks[selectedWeekIndex.value]['tuan_hoc_ky'] ?? 0;
+  }
+
+  /// Tạo key duy nhất cho buổi học (delegate to CheckInManager)
   String _createCheckInKey(Map<String, dynamic> lesson) {
-    final semester = selectedSemester.value ?? 0;
-    int week = 0;
-    if (weeks.isNotEmpty && selectedWeekIndex.value < weeks.length) {
-      week = weeks[selectedWeekIndex.value]['tuan_hoc_ky'] ?? 0;
-    }
-    final day = lesson['thu_kieu_so'] ?? 0;
-    final tietBatDau = lesson['tiet_bat_dau'] ?? 0;
-    final maMon = lesson['ma_mon'] ?? '';
-    return '${semester}_${week}_${day}_${tietBatDau}_$maMon';
+    return _checkInManager.createCheckInKey(
+      lesson: lesson,
+      semester: _currentSemester,
+      week: _currentWeek,
+    );
   }
 
   /// Lấy ngày của buổi học trong tuần hiện tại
   DateTime? _getLessonDate(Map<String, dynamic> lesson) {
     if (weeks.isEmpty || selectedWeekIndex.value >= weeks.length) return null;
-    
     final week = weeks[selectedWeekIndex.value];
     final startDateStr = week['ngay_bat_dau'] as String?;
-    final startDate = DateFormatter.parseVietnamese(startDateStr);
-    if (startDate == null) return null;
-    
-    // thu_kieu_so: 2 = Thứ 2, 3 = Thứ 3, ..., 8 = CN
     final dayOfWeek = lesson['thu_kieu_so'] as int? ?? 2;
-    // Thứ 2 = 0 offset, Thứ 3 = 1 offset, ...
-    final dayOffset = dayOfWeek - 2;
-    
-    return startDate.add(Duration(days: dayOffset));
+    return _checkInManager.getLessonDate(startDateStr, dayOfWeek);
+  }
+
+  /// Lấy trạng thái check-in của buổi học (sử dụng CheckInManager)
+  CheckInResult _getCheckInStatus(Map<String, dynamic> lesson) {
+    final lessonDate = _getLessonDate(lesson);
+    if (lessonDate == null) {
+      return CheckInResult(
+        status: CheckInStatus.expired,
+        checkInKey: _createCheckInKey(lesson),
+      );
+    }
+    return _checkInManager.checkLessonStatus(
+      lesson: lesson,
+      lessonDate: lessonDate,
+      semester: _currentSemester,
+      week: _currentWeek,
+    );
   }
 
   /// Kiểm tra có thể check-in buổi học không
   bool canCheckInLesson(Map<String, dynamic> lesson) {
-    final lessonDate = _getLessonDate(lesson);
-    if (lessonDate == null) return false;
-    
-    final tietBatDau = lesson['tiet_bat_dau'] as int? ?? 1;
-    final soTiet = lesson['so_tiet'] as int? ?? 1;
-    
-    return _gameService.canCheckIn(lessonDate, tietBatDau, soTiet);
+    return _getCheckInStatus(lesson).canCheckIn;
   }
 
   /// Lấy thời gian còn lại đến khi có thể check-in
   Duration? getTimeUntilCheckIn(Map<String, dynamic> lesson) {
-    final lessonDate = _getLessonDate(lesson);
-    if (lessonDate == null) return null;
-    
-    final tietBatDau = lesson['tiet_bat_dau'] as int? ?? 1;
-    final soTiet = lesson['so_tiet'] as int? ?? 1;
-    
-    return _gameService.getTimeUntilCheckIn(lessonDate, tietBatDau, soTiet);
+    return _getCheckInStatus(lesson).timeUntilCheckIn;
   }
 
   /// Kiểm tra buổi học có trước thời điểm khởi tạo game không
-  /// Nếu true -> không thể check-in vì đã được tính trong initializeGame
   bool isLessonBeforeGameInit(Map<String, dynamic> lesson) {
-    final lessonDate = _getLessonDate(lesson);
-    if (lessonDate == null) return false;
-
-    final tietBatDau = lesson['tiet_bat_dau'] as int? ?? 1;
-    final soTiet = lesson['so_tiet'] as int? ?? 1;
-    final endTime = GameService.calculateLessonEndTime(lessonDate, tietBatDau, soTiet);
-
-    final initializedAt = _gameService.stats.value.initializedAt;
-    if (initializedAt == null) return false;
-
-    return endTime.isBefore(initializedAt);
+    return _getCheckInStatus(lesson).isBeforeGameInit;
   }
 
-  /// Kiểm tra buổi học đã hết hạn điểm danh chưa (qua hôm sau)
-  /// Nếu true -> không thể check-in vì đã qua deadline (23:59:59 ngày hôm đó)
+  /// Kiểm tra buổi học đã hết hạn điểm danh chưa
   bool isLessonExpired(Map<String, dynamic> lesson) {
-    final lessonDate = _getLessonDate(lesson);
-    if (lessonDate == null) return false;
-
-    final deadline = GameService.calculateCheckInDeadline(lessonDate);
-    return DateTime.now().isAfter(deadline);
+    return _getCheckInStatus(lesson).isExpired;
   }
 
   /// Kiểm tra đã check-in buổi học chưa

@@ -155,9 +155,9 @@ class ProfileView extends GetView<ProfileController> {
             // Coins & Diamonds - dùng widget
             Row(
               children: [
-                Expanded(child: DuoCurrencyCard.coins(stats.coins)),
+                Expanded(child: DuoRewardTile.coinCard(value: stats.coins)),
                 SizedBox(width: AppStyles.space3),
-                Expanded(child: DuoCurrencyCard.diamonds(stats.diamonds)),
+                Expanded(child: DuoRewardTile.diamondCard(value: stats.diamonds)),
               ],
             ),
 

@@ -87,7 +87,7 @@ class GameStatsView extends GetView<GameStatsController> {
               SizedBox(height: 24.h),
 
               // Message Card
-              DuoFeedbackMessage.fromAttendanceRate(controller.attendanceRate)
+              DuoFeedbackCard.fromAttendanceRate(controller.attendanceRate)
                   .animate()
                   .fadeIn(delay: 700.ms, duration: 400.ms),
 

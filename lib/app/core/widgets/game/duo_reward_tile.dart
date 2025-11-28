@@ -12,7 +12,7 @@ enum DuoRewardTileSize { sm, md, lg }
 /// Layout của DuoRewardTile
 enum DuoRewardTileLayout { horizontal, vertical }
 
-/// Unified Reward Tile - thay thế DuoRewardRow, DuoBigRewardRow, DuoMediumRewardRow
+/// Unified Reward Tile - thay thế DuoRewardRow, DuoBigRewardRow, DuoMediumRewardRow, DuoCurrencyCard
 /// Hỗ trợ nhiều kích thước và layout khác nhau
 class DuoRewardTile extends StatelessWidget {
   final String? iconAsset;
@@ -24,6 +24,7 @@ class DuoRewardTile extends StatelessWidget {
   final bool showPlus;
   final bool animated;
   final bool hasGlow;
+  final bool hasShadow;
   final DuoRewardTileSize size;
   final DuoRewardTileLayout layout;
   final VoidCallback? onTap;
@@ -39,6 +40,7 @@ class DuoRewardTile extends StatelessWidget {
     this.showPlus = true,
     this.animated = true,
     this.hasGlow = false,
+    this.hasShadow = true,
     this.size = DuoRewardTileSize.md,
     this.layout = DuoRewardTileLayout.horizontal,
     this.onTap,
@@ -50,6 +52,7 @@ class DuoRewardTile extends StatelessWidget {
     required int value,
     bool showPlus = true,
     bool animated = true,
+    bool hasShadow = true,
     DuoRewardTileSize size = DuoRewardTileSize.md,
     DuoRewardTileLayout layout = DuoRewardTileLayout.horizontal,
     VoidCallback? onTap,
@@ -64,9 +67,22 @@ class DuoRewardTile extends StatelessWidget {
       showPlus: showPlus,
       animated: animated,
       hasGlow: size == DuoRewardTileSize.lg,
+      hasShadow: hasShadow,
       size: size,
       layout: layout,
       onTap: onTap,
+    );
+  }
+
+  /// Factory cho Coins dạng card (thay thế DuoCurrencyCard.coins)
+  factory DuoRewardTile.coinCard({required int value}) {
+    return DuoRewardTile.coin(
+      value: value,
+      showPlus: false,
+      animated: false,
+      hasShadow: false,
+      size: DuoRewardTileSize.sm,
+      layout: DuoRewardTileLayout.vertical,
     );
   }
 
@@ -76,6 +92,7 @@ class DuoRewardTile extends StatelessWidget {
     required int value,
     bool showPlus = true,
     bool animated = true,
+    bool hasShadow = true,
     DuoRewardTileSize size = DuoRewardTileSize.md,
     DuoRewardTileLayout layout = DuoRewardTileLayout.horizontal,
     VoidCallback? onTap,
@@ -89,9 +106,22 @@ class DuoRewardTile extends StatelessWidget {
       value: value,
       showPlus: showPlus,
       animated: animated,
+      hasShadow: hasShadow,
       size: size,
       layout: layout,
       onTap: onTap,
+    );
+  }
+
+  /// Factory cho Diamonds dạng card (thay thế DuoCurrencyCard.diamonds)
+  factory DuoRewardTile.diamondCard({required int value}) {
+    return DuoRewardTile.diamond(
+      value: value,
+      showPlus: false,
+      animated: false,
+      hasShadow: false,
+      size: DuoRewardTileSize.sm,
+      layout: DuoRewardTileLayout.vertical,
     );
   }
 
@@ -101,6 +131,7 @@ class DuoRewardTile extends StatelessWidget {
     required int value,
     bool showPlus = true,
     bool animated = true,
+    bool hasShadow = true,
     DuoRewardTileSize size = DuoRewardTileSize.md,
     DuoRewardTileLayout layout = DuoRewardTileLayout.horizontal,
     VoidCallback? onTap,
@@ -114,9 +145,22 @@ class DuoRewardTile extends StatelessWidget {
       value: value,
       showPlus: showPlus,
       animated: animated,
+      hasShadow: hasShadow,
       size: size,
       layout: layout,
       onTap: onTap,
+    );
+  }
+
+  /// Factory cho XP dạng card
+  factory DuoRewardTile.xpCard({required int value}) {
+    return DuoRewardTile.xp(
+      value: value,
+      showPlus: false,
+      animated: false,
+      hasShadow: false,
+      size: DuoRewardTileSize.sm,
+      layout: DuoRewardTileLayout.vertical,
     );
   }
 
@@ -213,13 +257,15 @@ class DuoRewardTile extends StatelessWidget {
             color: color.withValues(alpha: 0.3),
             width: _borderWidth,
           ),
-          boxShadow: [
-            BoxShadow(
-              color: color.withValues(alpha: 0.3),
-              offset: Offset(0, _shadowOffset),
-              blurRadius: 0,
-            ),
-          ],
+          boxShadow: hasShadow
+              ? [
+                  BoxShadow(
+                    color: color.withValues(alpha: 0.3),
+                    offset: Offset(0, _shadowOffset),
+                    blurRadius: 0,
+                  ),
+                ]
+              : null,
         ),
         child: layout == DuoRewardTileLayout.vertical
             ? _buildVerticalLayout()
