@@ -74,3 +74,4 @@ export 'game/duo_purchase_bottom_sheet.dart';
 export 'game/duo_rank_card.dart';
 export 'game/duo_rank_progress.dart';
 export 'game/duo_grade_analysis.dart';
+export 'game/duo_grade_category.dart';

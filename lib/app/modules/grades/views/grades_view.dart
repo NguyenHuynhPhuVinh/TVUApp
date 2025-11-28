@@ -230,13 +230,7 @@ class GradesView extends GetView<GradesController> {
           Obx(() {
             final highest = controller.highestGrade;
             final lowest = controller.lowestGrade;
-            if (highest == null) {
-              return DuoEmptyState(
-                icon: Iconsax.chart_fail,
-                title: 'Chưa có dữ liệu',
-                subtitle: 'Điểm sẽ hiển thị khi có kết quả',
-              );
-            }
+            if (highest == null) return const SizedBox.shrink();
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -270,9 +264,48 @@ class GradesView extends GetView<GradesController> {
               ],
             );
           }).animate().fadeIn(delay: 200.ms),
+          SizedBox(height: AppStyles.space4),
+          // Danh sách môn theo học lực
+          Obx(() => _buildGradesByClassification()),
           SizedBox(height: AppStyles.space6),
         ],
       ),
+    );
+  }
+
+  Widget _buildGradesByClassification() {
+    final dist = controller.gradesByClassification;
+    final categories = ['Xuất sắc', 'Giỏi', 'Khá', 'Trung bình', 'Yếu'];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Chi tiết theo học lực',
+          style: TextStyle(
+            fontSize: AppStyles.textLg,
+            fontWeight: AppStyles.fontBold,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        SizedBox(height: AppStyles.space3),
+        ...categories.where((cat) => dist[cat]!.isNotEmpty).map((category) {
+          final grades = dist[category]!;
+          final color = controller.getClassificationColor(category);
+          return DuoGradeCategory(
+            title: category,
+            count: grades.length,
+            color: color,
+            items: grades
+                .map((g) => DuoGradeCategoryItem(
+                      subject: g['ten_mon'] ?? '',
+                      score: controller.getScore(g),
+                      letterGrade: g['diem_tk_chu']?.toString() ?? '',
+                    ))
+                .toList(),
+          );
+        }),
+      ],
     );
   }
 }
