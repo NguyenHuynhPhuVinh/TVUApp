@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_styles.dart';
+import '../../utils/number_formatter.dart';
 import '../../utils/rank_helper.dart';
 
 /// Item hiển thị rank reward với trạng thái claim
@@ -13,6 +14,7 @@ class DuoRankRewardItem extends StatelessWidget {
   final bool isClaimed; // Đã nhận thưởng chưa
   final bool isLoading;
   final int coinsReward;
+  final int xpReward;
   final int diamondsReward;
   final VoidCallback? onClaim;
 
@@ -25,6 +27,7 @@ class DuoRankRewardItem extends StatelessWidget {
     required this.isClaimed,
     this.isLoading = false,
     required this.coinsReward,
+    required this.xpReward,
     required this.diamondsReward,
     this.onClaim,
   });
@@ -90,38 +93,57 @@ class DuoRankRewardItem extends StatelessWidget {
                 ),
                 SizedBox(height: AppStyles.space1),
                 // Rewards preview
-                Row(
-                  children: [
-                    Image.asset(
-                      'assets/game/currency/coin_golden_coin_1st_256px.png',
-                      width: 16.w,
-                      height: 16.w,
-                    ),
-                    SizedBox(width: 4.w),
-                    Text(
-                      _formatNumber(coinsReward),
-                      style: TextStyle(
-                        fontSize: AppStyles.textSm,
-                        fontWeight: AppStyles.fontMedium,
-                        color: isUnlocked ? AppColors.yellow : AppColors.textTertiary,
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Row(
+                    children: [
+                      Image.asset(
+                        'assets/game/currency/coin_golden_coin_1st_256px.png',
+                        width: 16.w,
+                        height: 16.w,
                       ),
-                    ),
-                    SizedBox(width: AppStyles.space3),
-                    Image.asset(
-                      'assets/game/currency/diamond_blue_diamond_1st_256px.png',
-                      width: 16.w,
-                      height: 16.w,
-                    ),
-                    SizedBox(width: 4.w),
-                    Text(
-                      _formatNumber(diamondsReward),
-                      style: TextStyle(
-                        fontSize: AppStyles.textSm,
-                        fontWeight: AppStyles.fontMedium,
-                        color: isUnlocked ? AppColors.primary : AppColors.textTertiary,
+                      SizedBox(width: 4.w),
+                      Text(
+                        _formatNumber(coinsReward),
+                        style: TextStyle(
+                          fontSize: AppStyles.textSm,
+                          fontWeight: AppStyles.fontMedium,
+                          color: isUnlocked ? AppColors.yellow : AppColors.textTertiary,
+                        ),
                       ),
-                    ),
-                  ],
+                      SizedBox(width: AppStyles.space2),
+                      Image.asset(
+                        'assets/game/main/golden_star_1st_256px.png',
+                        width: 16.w,
+                        height: 16.w,
+                      ),
+                      SizedBox(width: 4.w),
+                      Text(
+                        _formatNumber(xpReward),
+                        style: TextStyle(
+                          fontSize: AppStyles.textSm,
+                          fontWeight: AppStyles.fontMedium,
+                          color: isUnlocked ? AppColors.purple : AppColors.textTertiary,
+                        ),
+                      ),
+                      SizedBox(width: AppStyles.space2),
+                      Image.asset(
+                        'assets/game/currency/diamond_blue_diamond_1st_256px.png',
+                        width: 16.w,
+                        height: 16.w,
+                      ),
+                      SizedBox(width: 4.w),
+                      Text(
+                        _formatNumber(diamondsReward),
+                        style: TextStyle(
+                          fontSize: AppStyles.textSm,
+                          fontWeight: AppStyles.fontMedium,
+                          color: isUnlocked ? AppColors.primary : AppColors.textTertiary,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -238,11 +260,6 @@ class DuoRankRewardItem extends StatelessWidget {
   }
 
   String _formatNumber(int number) {
-    if (number >= 1000000) {
-      return '${(number / 1000000).toStringAsFixed(1)}M';
-    } else if (number >= 1000) {
-      return '${(number / 1000).toStringAsFixed(0)}K';
-    }
-    return number.toString();
+    return NumberFormatter.compact(number);
   }
 }

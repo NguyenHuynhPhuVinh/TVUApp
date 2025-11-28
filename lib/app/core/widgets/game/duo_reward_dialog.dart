@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_styles.dart';
+import '../../utils/number_formatter.dart';
 import '../base/duo_button.dart';
 
 /// Model cho custom reward item
@@ -226,20 +227,26 @@ class DuoRewardDialog extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _DuoRewardItem(
-                assetPath: 'assets/game/currency/coin_golden_coin_1st_256px.png',
-                value: '+${_formatNumber(earnedCoins)}',
-                label: 'Coins',
+              Flexible(
+                child: _DuoRewardItem(
+                  assetPath: 'assets/game/currency/coin_golden_coin_1st_256px.png',
+                  value: '+${_formatNumber(earnedCoins)}',
+                  label: 'Coins',
+                ),
               ),
-              _DuoRewardItem(
-                assetPath: 'assets/game/currency/diamond_blue_diamond_1st_256px.png',
-                value: '+${_formatNumber(earnedDiamonds)}',
-                label: 'Diamonds',
+              Flexible(
+                child: _DuoRewardItem(
+                  assetPath: 'assets/game/currency/diamond_blue_diamond_1st_256px.png',
+                  value: '+${_formatNumber(earnedDiamonds)}',
+                  label: 'Diamonds',
+                ),
               ),
-              _DuoRewardItem(
-                assetPath: 'assets/game/main/golden_star_1st_256px.png',
-                value: '+${_formatNumber(earnedXp)}',
-                label: 'XP',
+              Flexible(
+                child: _DuoRewardItem(
+                  assetPath: 'assets/game/main/golden_star_1st_256px.png',
+                  value: '+${_formatNumber(earnedXp)}',
+                  label: 'XP',
+                ),
               ),
             ],
           ),
@@ -283,12 +290,7 @@ class DuoRewardDialog extends StatelessWidget {
   }
 
   String _formatNumber(int number) {
-    if (number >= 1000000) {
-      return '${(number / 1000000).toStringAsFixed(1)}M';
-    } else if (number >= 1000) {
-      return '${(number / 1000).toStringAsFixed(0)}K';
-    }
-    return number.toString();
+    return NumberFormatter.compact(number);
   }
 }
 
@@ -307,6 +309,7 @@ class _DuoRewardItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Image.asset(
           assetPath,
@@ -319,19 +322,25 @@ class _DuoRewardItem extends StatelessWidget {
           ),
         ),
         SizedBox(height: AppStyles.space1),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: AppStyles.textLg,
-            fontWeight: AppStyles.fontBold,
-            color: AppColors.textPrimary,
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            value,
+            style: TextStyle(
+              fontSize: AppStyles.textLg,
+              fontWeight: AppStyles.fontBold,
+              color: AppColors.textPrimary,
+            ),
           ),
         ),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: AppStyles.textXs,
-            color: AppColors.textTertiary,
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: AppStyles.textXs,
+              color: AppColors.textTertiary,
+            ),
           ),
         ),
       ],

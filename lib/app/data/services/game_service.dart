@@ -1350,16 +1350,16 @@ class GameService extends GetxService {
   /// 8 tiers: Wood → Stone → Bronze → Silver → Gold → Platinum → Amethyst → Onyx
   /// Mỗi tier có 7 levels (I → VII)
   /// 
-  /// Base reward (Wood I): 10M coins + 41,300 diamonds
+  /// Base reward (Wood I): 10M coins + 50K XP + 41,300 diamonds
   /// Tier multiplier: 3^tierIndex (1, 3, 9, 27, 81, 243, 729, 2187)
   /// Level bonus: +100% mỗi level
   /// 
   /// Ví dụ:
-  /// - Wood I (rank 0): 10M coins, 41K diamonds
-  /// - Bronze I (rank 14): 90M coins, 372K diamonds
-  /// - Gold I (rank 28): 810M coins, 3.3M diamonds
-  /// - Onyx I (rank 49): 21.87 TỶ coins, 90M diamonds
-  /// - Onyx VII (rank 55): 153 TỶ coins, 634M diamonds 🔥
+  /// - Wood I (rank 0): 10M coins, 50K XP, 41K diamonds
+  /// - Bronze I (rank 14): 90M coins, 450K XP, 372K diamonds
+  /// - Gold I (rank 28): 810M coins, 4M XP, 3.3M diamonds
+  /// - Onyx I (rank 49): 21.87 TỶ coins, 109M XP, 90M diamonds
+  /// - Onyx VII (rank 55): 153 TỶ coins, 765M XP, 634M diamonds 🔥
   static Map<String, int> calculateRankReward(int rankIndex) {
     final tierIndex = rankIndex ~/ 7;
     final level = (rankIndex % 7) + 1;
@@ -1372,6 +1372,7 @@ class GameService extends GetxService {
     }
     
     final baseCoins = 10000000 * tierMultiplier; // 10M base
+    final baseXp = 50000 * tierMultiplier; // 50K base XP
     final baseDiamonds = 41300 * tierMultiplier; // 41.3K base
     
     // Level bonus: +100% mỗi level (1x, 2x, 3x, 4x, 5x, 6x, 7x)
@@ -1379,6 +1380,7 @@ class GameService extends GetxService {
     
     return {
       'coins': (baseCoins * levelMultiplier).round(),
+      'xp': (baseXp * levelMultiplier).round(),
       'diamonds': (baseDiamonds * levelMultiplier).round(),
     };
   }
@@ -1442,26 +1444,43 @@ class GameService extends GetxService {
       // 4. Tính reward
       final reward = calculateRankReward(rankIndex);
       final earnedCoins = reward['coins']!;
+      final earnedXp = reward['xp']!;
       final earnedDiamonds = reward['diamonds']!;
       
-      // 5. Update stats
+      // 5. Tính XP và level mới
+      int newXp = stats.value.currentXp + earnedXp;
+      int newLevel = stats.value.level;
+      bool leveledUp = false;
+      
+      while (newXp >= newLevel * 100) {
+        newXp -= newLevel * 100;
+        newLevel++;
+        leveledUp = true;
+      }
+      
+      // 6. Update stats
       final newClaimedRanks = [...stats.value.claimedRankRewards, rankIndex];
       stats.value = stats.value.copyWith(
         coins: stats.value.coins + earnedCoins,
         diamonds: stats.value.diamonds + earnedDiamonds,
+        currentXp: newXp,
+        level: newLevel,
         claimedRankRewards: newClaimedRanks,
       );
       
-      // 6. Lưu local
+      // 7. Lưu local
       await _saveLocalStats();
       
-      // 7. Sync Firebase
+      // 8. Sync Firebase
       await syncToFirebase(mssv);
       
       return {
         'rankIndex': rankIndex,
         'earnedCoins': earnedCoins,
+        'earnedXp': earnedXp,
         'earnedDiamonds': earnedDiamonds,
+        'leveledUp': leveledUp,
+        'newLevel': newLevel,
       };
     } finally {
       _isClaimingRankReward = false;
@@ -1502,6 +1521,7 @@ class GameService extends GetxService {
       
       // 3. Tính tổng reward và lọc rank chưa claim
       int totalCoins = 0;
+      int totalXp = 0;
       int totalDiamonds = 0;
       List<int> newClaimedRanks = [...stats.value.claimedRankRewards];
       int claimedCount = 0;
@@ -1514,6 +1534,7 @@ class GameService extends GetxService {
         // Tính reward
         final reward = calculateRankReward(i);
         totalCoins += reward['coins']!;
+        totalXp += reward['xp']!;
         totalDiamonds += reward['diamonds']!;
         newClaimedRanks.add(i);
         claimedCount++;
@@ -1521,23 +1542,39 @@ class GameService extends GetxService {
       
       if (claimedCount == 0) return null;
       
-      // 4. Update stats 1 lần
+      // 4. Tính level mới
+      int newXp = stats.value.currentXp + totalXp;
+      int newLevel = stats.value.level;
+      bool leveledUp = false;
+      
+      while (newXp >= newLevel * 100) {
+        newXp -= newLevel * 100;
+        newLevel++;
+        leveledUp = true;
+      }
+      
+      // 5. Update stats 1 lần
       stats.value = stats.value.copyWith(
         coins: stats.value.coins + totalCoins,
         diamonds: stats.value.diamonds + totalDiamonds,
+        currentXp: newXp,
+        level: newLevel,
         claimedRankRewards: newClaimedRanks,
       );
       
-      // 5. Lưu local 1 lần
+      // 6. Lưu local 1 lần
       await _saveLocalStats();
       
-      // 6. Sync Firebase 1 lần
+      // 7. Sync Firebase 1 lần
       await syncToFirebase(mssv);
       
       return {
         'claimedCount': claimedCount,
         'earnedCoins': totalCoins,
+        'earnedXp': totalXp,
         'earnedDiamonds': totalDiamonds,
+        'leveledUp': leveledUp,
+        'newLevel': newLevel,
       };
     } finally {
       _isClaimingRankReward = false;

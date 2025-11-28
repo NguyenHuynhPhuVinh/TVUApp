@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../../data/services/game_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_styles.dart';
+import '../../utils/number_formatter.dart';
 import '../../utils/rank_helper.dart';
 import 'duo_rank_reward_item.dart';
 
@@ -24,41 +26,27 @@ class DuoRankRewardsSheet extends StatelessWidget {
     this.onClaimRank,
   });
 
-  /// Tính rewards cho mỗi rank
-  /// Base: 10K coins + 100 diamonds cho rank đầu
-  /// Tăng dần theo tier và level
+  /// Tính rewards cho mỗi rank - lấy từ GameService
   static Map<String, int> getRewardsForRank(int rankIndex) {
-    final tier = RankHelper.getTierFromIndex(rankIndex);
-    final level = RankHelper.getLevelFromIndex(rankIndex);
-    
-    // Base rewards tăng theo tier
-    final tierMultiplier = tier.index + 1;
-    final baseCoins = 10000 * tierMultiplier;
-    final baseDiamonds = 100 * tierMultiplier;
-    
-    // Bonus theo level trong tier
-    final levelBonus = level * 0.2;
-    
-    return {
-      'coins': (baseCoins * (1 + levelBonus)).round(),
-      'diamonds': (baseDiamonds * (1 + levelBonus)).round(),
-    };
+    return GameService.calculateRankReward(rankIndex);
   }
 
   /// Tính tổng rewards chưa claim
   Map<String, int> get unclaimedRewards {
     int totalCoins = 0;
+    int totalXp = 0;
     int totalDiamonds = 0;
     
     for (int i = 0; i <= currentRankIndex; i++) {
       if (!claimedRanks.contains(i)) {
         final rewards = getRewardsForRank(i);
         totalCoins += rewards['coins']!;
+        totalXp += rewards['xp']!;
         totalDiamonds += rewards['diamonds']!;
       }
     }
     
-    return {'coins': totalCoins, 'diamonds': totalDiamonds};
+    return {'coins': totalCoins, 'xp': totalXp, 'diamonds': totalDiamonds};
   }
 
   /// Số rank chưa claim
@@ -154,6 +142,7 @@ class DuoRankRewardsSheet extends StatelessWidget {
                   isClaimed: isClaimed,
                   isLoading: claimingRankIndex == index,
                   coinsReward: rewards['coins']!,
+                  xpReward: rewards['xp']!,
                   diamondsReward: rewards['diamonds']!,
                   onClaim: () => onClaimRank?.call(index),
                 );
@@ -262,11 +251,6 @@ class DuoRankRewardsSheet extends StatelessWidget {
   }
 
   String _formatNumber(int number) {
-    if (number >= 1000000) {
-      return '${(number / 1000000).toStringAsFixed(1)}M';
-    } else if (number >= 1000) {
-      return '${(number / 1000).toStringAsFixed(0)}K';
-    }
-    return number.toString();
+    return NumberFormatter.compact(number);
   }
 }
