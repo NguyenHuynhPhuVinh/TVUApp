@@ -3,9 +3,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../constants/app_assets.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_styles.dart';
-import '../../utils/number_formatter.dart';
 
-/// Header hiển thị số dư trong shop
+/// Header hiển thị số dư trong shop - sử dụng DuoCurrencyRow
 class DuoShopBalanceHeader extends StatelessWidget {
   final String leftIcon;
   final String leftLabel;
@@ -96,8 +95,9 @@ class DuoShopBalanceHeader extends StatelessWidget {
                 color: AppColors.textSecondary,
               ),
             ),
+            // Chỉ hiển thị value, icon đã có ở trên
             Text(
-              NumberFormatter.compact(value),
+              _formatValue(value),
               style: TextStyle(
                 fontSize: AppStyles.textLg,
                 fontWeight: AppStyles.fontBold,
@@ -108,5 +108,14 @@ class DuoShopBalanceHeader extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  String _formatValue(int value) {
+    if (value >= 1000000) {
+      return '${(value / 1000000).toStringAsFixed(1)}M';
+    } else if (value >= 1000) {
+      return '${(value / 1000).toStringAsFixed(0)}K';
+    }
+    return value.toString();
   }
 }

@@ -6,6 +6,7 @@ library;
 export 'base/duo_button.dart';
 export 'base/duo_card.dart'; // Includes DuoPressableCard (deprecated alias)
 export 'base/duo_avatar.dart';
+export 'base/duo_accent_card.dart'; // Base card với thanh màu dọc
 
 // Feedback widgets
 export 'feedback/duo_alert.dart';
@@ -50,6 +51,7 @@ export 'display/duo_curriculum_summary.dart';
 export 'display/duo_subject_card.dart';
 
 // Game widgets
+export 'game/duo_currency_row.dart'; // Widget nguyên tử hiển thị tiền tệ
 export 'game/duo_level_badge.dart';
 export 'game/duo_level_card.dart';
 export 'game/duo_level_progress_card.dart';

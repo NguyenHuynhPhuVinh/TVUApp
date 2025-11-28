@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../constants/app_assets.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_styles.dart';
-import '../../utils/number_formatter.dart';
+import 'duo_currency_row.dart';
 
 /// Widget hiển thị thanh game stats (level, coins, diamonds) - dùng trong welcome card
 class DuoGameStatsBar extends StatelessWidget {
@@ -20,6 +19,12 @@ class DuoGameStatsBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final whiteTextStyle = TextStyle(
+      fontSize: AppStyles.textSm,
+      fontWeight: AppStyles.fontBold,
+      color: Colors.white,
+    );
+
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: AppStyles.space3,
@@ -32,24 +37,28 @@ class DuoGameStatsBar extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _DuoStatItem(
-            icon: Icons.star_rounded,
-            value: 'Lv.$level',
-            color: AppColors.yellow,
+          // Level - giữ nguyên vì không phải currency
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.star_rounded, size: 18.w, color: AppColors.yellow),
+              SizedBox(width: 4.w),
+              Text('Lv.$level', style: whiteTextStyle),
+            ],
           ),
           _buildDivider(),
-          _DuoStatItem(
-            iconPath: AppAssets.coin,
-            fallbackIcon: Icons.monetization_on_rounded,
-            value: NumberFormatter.compact(coins),
-            color: AppColors.yellow,
+          // Coins - sử dụng DuoCurrencyRow
+          DuoCurrencyRow.coin(
+            value: coins,
+            size: DuoCurrencySize.sm,
+            valueStyle: whiteTextStyle,
           ),
           _buildDivider(),
-          _DuoStatItem(
-            iconPath: AppAssets.diamond,
-            fallbackIcon: Icons.diamond_rounded,
-            value: NumberFormatter.compact(diamonds),
-            color: Colors.cyan,
+          // Diamonds - sử dụng DuoCurrencyRow
+          DuoCurrencyRow.diamond(
+            value: diamonds,
+            size: DuoCurrencySize.sm,
+            valueStyle: whiteTextStyle,
           ),
         ],
       ),
@@ -61,53 +70,6 @@ class DuoGameStatsBar extends StatelessWidget {
       width: 1,
       height: 16.h,
       color: Colors.white.withValues(alpha: 0.3),
-    );
-  }
-}
-
-class _DuoStatItem extends StatelessWidget {
-  final IconData? icon;
-  final String? iconPath;
-  final IconData? fallbackIcon;
-  final String value;
-  final Color color;
-
-  const _DuoStatItem({
-    this.icon,
-    this.iconPath,
-    this.fallbackIcon,
-    required this.value,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (iconPath != null)
-          Image.asset(
-            iconPath!,
-            width: 18.w,
-            height: 18.w,
-            errorBuilder: (_, _, _) => Icon(
-              fallbackIcon ?? Icons.star,
-              size: 18.w,
-              color: color,
-            ),
-          )
-        else
-          Icon(icon, size: 18.w, color: color),
-        SizedBox(width: 4.w),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: AppStyles.textSm,
-            fontWeight: AppStyles.fontBold,
-            color: Colors.white,
-          ),
-        ),
-      ],
     );
   }
 }

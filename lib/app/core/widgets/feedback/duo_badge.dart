@@ -6,40 +6,88 @@ import '../../theme/app_styles.dart';
 enum DuoBadgeVariant { primary, success, warning, danger, purple, neutral }
 enum DuoBadgeSize { sm, md, lg }
 
+/// Style của badge: soft (nền nhạt), solid (nền đậm), outline (viền)
+enum DuoBadgeStyle { soft, solid, outline }
+
 class DuoBadge extends StatelessWidget {
   final String text;
   final DuoBadgeVariant variant;
   final DuoBadgeSize size;
+  final DuoBadgeStyle style;
   final IconData? icon;
   final bool hasShadow;
+  
+  /// Custom color - override variant color
+  final Color? customColor;
 
   const DuoBadge({
     super.key,
     required this.text,
     this.variant = DuoBadgeVariant.primary,
     this.size = DuoBadgeSize.md,
+    this.style = DuoBadgeStyle.soft,
     this.icon,
     this.hasShadow = false,
+    this.customColor,
   });
+  
+  /// Factory thay thế DuoTag - badge nhỏ với custom color
+  factory DuoBadge.tag({
+    Key? key,
+    required String text,
+    required Color color,
+    double? fontSize,
+  }) {
+    return DuoBadge(
+      key: key,
+      text: text,
+      size: DuoBadgeSize.sm,
+      style: DuoBadgeStyle.soft,
+      customColor: color,
+    );
+  }
 
-  Color get _bgColor {
+  Color get _variantColor {
+    if (customColor != null) return customColor!;
     switch (variant) {
       case DuoBadgeVariant.primary:
-        return AppColors.primarySoft;
+        return AppColors.primary;
       case DuoBadgeVariant.success:
-        return AppColors.greenSoft;
+        return AppColors.green;
       case DuoBadgeVariant.warning:
-        return AppColors.orangeSoft;
+        return AppColors.orange;
       case DuoBadgeVariant.danger:
-        return AppColors.redSoft;
+        return AppColors.red;
       case DuoBadgeVariant.purple:
-        return AppColors.purpleSoft;
+        return AppColors.purple;
       case DuoBadgeVariant.neutral:
-        return AppColors.backgroundDark;
+        return AppColors.textSecondary;
+    }
+  }
+
+  Color get _bgColor {
+    switch (style) {
+      case DuoBadgeStyle.soft:
+        return AppColors.withAlpha(_variantColor, 0.1);
+      case DuoBadgeStyle.solid:
+        return _variantColor;
+      case DuoBadgeStyle.outline:
+        return Colors.transparent;
     }
   }
 
   Color get _textColor {
+    switch (style) {
+      case DuoBadgeStyle.soft:
+      case DuoBadgeStyle.outline:
+        return customColor ?? _getDarkVariant();
+      case DuoBadgeStyle.solid:
+        return Colors.white;
+    }
+  }
+  
+  Color _getDarkVariant() {
+    if (customColor != null) return customColor!;
     switch (variant) {
       case DuoBadgeVariant.primary:
         return AppColors.primaryDark;
@@ -94,6 +142,9 @@ class DuoBadge extends StatelessWidget {
       decoration: BoxDecoration(
         color: _bgColor,
         borderRadius: AppStyles.roundedFull,
+        border: style == DuoBadgeStyle.outline 
+            ? Border.all(color: _variantColor, width: 1.5)
+            : null,
         boxShadow: hasShadow
             ? [
                 BoxShadow(

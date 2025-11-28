@@ -5,7 +5,8 @@ import '../../constants/app_assets.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_styles.dart';
 import '../base/duo_card.dart';
-import '../feedback/duo_tag.dart';
+import '../feedback/duo_badge.dart';
+import '../game/duo_currency_row.dart';
 import '../../../data/services/game_service.dart';
 
 /// Trạng thái nhận thưởng môn học
@@ -121,22 +122,19 @@ class DuoSubjectCard extends StatelessWidget {
                 SizedBox(height: AppStyles.space1),
                 Row(
                   children: [
-                    _RewardPreviewItem(
-                      assetPath: AppAssets.coin,
+                    DuoCurrencyRow.coin(
                       value: reward['coins']!,
-                      isClaimed: rewardStatus == SubjectRewardStatus.claimed,
+                      size: DuoCurrencySize.xs,
                     ),
                     SizedBox(width: AppStyles.space2),
-                    _RewardPreviewItem(
-                      assetPath: AppAssets.diamond,
+                    DuoCurrencyRow.diamond(
                       value: reward['diamonds']!,
-                      isClaimed: rewardStatus == SubjectRewardStatus.claimed,
+                      size: DuoCurrencySize.xs,
                     ),
                     SizedBox(width: AppStyles.space2),
-                    _RewardPreviewItem(
-                      assetPath: AppAssets.xpStar,
+                    DuoCurrencyRow.xp(
                       value: reward['xp']!,
-                      isClaimed: rewardStatus == SubjectRewardStatus.claimed,
+                      size: DuoCurrencySize.xs,
                     ),
                   ],
                 ),
@@ -329,66 +327,18 @@ class DuoSubjectCard extends StatelessWidget {
       spacing: AppStyles.space2,
       runSpacing: AppStyles.space2,
       children: [
-        DuoTag(text: '$soTinChi TC', color: AppColors.primary),
+        DuoBadge.tag(text: '$soTinChi TC', color: AppColors.primary),
         if (isRequired)
-          DuoTag(text: 'Bắt buộc', color: AppColors.orange)
+          DuoBadge.tag(text: 'Bắt buộc', color: AppColors.orange)
         else
-          DuoTag(text: 'Tự chọn', color: AppColors.purple),
+          DuoBadge.tag(text: 'Tự chọn', color: AppColors.purple),
         if (lyThuyet != null && lyThuyet != '0' && lyThuyet!.isNotEmpty)
-          DuoTag(text: 'LT: $lyThuyet', color: AppColors.green),
+          DuoBadge.tag(text: 'LT: $lyThuyet', color: AppColors.green),
         if (thucHanh != null && thucHanh != '0' && thucHanh!.isNotEmpty)
-          DuoTag(text: 'TH: $thucHanh', color: AppColors.primary),
+          DuoBadge.tag(text: 'TH: $thucHanh', color: AppColors.primary),
       ],
     );
   }
 }
 
-/// Widget hiển thị preview reward nhỏ gọn
-class _RewardPreviewItem extends StatelessWidget {
-  final String assetPath;
-  final int value;
-  final bool isClaimed;
 
-  const _RewardPreviewItem({
-    required this.assetPath,
-    required this.value,
-    this.isClaimed = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Image.asset(
-          assetPath,
-          width: 14.w,
-          height: 14.w,
-          errorBuilder: (_, __, ___) => Icon(
-            Icons.star,
-            size: 12.sp,
-            color: AppColors.yellow,
-          ),
-        ),
-        SizedBox(width: 2.w),
-        Text(
-          _formatNumber(value),
-          style: TextStyle(
-            fontSize: AppStyles.textXs,
-            fontWeight: AppStyles.fontBold,
-            color: isClaimed ? AppColors.green : AppColors.textPrimary,
-          ),
-        ),
-      ],
-    );
-  }
-
-  String _formatNumber(int number) {
-    if (number >= 1000000) {
-      return '${(number / 1000000).toStringAsFixed(1)}M';
-    } else if (number >= 1000) {
-      return '${(number / 1000).toStringAsFixed(0)}K';
-    }
-    return number.toString();
-  }
-}

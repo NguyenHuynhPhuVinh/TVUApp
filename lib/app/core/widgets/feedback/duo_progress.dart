@@ -188,3 +188,66 @@ class DuoLoadingDots extends StatelessWidget {
   }
 }
 
+/// Progress bar với label - thay thế pattern lặp lại trong:
+/// DuoLevelProgressCard, DuoXpProgress, DuoRankProgress, DuoAttendanceCard
+class DuoLabeledProgressBar extends StatelessWidget {
+  final String? leftLabel;
+  final String? rightLabel;
+  final double progress;
+  final Color? progressColor;
+  final Color? shadowColor;
+  final double height;
+  final bool showShimmer;
+  final TextStyle? labelStyle;
+
+  const DuoLabeledProgressBar({
+    super.key,
+    this.leftLabel,
+    this.rightLabel,
+    required this.progress,
+    this.progressColor,
+    this.shadowColor,
+    this.height = 12,
+    this.showShimmer = true,
+    this.labelStyle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final defaultLabelStyle = TextStyle(
+      fontSize: AppStyles.textSm,
+      fontWeight: AppStyles.fontMedium,
+      color: AppColors.textSecondary,
+    );
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (leftLabel != null || rightLabel != null) ...[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              if (leftLabel != null)
+                Text(leftLabel!, style: labelStyle ?? defaultLabelStyle)
+              else
+                const SizedBox.shrink(),
+              if (rightLabel != null)
+                Text(rightLabel!, style: labelStyle ?? defaultLabelStyle)
+              else
+                const SizedBox.shrink(),
+            ],
+          ),
+          SizedBox(height: AppStyles.space2),
+        ],
+        DuoProgressBar(
+          progress: progress,
+          progressColor: progressColor,
+          shadowColor: shadowColor,
+          height: height,
+          showShimmer: showShimmer,
+        ),
+      ],
+    );
+  }
+}
+

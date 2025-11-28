@@ -106,7 +106,7 @@ class DuoListTile extends StatelessWidget {
   }
 }
 
-/// Duolingo-style Schedule Item - tái sử dụng base decoration
+/// Duolingo-style Schedule Item - sử dụng DuoAccentCard base
 /// Hiển thị đầy đủ: subject, time, room, teacher
 class DuoScheduleItem extends StatelessWidget {
   final String subject;
@@ -138,6 +138,7 @@ class DuoScheduleItem extends StatelessWidget {
         padding: EdgeInsets.all(AppStyles.space4),
         decoration: DuoCardDecoration.standard,
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Accent bar
             Container(
@@ -170,7 +171,7 @@ class DuoScheduleItem extends StatelessWidget {
                 ],
               ),
             ),
-            // Lesson badge
+            // Lesson badge - sử dụng import từ duo_accent_card
             if (lessonCount > 0) ...[
               SizedBox(width: AppStyles.space3),
               _LessonBadge(count: lessonCount, color: color),
@@ -210,7 +211,7 @@ class _InfoRow extends StatelessWidget {
   }
 }
 
-/// Lesson count badge - dùng chung cho schedule items
+/// Lesson count badge - giữ lại để backward compatible
 class _LessonBadge extends StatelessWidget {
   final int count;
   final Color color;
