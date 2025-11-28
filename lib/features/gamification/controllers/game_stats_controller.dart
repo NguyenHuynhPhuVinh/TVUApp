@@ -1,5 +1,5 @@
 import 'package:get/get.dart';
-import '../../../../features/app/routes/app_routes.dart';
+import '../../../../routes/app_routes.dart';
 
 class GameStatsController extends GetxController {
   // Data từ tính toán

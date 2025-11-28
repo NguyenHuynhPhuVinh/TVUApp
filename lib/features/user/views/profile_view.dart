@@ -6,7 +6,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_styles.dart';
 import '../../../core/components/widgets.dart';
 import '../../../features/gamification/widgets/game_widgets.dart';
-import '../../../features/app/routes/app_routes.dart';
+import '../../../routes/app_routes.dart';
 import '../controllers/profile_controller.dart';
 
 class ProfileView extends GetView<ProfileController> {

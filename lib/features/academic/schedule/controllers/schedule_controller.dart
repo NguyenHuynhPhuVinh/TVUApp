@@ -3,7 +3,6 @@ import '../../../../features/gamification/core/check_in_manager.dart';
 import '../../../../infrastructure/storage/storage_service.dart';
 import '../../../../features/gamification/core/game_service.dart';
 import '../../../../features/auth/data/auth_service.dart';
-import '../../../app/home/controllers/home_controller.dart';
 
 class ScheduleController extends GetxController {
   late final StorageService _storage;
@@ -257,8 +256,8 @@ class ScheduleController extends GetxController {
       // Cập nhật state UI
       checkInStates[key] = true;
       
-      // Notify HomeController để cập nhật badge
-      _notifyHomeController();
+      // Notify về check-in đã thay đổi (reactive qua GameService.stats)
+      _notifyCheckInChanged();
       
       return rewards;
     } finally {
@@ -267,15 +266,13 @@ class ScheduleController extends GetxController {
     }
   }
   
-  /// Notify HomeController để cập nhật badge điểm danh
-  void _notifyHomeController() {
-    try {
-      if (Get.isRegistered<HomeController>()) {
-        Get.find<HomeController>().checkPendingCheckIn();
-      }
-    } catch (e) {
-      // Ignore if HomeController not found
-    }
+  /// Notify các listener về check-in đã thay đổi
+  /// Sử dụng GameService.stats để trigger reactive update
+  /// HomeController listen vào stats nên sẽ tự động cập nhật
+  void _notifyCheckInChanged() {
+    // GameService.stats đã được update trong checkInLesson
+    // HomeController đã listen vào stats changes
+    // Không cần gọi trực tiếp HomeController nữa
   }
 
   /// Load trạng thái check-in cho tuần hiện tại

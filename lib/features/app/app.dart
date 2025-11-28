@@ -1,6 +1,5 @@
 // App feature barrel file
-export 'routes/app_pages.dart';
-export 'routes/app_routes.dart';
+// Routes đã được chuyển ra lib/routes/ để quản lý toàn cục
 
 
 

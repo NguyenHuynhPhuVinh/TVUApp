@@ -4,7 +4,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_styles.dart';
 import '../../../../core/components/widgets.dart';
 import '../../widgets/game_widgets.dart';
-import '../../../../features/gamification/wallet/wallet_transaction.dart';
+import '../../../../features/gamification/models/wallet_transaction.dart';
 import '../controllers/wallet_controller.dart';
 
 class WalletView extends GetView<WalletController> {

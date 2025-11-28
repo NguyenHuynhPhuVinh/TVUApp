@@ -1,46 +1,46 @@
 import 'package:get/get.dart';
 
 // App features
-import '../splash/bindings/splash_binding.dart';
-import '../splash/views/splash_view.dart';
-import '../home/home_binding.dart';
-import '../home/views/home_view.dart';
-import '../main/bindings/main_binding.dart';
-import '../main/views/main_view.dart';
+import '../features/app/splash/bindings/splash_binding.dart';
+import '../features/app/splash/views/splash_view.dart';
+import '../features/app/home/home_binding.dart';
+import '../features/app/home/views/home_view.dart';
+import '../features/app/main/bindings/main_binding.dart';
+import '../features/app/main/views/main_view.dart';
 
 // Auth feature
-import '../../auth/presentation/bindings/auth_binding.dart';
-import '../../auth/presentation/views/login_view.dart';
+import '../features/auth/presentation/bindings/auth_binding.dart';
+import '../features/auth/presentation/views/login_view.dart';
 
 // Academic features
-import '../../academic/curriculum/bindings/curriculum_binding.dart';
-import '../../academic/curriculum/views/curriculum_view.dart';
-import '../../academic/grades/bindings/grades_binding.dart';
-import '../../academic/grades/views/grades_view.dart';
-import '../../academic/schedule/bindings/schedule_binding.dart';
-import '../../academic/schedule/views/schedule_view.dart';
-import '../../academic/tuition/bindings/tuition_binding.dart';
-import '../../academic/tuition/views/tuition_view.dart';
-import '../../academic/tuition_bonus/bindings/tuition_bonus_binding.dart';
-import '../../academic/tuition_bonus/views/tuition_bonus_view.dart';
+import '../features/academic/curriculum/bindings/curriculum_binding.dart';
+import '../features/academic/curriculum/views/curriculum_view.dart';
+import '../features/academic/grades/bindings/grades_binding.dart';
+import '../features/academic/grades/views/grades_view.dart';
+import '../features/academic/schedule/bindings/schedule_binding.dart';
+import '../features/academic/schedule/views/schedule_view.dart';
+import '../features/academic/tuition/bindings/tuition_binding.dart';
+import '../features/academic/tuition/views/tuition_view.dart';
+import '../features/academic/tuition_bonus/bindings/tuition_bonus_binding.dart';
+import '../features/academic/tuition_bonus/views/tuition_bonus_view.dart';
 
 // Gamification features
-import '../../gamification/game_setup/bindings/game_setup_binding.dart';
-import '../../gamification/game_setup/views/game_setup_view.dart';
-import '../../gamification/bindings/game_stats_binding.dart';
-import '../../gamification/views/game_stats_view.dart';
-import '../../gamification/game_rewards/bindings/game_rewards_binding.dart';
-import '../../gamification/game_rewards/views/game_rewards_view.dart';
-import '../../gamification/wallet/bindings/wallet_binding.dart';
-import '../../gamification/wallet/views/wallet_view.dart';
-import '../../gamification/shop/bindings/shop_binding.dart';
-import '../../gamification/shop/views/shop_view.dart';
+import '../features/gamification/game_setup/bindings/game_setup_binding.dart';
+import '../features/gamification/game_setup/views/game_setup_view.dart';
+import '../features/gamification/bindings/game_stats_binding.dart';
+import '../features/gamification/views/game_stats_view.dart';
+import '../features/gamification/game_rewards/bindings/game_rewards_binding.dart';
+import '../features/gamification/game_rewards/views/game_rewards_view.dart';
+import '../features/gamification/wallet/bindings/wallet_binding.dart';
+import '../features/gamification/wallet/views/wallet_view.dart';
+import '../features/gamification/shop/bindings/shop_binding.dart';
+import '../features/gamification/shop/views/shop_view.dart';
 
 // User features
-import '../../user/news/bindings/news_binding.dart';
-import '../../user/news/views/news_view.dart';
-import '../../user/bindings/profile_binding.dart';
-import '../../user/views/profile_view.dart';
+import '../features/user/news/bindings/news_binding.dart';
+import '../features/user/news/views/news_view.dart';
+import '../features/user/bindings/profile_binding.dart';
+import '../features/user/views/profile_view.dart';
 
 import 'app_routes.dart';
 

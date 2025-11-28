@@ -1,6 +1,6 @@
 import 'package:get/get.dart';
 import '../config/shop_config.dart';
-import '../wallet/wallet_transaction.dart';
+import '../models/wallet_transaction.dart';
 import '../core/game_service.dart';
 import '../core/game_security_guard.dart';
 

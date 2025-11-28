@@ -4,7 +4,7 @@ import '../../../../core/utils/number_formatter.dart';
 import '../../../../features/auth/data/auth_service.dart';
 import '../../../../features/gamification/core/game_service.dart';
 import '../../../../infrastructure/storage/storage_service.dart';
-import '../../../../features/app/routes/app_routes.dart';
+import '../../../../routes/app_routes.dart';
 
 class TuitionBonusController extends GetxController {
   final GameService _gameService = Get.find<GameService>();

@@ -11,9 +11,7 @@ export 'config/shop_config.dart';
 
 // Models
 export 'models/player_stats.dart';
-
-// Enums
-export 'enums/reward_claim_status.dart';
+export 'models/wallet_transaction.dart';
 
 // Utils
 export 'utils/rank_helper.dart';
@@ -21,8 +19,7 @@ export 'utils/rank_helper.dart';
 // Shop
 export 'shop/shop_service.dart';
 
-// Wallet
-export 'wallet/wallet_transaction.dart';
+// Wallet (transaction model đã chuyển sang models/)
 
 // Widgets
 export 'widgets/game_widgets.dart';

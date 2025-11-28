@@ -41,8 +41,10 @@ class HomeController extends GetxController {
     );
     loadData();
     
-    // Listen game stats changes để cập nhật badge
+    // Listen game stats changes để cập nhật tất cả badges
+    // Khi ScheduleController check-in, stats sẽ thay đổi -> trigger recheck
     ever(_gameService.stats, (_) {
+      checkPendingCheckIn();
       checkUnclaimedTuitionBonus();
       checkUnclaimedCurriculumReward();
       checkUnclaimedRankReward();

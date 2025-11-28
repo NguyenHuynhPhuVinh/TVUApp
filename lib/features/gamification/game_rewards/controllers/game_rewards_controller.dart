@@ -1,7 +1,7 @@
 import 'package:get/get.dart';
 import '../../../../core/utils/number_formatter.dart';
 import '../../../../infrastructure/storage/storage_service.dart';
-import '../../../../features/app/routes/app_routes.dart';
+import '../../../../routes/app_routes.dart';
 
 class GameRewardsController extends GetxController {
   final StorageService _storage = Get.find<StorageService>();

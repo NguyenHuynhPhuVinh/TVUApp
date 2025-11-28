@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../infrastructure/network/api_service.dart';
 import '../../../../features/auth/data/auth_service.dart';
-import '../../../../features/app/routes/app_routes.dart';
+import '../../../../routes/app_routes.dart';
 
 class AuthController extends GetxController {
   final ApiService _apiService = Get.find<ApiService>();

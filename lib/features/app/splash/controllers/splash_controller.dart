@@ -8,7 +8,7 @@ import '../../../../features/gamification/core/game_service.dart';
 import '../../../../infrastructure/storage/storage_service.dart';
 import '../../../../infrastructure/update/update_service.dart';
 import '../../../../infrastructure/security/security_service.dart';
-import '../../../app/routes/app_routes.dart';
+import '../../../../routes/app_routes.dart';
 
 class SplashController extends GetxController {
   final AuthService _authService = Get.find<AuthService>();

@@ -1,6 +1,6 @@
 import 'package:get/get.dart';
 import '../../../../core/extensions/number_extensions.dart';
-import '../../../../features/gamification/wallet/wallet_transaction.dart';
+import '../../../../features/gamification/models/wallet_transaction.dart';
 import '../../../../features/auth/data/auth_service.dart';
 import '../../../../features/gamification/core/game_service.dart';
 import '../../../../infrastructure/storage/storage_service.dart';

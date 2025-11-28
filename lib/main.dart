@@ -23,7 +23,7 @@ import 'features/gamification/core/game_sync_service.dart';
 import 'features/gamification/shop/shop_service.dart';
 
 // Features - App
-import 'features/app/routes/app_pages.dart';
+import 'routes/app_pages.dart';
 
 // Core
 import 'core/theme/app_theme.dart';

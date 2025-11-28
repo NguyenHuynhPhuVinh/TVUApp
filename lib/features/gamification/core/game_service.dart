@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'reward_calculator.dart';
 import '../models/player_stats.dart';
-import '../wallet/wallet_transaction.dart';
+import '../models/wallet_transaction.dart';
 import '../../../infrastructure/storage/storage_service.dart';
 import 'game_security_guard.dart';
 import 'game_sync_service.dart';
