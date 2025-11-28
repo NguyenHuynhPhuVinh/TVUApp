@@ -5,6 +5,7 @@ import 'package:iconsax/iconsax.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_styles.dart';
+import '../../../core/utils/number_formatter.dart';
 import '../../../core/widgets/widgets.dart';
 import '../controllers/tuition_controller.dart';
 
@@ -166,20 +167,13 @@ class TuitionView extends GetView<TuitionController> {
   }
 
   Widget _buildTuitionCard(Map<String, dynamic> item, int index) {
-    double parseDouble(dynamic value) {
-      if (value == null) return 0;
-      if (value is num) return value.toDouble();
-      if (value is String) return double.tryParse(value) ?? 0;
-      return 0;
-    }
-
-    final hocPhi = parseDouble(item['hoc_phi']);
-    final mienGiam = parseDouble(item['mien_giam']);
-    final duocHoTro = parseDouble(item['duoc_ho_tro']);
-    final phaiThu = parseDouble(item['phai_thu']);
-    final daThu = parseDouble(item['da_thu']);
-    final conNo = parseDouble(item['con_no']);
-    final donGia = parseDouble(item['don_gia']);
+    final hocPhi = NumberFormatter.parseDouble(item['hoc_phi']);
+    final mienGiam = NumberFormatter.parseDouble(item['mien_giam']);
+    final duocHoTro = NumberFormatter.parseDouble(item['duoc_ho_tro']);
+    final phaiThu = NumberFormatter.parseDouble(item['phai_thu']);
+    final daThu = NumberFormatter.parseDouble(item['da_thu']);
+    final conNo = NumberFormatter.parseDouble(item['con_no']);
+    final donGia = NumberFormatter.parseDouble(item['don_gia']);
     final hasDebt = conNo > 0;
 
     return Container(

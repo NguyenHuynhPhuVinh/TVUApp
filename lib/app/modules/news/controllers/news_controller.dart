@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import '../../../core/utils/date_formatter.dart';
 import '../../../data/services/local_storage_service.dart';
 
 class NewsController extends GetxController {
@@ -23,13 +24,5 @@ class NewsController extends GetxController {
     }
   }
 
-  String formatDate(String? dateStr) {
-    if (dateStr == null || dateStr.isEmpty) return '';
-    try {
-      final date = DateTime.parse(dateStr);
-      return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
-    } catch (e) {
-      return dateStr;
-    }
-  }
+  String formatDate(String? dateStr) => DateFormatter.formatIsoToVietnamese(dateStr);
 }

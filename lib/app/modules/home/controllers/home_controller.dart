@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import '../../../core/utils/date_formatter.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../data/services/game_service.dart';
 import '../../../data/services/local_storage_service.dart';
@@ -62,22 +63,14 @@ class HomeController extends GetxController {
         // Check if current date is in this week
         final startStr = week['ngay_bat_dau'] as String?;
         final endStr = week['ngay_ket_thuc'] as String?;
-        if (startStr != null && endStr != null) {
-          final parts1 = startStr.split('/');
-          final parts2 = endStr.split('/');
-          if (parts1.length == 3 && parts2.length == 3) {
-            final start = DateTime(int.parse(parts1[2]), int.parse(parts1[1]), int.parse(parts1[0]));
-            final end = DateTime(int.parse(parts2[2]), int.parse(parts2[1]), int.parse(parts2[0]));
-            if (now.isAfter(start.subtract(const Duration(days: 1))) && now.isBefore(end.add(const Duration(days: 1)))) {
-              final schedules = week['ds_thoi_khoa_bieu'] as List? ?? [];
-              for (var schedule in schedules) {
-                if (schedule['thu_kieu_so'] == todayWeekday) {
-                  todayItems.add(Map<String, dynamic>.from(schedule));
-                }
-              }
-              break;
+        if (DateFormatter.isDateInRange(now, startStr, endStr)) {
+          final schedules = week['ds_thoi_khoa_bieu'] as List? ?? [];
+          for (var schedule in schedules) {
+            if (schedule['thu_kieu_so'] == todayWeekday) {
+              todayItems.add(Map<String, dynamic>.from(schedule));
             }
           }
+          break;
         }
       }
       todayItems.sort((a, b) => (a['tiet_bat_dau'] ?? 0).compareTo(b['tiet_bat_dau'] ?? 0));

@@ -27,21 +27,14 @@ class TuitionController extends GetxController {
       double paid = 0;
       double debt = 0;
       for (var item in tuitionList) {
-        tuition += _parseDouble(item['phai_thu']);
-        paid += _parseDouble(item['da_thu']);
-        debt += _parseDouble(item['con_no']);
+        tuition += NumberFormatter.parseDouble(item['phai_thu']);
+        paid += NumberFormatter.parseDouble(item['da_thu']);
+        debt += NumberFormatter.parseDouble(item['con_no']);
       }
       totalTuition.value = tuition;
       totalPaid.value = paid;
       totalDebt.value = debt;
     }
-  }
-
-  double _parseDouble(dynamic value) {
-    if (value == null) return 0;
-    if (value is num) return value.toDouble();
-    if (value is String) return double.tryParse(value) ?? 0;
-    return 0;
   }
 
   String formatCurrency(num amount) {

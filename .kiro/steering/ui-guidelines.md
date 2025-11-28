@@ -67,7 +67,8 @@ DuoCustomCard(...)
 ### 4. TIỆN ÍCH LOGIC - SỬ DỤNG CHUNG
 
 **Utilities có sẵn trong `lib/app/core/utils/`:**
-- `NumberFormatter` - Format số lớn (1K, 1M, 1B, tiếng Việt)
+- `NumberFormatter` - Format số (compact, currency, percent, parseDouble, parseInt)
+- `DateFormatter` - Parse/format ngày (parseVietnamese, toVietnamese, isDateInRange, formatIsoToVietnamese)
 
 **TRƯỚC KHI TẠO UTILITY MỚI:**
 1. Kiểm tra `lib/app/core/utils/` xem có sẵn chưa
