@@ -23,10 +23,12 @@ class TuitionBonusView extends GetView<TuitionBonusController> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.all(AppStyles.space4),
-          child: Column(
-            children: [
+        child: Center(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.all(AppStyles.space4),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
               SizedBox(height: AppStyles.space2),
               
               // Title với confetti effect
@@ -66,22 +68,9 @@ class TuitionBonusView extends GetView<TuitionBonusController> {
                 textAlign: TextAlign.center,
               )).animate().fadeIn(delay: 200.ms),
               
-              SizedBox(height: AppStyles.space4),
+              SizedBox(height: AppStyles.space6),
               
-              // Thẻ ví - dùng widget chung
-              Obx(() => DuoWalletBalanceCard(
-                virtualBalance: controller.displayedBalance.value,
-                cardHolder: controller.fullName,
-                cardNumber: controller.mssv,
-              )).animate()
-                .fadeIn(delay: 400.ms, duration: 600.ms)
-                .slideY(begin: 0.1)
-                .then()
-                .shimmer(duration: 1500.ms, color: AppColors.green.withValues(alpha: 0.3)),
-              
-              SizedBox(height: AppStyles.space4),
-              
-              // Animated amount display - chuyên nghiệp hơn
+              // Animated amount display
               Obx(() => _BonusAmountCard(
                 amount: controller.displayedBalance.value,
                 isAnimating: controller.isAnimating.value,
@@ -154,7 +143,8 @@ class TuitionBonusView extends GetView<TuitionBonusController> {
               ),
               
               SizedBox(height: AppStyles.space2),
-            ],
+              ],
+            ),
           ),
         ),
       ),
