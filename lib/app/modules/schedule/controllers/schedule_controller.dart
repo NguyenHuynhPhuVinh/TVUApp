@@ -166,6 +166,16 @@ class ScheduleController extends GetxController {
     return endTime.isBefore(initializedAt);
   }
 
+  /// Kiểm tra buổi học đã hết hạn điểm danh chưa (qua hôm sau)
+  /// Nếu true -> không thể check-in vì đã qua deadline (23:59:59 ngày hôm đó)
+  bool isLessonExpired(Map<String, dynamic> lesson) {
+    final lessonDate = _getLessonDate(lesson);
+    if (lessonDate == null) return false;
+
+    final deadline = GameService.calculateCheckInDeadline(lessonDate);
+    return DateTime.now().isAfter(deadline);
+  }
+
   /// Kiểm tra đã check-in buổi học chưa
   bool hasCheckedInLesson(Map<String, dynamic> lesson) {
     final key = _createCheckInKey(lesson);

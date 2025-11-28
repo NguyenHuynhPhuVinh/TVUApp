@@ -22,6 +22,7 @@ class DuoScheduleCard extends StatelessWidget {
   final bool hasCheckedIn;
   final bool isCheckingIn;
   final bool isBeforeGameInit;
+  final bool isExpired;
   final Duration? timeRemaining;
   final VoidCallback? onCheckIn;
 
@@ -39,6 +40,7 @@ class DuoScheduleCard extends StatelessWidget {
     required this.hasCheckedIn,
     this.isCheckingIn = false,
     this.isBeforeGameInit = false,
+    this.isExpired = false,
     this.timeRemaining,
     this.onCheckIn,
   });
@@ -122,6 +124,7 @@ class DuoScheduleCard extends StatelessWidget {
           hasCheckedIn: hasCheckedIn,
           isLoading: isCheckingIn,
           isBeforeGameInit: isBeforeGameInit,
+          isExpired: isExpired,
           timeRemaining: timeRemaining,
           soTiet: soTiet,
           onCheckIn: onCheckIn,

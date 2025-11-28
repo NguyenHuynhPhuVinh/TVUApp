@@ -12,6 +12,7 @@ class DuoLessonCheckIn extends StatefulWidget {
   final bool hasCheckedIn;
   final bool isLoading;
   final bool isBeforeGameInit; // Buổi học trước khi init game
+  final bool isExpired; // Buổi học đã hết hạn điểm danh (qua hôm sau)
   final Duration? timeRemaining;
   final int soTiet;
   final VoidCallback? onCheckIn;
@@ -22,6 +23,7 @@ class DuoLessonCheckIn extends StatefulWidget {
     required this.hasCheckedIn,
     this.isLoading = false,
     this.isBeforeGameInit = false,
+    this.isExpired = false,
     this.timeRemaining,
     required this.soTiet,
     this.onCheckIn,
@@ -97,13 +99,18 @@ class _DuoLessonCheckInState extends State<DuoLessonCheckIn> {
       return _buildAlreadyCountedState();
     }
 
+    // Buổi học đã hết hạn điểm danh (qua hôm sau)
+    if (widget.isExpired) {
+      return _buildExpiredState();
+    }
+
     // Có thể điểm danh
     final canCheck = widget.canCheckIn || (_remaining == null || _remaining!.inSeconds <= 0);
     if (canCheck) {
       return _buildCanCheckInState();
     }
 
-    // Chưa đến giờ
+    // Chưa đến giờ (còn countdown)
     return _buildWaitingState();
   }
 
@@ -191,6 +198,33 @@ class _DuoLessonCheckInState extends State<DuoLessonCheckIn> {
               fontSize: AppStyles.textSm,
               fontWeight: AppStyles.fontBold,
               color: AppColors.primary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Buổi học đã hết hạn điểm danh (qua hôm sau)
+  Widget _buildExpiredState() {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: AppStyles.space3, vertical: AppStyles.space2),
+      decoration: BoxDecoration(
+        color: AppColors.redSoft,
+        borderRadius: AppStyles.roundedLg,
+        border: Border.all(color: AppColors.red, width: 1),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Iconsax.clock, color: AppColors.red, size: 16.w),
+          SizedBox(width: AppStyles.space2),
+          Text(
+            'Hết hạn',
+            style: TextStyle(
+              fontSize: AppStyles.textSm,
+              fontWeight: AppStyles.fontBold,
+              color: AppColors.red,
             ),
           ),
         ],

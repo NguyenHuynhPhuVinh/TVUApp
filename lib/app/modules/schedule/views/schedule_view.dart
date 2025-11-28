@@ -209,6 +209,7 @@ class _ScheduleCardItem extends StatelessWidget {
       bool canCheckIn = false;
       bool isCheckingIn = false;
       bool isBeforeGameInit = false;
+      bool isExpired = false;
       Duration? timeRemaining;
 
       try {
@@ -216,6 +217,7 @@ class _ScheduleCardItem extends StatelessWidget {
         canCheckIn = controller.canCheckInLesson(item);
         isCheckingIn = controller.isCheckingIn(item);
         isBeforeGameInit = controller.isLessonBeforeGameInit(item);
+        isExpired = controller.isLessonExpired(item);
         timeRemaining = controller.getTimeUntilCheckIn(item);
       } catch (e) {
         // Ignore errors
@@ -234,6 +236,7 @@ class _ScheduleCardItem extends StatelessWidget {
         hasCheckedIn: hasCheckedIn,
         isCheckingIn: isCheckingIn,
         isBeforeGameInit: isBeforeGameInit,
+        isExpired: isExpired,
         timeRemaining: timeRemaining,
         onCheckIn: () => _handleCheckIn(context),
       ).animate()

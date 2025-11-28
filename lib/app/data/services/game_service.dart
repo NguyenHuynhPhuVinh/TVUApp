@@ -919,11 +919,14 @@ class GameService extends GetxService {
 
   // ============ LESSON CHECK-IN SYSTEM ============
   
-  /// Tính thời gian kết thúc buổi học dựa trên tiết bắt đầu và số tiết
+  /// Thời gian cho phép điểm danh trước giờ học (30 phút)
+  static const Duration checkInEarlyWindow = Duration(minutes: 30);
+  
+  /// Tính thời gian bắt đầu buổi học dựa trên tiết bắt đầu
   /// Sáng: 7h00 bắt đầu, mỗi tiết 45 phút
   /// Chiều: 13h00 bắt đầu
   /// Tối: 18h00 bắt đầu
-  static DateTime calculateLessonEndTime(DateTime date, int tietBatDau, int soTiet) {
+  static DateTime calculateLessonStartTime(DateTime date, int tietBatDau) {
     int startHour;
     int startMinute = 0;
     
@@ -952,23 +955,46 @@ class GameService extends GetxService {
       startMinute = totalMinutes % 60;
     }
     
+    return DateTime(date.year, date.month, date.day, startHour, startMinute);
+  }
+  
+  /// Tính thời gian kết thúc buổi học dựa trên tiết bắt đầu và số tiết
+  /// Sáng: 7h00 bắt đầu, mỗi tiết 45 phút
+  /// Chiều: 13h00 bắt đầu
+  /// Tối: 18h00 bắt đầu
+  static DateTime calculateLessonEndTime(DateTime date, int tietBatDau, int soTiet) {
+    final startTime = calculateLessonStartTime(date, tietBatDau);
     // Tính thời gian kết thúc = thời gian bắt đầu + (số tiết * 45 phút)
-    final startTime = DateTime(date.year, date.month, date.day, startHour, startMinute);
-    final endTime = startTime.add(Duration(minutes: soTiet * 45));
-    
-    return endTime;
+    return startTime.add(Duration(minutes: soTiet * 45));
+  }
+  
+  /// Tính thời gian có thể bắt đầu điểm danh (30 phút trước giờ học)
+  static DateTime calculateCheckInStartTime(DateTime date, int tietBatDau) {
+    final lessonStart = calculateLessonStartTime(date, tietBatDau);
+    return lessonStart.subtract(checkInEarlyWindow);
+  }
+  
+  /// Tính deadline điểm danh (23:59:59 ngày hôm đó)
+  static DateTime calculateCheckInDeadline(DateTime date) {
+    return DateTime(date.year, date.month, date.day, 23, 59, 59);
   }
 
   /// Kiểm tra có thể check-in buổi học không
-  /// Chỉ được check-in sau khi buổi học kết thúc VÀ buổi học phải sau thời điểm khởi tạo game
+  /// Được check-in từ 30 phút trước giờ học đến hết ngày hôm đó
+  /// VÀ buổi học phải sau thời điểm khởi tạo game
   /// 
   /// SECURITY: Kiểm tra cả thời gian local và initializedAt
   bool canCheckIn(DateTime lessonDate, int tietBatDau, int soTiet) {
     final now = DateTime.now();
+    final checkInStart = calculateCheckInStartTime(lessonDate, tietBatDau);
+    final checkInDeadline = calculateCheckInDeadline(lessonDate);
     final endTime = calculateLessonEndTime(lessonDate, tietBatDau, soTiet);
     
-    // Kiểm tra buổi học đã kết thúc chưa
-    if (!now.isAfter(endTime)) return false;
+    // Kiểm tra đã đến thời gian điểm danh chưa (30p trước giờ học)
+    if (now.isBefore(checkInStart)) return false;
+    
+    // Kiểm tra đã qua deadline chưa (hết ngày hôm đó)
+    if (now.isAfter(checkInDeadline)) return false;
     
     // SECURITY: Buổi học phải kết thúc SAU thời điểm khởi tạo game
     // Ngăn chặn check-in các buổi học trong quá khứ (trước khi init game)
@@ -977,18 +1003,15 @@ class GameService extends GetxService {
       if (endTime.isBefore(initializedAt)) return false;
     }
     
-    // SECURITY: Không cho check-in buổi học quá cũ (> 7 ngày)
-    // Ngăn chặn hack bằng cách chỉnh đồng hồ về quá khứ
-    final maxAge = const Duration(days: 7);
-    if (now.difference(endTime) > maxAge) return false;
-    
     return true;
   }
 
   /// Lấy thời gian còn lại đến khi có thể check-in
-  /// Trả về null nếu đã có thể check-in hoặc buổi học trước thời điểm khởi tạo
+  /// Trả về null nếu đã có thể check-in, đã quá deadline, hoặc buổi học trước thời điểm khởi tạo
   Duration? getTimeUntilCheckIn(DateTime lessonDate, int tietBatDau, int soTiet) {
     final now = DateTime.now();
+    final checkInStart = calculateCheckInStartTime(lessonDate, tietBatDau);
+    final checkInDeadline = calculateCheckInDeadline(lessonDate);
     final endTime = calculateLessonEndTime(lessonDate, tietBatDau, soTiet);
     
     // SECURITY: Buổi học phải sau thời điểm khởi tạo game
@@ -997,8 +1020,13 @@ class GameService extends GetxService {
       return null; // Buổi học trước khi khởi tạo game, không thể check-in
     }
     
-    if (now.isAfter(endTime)) return null;
-    return endTime.difference(now);
+    // Đã quá deadline
+    if (now.isAfter(checkInDeadline)) return null;
+    
+    // Đã có thể check-in
+    if (now.isAfter(checkInStart) || now.isAtSameMomentAs(checkInStart)) return null;
+    
+    return checkInStart.difference(now);
   }
 
   /// Check-in buổi học và nhận thưởng
