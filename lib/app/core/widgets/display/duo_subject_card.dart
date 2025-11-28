@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iconsax/iconsax.dart';
+import '../../constants/app_assets.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_styles.dart';
 import '../base/duo_card.dart';
@@ -121,19 +122,19 @@ class DuoSubjectCard extends StatelessWidget {
                 Row(
                   children: [
                     _RewardPreviewItem(
-                      assetPath: 'assets/game/currency/coin_golden_coin_1st_256px.png',
+                      assetPath: AppAssets.coin,
                       value: reward['coins']!,
                       isClaimed: rewardStatus == SubjectRewardStatus.claimed,
                     ),
                     SizedBox(width: AppStyles.space2),
                     _RewardPreviewItem(
-                      assetPath: 'assets/game/currency/diamond_blue_diamond_1st_256px.png',
+                      assetPath: AppAssets.diamond,
                       value: reward['diamonds']!,
                       isClaimed: rewardStatus == SubjectRewardStatus.claimed,
                     ),
                     SizedBox(width: AppStyles.space2),
                     _RewardPreviewItem(
-                      assetPath: 'assets/game/main/golden_star_1st_256px.png',
+                      assetPath: AppAssets.xpStar,
                       value: reward['xp']!,
                       isClaimed: rewardStatus == SubjectRewardStatus.claimed,
                     ),
@@ -228,7 +229,7 @@ class DuoSubjectCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Image.asset(
-                  'assets/game/item/purple_gift_1st_256px.png',
+                  AppAssets.giftPurple,
                   width: 16.w,
                   height: 16.w,
                   errorBuilder: (_, __, ___) => Icon(

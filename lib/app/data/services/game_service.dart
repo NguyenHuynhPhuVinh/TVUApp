@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../core/game_rules/reward_calculator.dart';
 import '../models/player_stats.dart';
 import '../models/wallet_transaction.dart';
 import 'local_storage_service.dart';
@@ -17,15 +18,15 @@ class GameService extends GetxService {
   static const String _statsKey = 'player_stats';
   static const String _transactionsKey = 'wallet_transactions';
   
-  // ============ REWARD CONSTANTS ============
+  // ============ REWARD CONSTANTS (delegate to RewardCalculator) ============
   /// Coins per tiết học
-  static const int coinsPerLesson = 250000;
+  static int get coinsPerLesson => RewardCalculator.coinsPerLesson;
   /// XP per tiết học
-  static const int xpPerLesson = 2500;
+  static int get xpPerLesson => RewardCalculator.xpPerLesson;
   /// Diamonds per tiết học
-  static const int diamondsPerLesson = 413;
+  static int get diamondsPerLesson => RewardCalculator.diamondsPerLesson;
   /// Số tiết per tín chỉ (15 LT + 30 TH)
-  static const int lessonsPerCredit = 45;
+  static int get lessonsPerCredit => RewardCalculator.lessonsPerCredit;
   
   final stats = PlayerStats().obs;
   final transactions = <WalletTransaction>[].obs;
@@ -88,6 +89,45 @@ class GameService extends GetxService {
     if (!result.isSecure) {
       debugPrint('⚠️ Security issues detected: ${result.issues}');
     }
+  }
+
+  // ============ SECURITY WRAPPER ============
+
+  /// Wrapper thực thi action với security check
+  /// Giảm code lặp lại trong các hàm cần bảo mật
+  /// 
+  /// Usage:
+  /// ```dart
+  /// return await _secureExecute(
+  ///   action: () async { ... },
+  ///   actionName: 'addCoins',
+  /// );
+  /// ```
+  Future<T?> _secureExecute<T>({
+    required Future<T> Function() action,
+    required String actionName,
+    T? fallbackValue,
+  }) async {
+    if (!isSecure.value) {
+      await _checkSecurity();
+      if (!isSecure.value) {
+        debugPrint('⚠️ $actionName blocked: Security issues detected');
+        return fallbackValue;
+      }
+    }
+    return await action();
+  }
+
+  /// Wrapper cho action trả về bool
+  Future<bool> _secureExecuteBool({
+    required Future<bool> Function() action,
+    required String actionName,
+  }) async {
+    return await _secureExecute(
+      action: action,
+      actionName: actionName,
+      fallbackValue: false,
+    ) ?? false;
   }
 
   /// Load stats từ local storage
@@ -446,24 +486,17 @@ class GameService extends GetxService {
       return false;
     }
     
-    // 1. Security check
-    if (!isSecure.value) {
-      await _checkSecurity();
-      if (!isSecure.value) {
-        debugPrint('⚠️ addCoins blocked: Security issues detected');
-        return false;
-      }
-    }
-    
-    // 2. Cập nhật stats và lưu local
-    stats.value = stats.value.copyWith(
-      coins: stats.value.coins + amount,
+    return _secureExecuteBool(
+      actionName: 'addCoins',
+      action: () async {
+        stats.value = stats.value.copyWith(
+          coins: stats.value.coins + amount,
+        );
+        await _saveLocalStats();
+        await syncToFirebase(mssv);
+        return true;
+      },
     );
-    await _saveLocalStats();
-    
-    // 3. Sync Firebase
-    await syncToFirebase(mssv);
-    return true;
   }
 
   /// Thêm diamonds (tuân thủ 3 bước: security → local → firebase)
@@ -475,24 +508,17 @@ class GameService extends GetxService {
       return false;
     }
     
-    // 1. Security check
-    if (!isSecure.value) {
-      await _checkSecurity();
-      if (!isSecure.value) {
-        debugPrint('⚠️ addDiamonds blocked: Security issues detected');
-        return false;
-      }
-    }
-    
-    // 2. Cập nhật stats và lưu local
-    stats.value = stats.value.copyWith(
-      diamonds: stats.value.diamonds + amount,
+    return _secureExecuteBool(
+      actionName: 'addDiamonds',
+      action: () async {
+        stats.value = stats.value.copyWith(
+          diamonds: stats.value.diamonds + amount,
+        );
+        await _saveLocalStats();
+        await syncToFirebase(mssv);
+        return true;
+      },
     );
-    await _saveLocalStats();
-    
-    // 3. Sync Firebase
-    await syncToFirebase(mssv);
-    return true;
   }
 
   /// Thêm XP và tự động lên level (tuân thủ 3 bước: security → local → firebase)
@@ -504,42 +530,34 @@ class GameService extends GetxService {
       return null;
     }
     
-    // 1. Security check
-    if (!isSecure.value) {
-      await _checkSecurity();
-      if (!isSecure.value) {
-        debugPrint('⚠️ addXp blocked: Security issues detected');
-        return null;
-      }
-    }
-    
-    // 2. Tính toán và cập nhật stats
-    int newXp = stats.value.currentXp + amount;
-    int newLevel = stats.value.level;
-    bool leveledUp = false;
-    
-    while (newXp >= newLevel * 100) {
-      newXp -= newLevel * 100;
-      newLevel++;
-      leveledUp = true;
-    }
-    
-    stats.value = stats.value.copyWith(
-      currentXp: newXp,
-      level: newLevel,
+    return _secureExecute(
+      actionName: 'addXp',
+      action: () async {
+        int newXp = stats.value.currentXp + amount;
+        int newLevel = stats.value.level;
+        bool leveledUp = false;
+        
+        while (newXp >= newLevel * 100) {
+          newXp -= newLevel * 100;
+          newLevel++;
+          leveledUp = true;
+        }
+        
+        stats.value = stats.value.copyWith(
+          currentXp: newXp,
+          level: newLevel,
+        );
+        
+        await _saveLocalStats();
+        await syncToFirebase(mssv);
+        
+        return {
+          'leveledUp': leveledUp,
+          'newLevel': newLevel,
+          'currentXp': newXp,
+        };
+      },
     );
-    
-    // 3. Lưu local
-    await _saveLocalStats();
-    
-    // 4. Sync Firebase
-    await syncToFirebase(mssv);
-    
-    return {
-      'leveledUp': leveledUp,
-      'newLevel': newLevel,
-      'currentXp': newXp,
-    };
   }
 
   /// Ghi nhận 1 buổi học (tuân thủ 3 bước: security → local → firebase)
@@ -555,69 +573,55 @@ class GameService extends GetxService {
       return null;
     }
     
-    // 1. Security check
-    if (!isSecure.value) {
-      await _checkSecurity();
-      if (!isSecure.value) {
-        debugPrint('⚠️ recordAttendance blocked: Security issues detected');
-        return null;
-      }
-    }
-    
-    if (attended) {
-      // Tính thưởng theo constants
-      final earnedCoins = lessons * coinsPerLesson;
-      final earnedXp = lessons * xpPerLesson;
-      final earnedDiamonds = lessons * diamondsPerLesson;
-      
-      // 2. Tính XP và level
-      int newXp = stats.value.currentXp + earnedXp;
-      int newLevel = stats.value.level;
-      bool leveledUp = false;
-      
-      while (newXp >= newLevel * 100) {
-        newXp -= newLevel * 100;
-        newLevel++;
-        leveledUp = true;
-      }
-      
-      // 3. Cập nhật stats
-      stats.value = stats.value.copyWith(
-        totalLessonsAttended: stats.value.totalLessonsAttended + lessons,
-        coins: stats.value.coins + earnedCoins,
-        diamonds: stats.value.diamonds + earnedDiamonds,
-        currentXp: newXp,
-        level: newLevel,
-      );
-      
-      // 4. Lưu local
-      await _saveLocalStats();
-      
-      // 5. Sync Firebase
-      await syncToFirebase(mssv);
-      
-      return {
-        'earnedCoins': earnedCoins,
-        'earnedDiamonds': earnedDiamonds,
-        'earnedXp': earnedXp,
-        'leveledUp': leveledUp,
-        'newLevel': newLevel,
-        'currentXp': newXp,
-      };
-    } else {
-      // 2. Cập nhật stats (nghỉ học)
-      stats.value = stats.value.copyWith(
-        totalLessonsMissed: stats.value.totalLessonsMissed + lessons,
-      );
-      
-      // 3. Lưu local
-      await _saveLocalStats();
-      
-      // 4. Sync Firebase
-      await syncToFirebase(mssv);
-      
-      return {'earnedCoins': 0, 'earnedXp': 0};
-    }
+    return _secureExecute(
+      actionName: 'recordAttendance',
+      action: () async {
+        if (attended) {
+          final earnedCoins = lessons * coinsPerLesson;
+          final earnedXp = lessons * xpPerLesson;
+          final earnedDiamonds = lessons * diamondsPerLesson;
+          
+          int newXp = stats.value.currentXp + earnedXp;
+          int newLevel = stats.value.level;
+          bool leveledUp = false;
+          
+          while (newXp >= newLevel * 100) {
+            newXp -= newLevel * 100;
+            newLevel++;
+            leveledUp = true;
+          }
+          
+          stats.value = stats.value.copyWith(
+            totalLessonsAttended: stats.value.totalLessonsAttended + lessons,
+            coins: stats.value.coins + earnedCoins,
+            diamonds: stats.value.diamonds + earnedDiamonds,
+            currentXp: newXp,
+            level: newLevel,
+          );
+          
+          await _saveLocalStats();
+          await syncToFirebase(mssv);
+          
+          return {
+            'earnedCoins': earnedCoins,
+            'earnedDiamonds': earnedDiamonds,
+            'earnedXp': earnedXp,
+            'leveledUp': leveledUp,
+            'newLevel': newLevel,
+            'currentXp': newXp,
+          };
+        } else {
+          stats.value = stats.value.copyWith(
+            totalLessonsMissed: stats.value.totalLessonsMissed + lessons,
+          );
+          
+          await _saveLocalStats();
+          await syncToFirebase(mssv);
+          
+          return {'earnedCoins': 0, 'earnedXp': 0};
+        }
+      },
+    );
   }
 
   /// Reset game (cho testing)
@@ -631,9 +635,9 @@ class GameService extends GetxService {
   // ============ TUITION BONUS SYSTEM ============
 
   /// Tính tiền ảo từ học phí đã đóng
-  /// Quy đổi: 1 VND = 1 tiền ảo (1:1)
+  /// Delegate to RewardCalculator
   int calculateVirtualBalanceFromTuition(int tuitionPaid) {
-    return tuitionPaid;
+    return RewardCalculator.calculateVirtualBalance(tuitionPaid);
   }
 
   /// Kiểm tra đã nhận bonus học phí trên Firebase chưa
@@ -1062,70 +1066,53 @@ class GameService extends GetxService {
       return null;
     }
     
-    // 1. Security check trước khi cho phép nhận thưởng
-    if (!isSecure.value) {
-      await _checkSecurity();
-      if (!isSecure.value) {
-        debugPrint('⚠️ Check-in blocked: Security issues detected');
-        return null;
-      }
-    }
-    
-    // 2. Tính thưởng theo constants
-    final earnedCoins = soTiet * coinsPerLesson;
-    final earnedXp = soTiet * xpPerLesson;
-    final earnedDiamonds = soTiet * diamondsPerLesson;
-    
-    // 3. Tính XP và level mới
-    int newXp = stats.value.currentXp + earnedXp;
-    int newLevel = stats.value.level;
-    bool leveledUp = false;
-    
-    while (newXp >= newLevel * 100) {
-      newXp -= newLevel * 100;
-      newLevel++;
-      leveledUp = true;
-    }
-    
-    // 4. Cập nhật stats
-    stats.value = stats.value.copyWith(
-      coins: stats.value.coins + earnedCoins,
-      diamonds: stats.value.diamonds + earnedDiamonds,
-      currentXp: newXp,
-      level: newLevel,
-      totalLessonsAttended: stats.value.totalLessonsAttended + soTiet,
+    return _secureExecute(
+      actionName: 'checkInLesson',
+      action: () async {
+        final earnedCoins = soTiet * coinsPerLesson;
+        final earnedXp = soTiet * xpPerLesson;
+        final earnedDiamonds = soTiet * diamondsPerLesson;
+        
+        int newXp = stats.value.currentXp + earnedXp;
+        int newLevel = stats.value.level;
+        bool leveledUp = false;
+        
+        while (newXp >= newLevel * 100) {
+          newXp -= newLevel * 100;
+          newLevel++;
+          leveledUp = true;
+        }
+        
+        stats.value = stats.value.copyWith(
+          coins: stats.value.coins + earnedCoins,
+          diamonds: stats.value.diamonds + earnedDiamonds,
+          currentXp: newXp,
+          level: newLevel,
+          totalLessonsAttended: stats.value.totalLessonsAttended + soTiet,
+        );
+        
+        await _saveLocalStats();
+        await syncToFirebase(mssv);
+        
+        return {
+          'earnedCoins': earnedCoins,
+          'earnedDiamonds': earnedDiamonds,
+          'earnedXp': earnedXp,
+          'soTiet': soTiet,
+          'leveledUp': leveledUp,
+          'newLevel': newLevel,
+          'currentXp': newXp,
+        };
+      },
     );
-    
-    // 5. Lưu local
-    await _saveLocalStats();
-    
-    // 6. Sync lên Firebase với signed data
-    await syncToFirebase(mssv);
-    
-    return {
-      'earnedCoins': earnedCoins,
-      'earnedDiamonds': earnedDiamonds,
-      'earnedXp': earnedXp,
-      'soTiet': soTiet,
-      'leveledUp': leveledUp,
-      'newLevel': newLevel,
-      'currentXp': newXp,
-    };
   }
 
   // ============ SUBJECT REWARD SYSTEM (CTDT) ============
 
   /// Tính reward cho môn học đạt dựa trên số tín chỉ
-  /// 1 TC = 15 tiết LT + 30 tiết TH = 45 tiết
-  /// 1 TC = 45 × (250,000 coins + 2,500 XP + 413 diamonds)
-  /// = 11,250,000 coins + 112,500 XP + 18,585 diamonds
-  /// 4 năm (~140 TC): 1.575 TỶ coins + 15.75M XP + 2.6M diamonds
+  /// Delegate to RewardCalculator
   static Map<String, int> calculateSubjectReward(int soTinChi) {
-    return {
-      'coins': soTinChi * lessonsPerCredit * coinsPerLesson,
-      'xp': soTinChi * lessonsPerCredit * xpPerLesson,
-      'diamonds': soTinChi * lessonsPerCredit * diamondsPerLesson,
-    };
+    return RewardCalculator.calculateSubjectReward(soTinChi);
   }
 
   /// Kiểm tra môn học đã claim trên Firebase chưa
@@ -1345,44 +1332,9 @@ class GameService extends GetxService {
   bool _isClaimingRankReward = false; // Lock ngăn race condition
 
   /// Tính reward cho rank dựa trên tier và level (GPA-based)
-  /// Rank càng cao (GPA càng cao) → reward tăng CỰC MẠNH (3^tierIndex)
-  /// 
-  /// 8 tiers: Wood → Stone → Bronze → Silver → Gold → Platinum → Amethyst → Onyx
-  /// Mỗi tier có 7 levels (I → VII)
-  /// 
-  /// Base reward (Wood I): 10M coins + 50K XP + 41,300 diamonds
-  /// Tier multiplier: 3^tierIndex (1, 3, 9, 27, 81, 243, 729, 2187)
-  /// Level bonus: +100% mỗi level
-  /// 
-  /// Ví dụ:
-  /// - Wood I (rank 0): 10M coins, 50K XP, 41K diamonds
-  /// - Bronze I (rank 14): 90M coins, 450K XP, 372K diamonds
-  /// - Gold I (rank 28): 810M coins, 4M XP, 3.3M diamonds
-  /// - Onyx I (rank 49): 21.87 TỶ coins, 109M XP, 90M diamonds
-  /// - Onyx VII (rank 55): 153 TỶ coins, 765M XP, 634M diamonds 🔥
+  /// Delegate to RewardCalculator
   static Map<String, int> calculateRankReward(int rankIndex) {
-    final tierIndex = rankIndex ~/ 7;
-    final level = (rankIndex % 7) + 1;
-    
-    // SUPER Exponential tier multiplier: 3^tierIndex
-    // Wood=1, Stone=3, Bronze=9, Silver=27, Gold=81, Platinum=243, Amethyst=729, Onyx=2187
-    int tierMultiplier = 1;
-    for (int i = 0; i < tierIndex; i++) {
-      tierMultiplier *= 3;
-    }
-    
-    final baseCoins = 10000000 * tierMultiplier; // 10M base
-    final baseXp = 50000 * tierMultiplier; // 50K base XP
-    final baseDiamonds = 41300 * tierMultiplier; // 41.3K base
-    
-    // Level bonus: +100% mỗi level (1x, 2x, 3x, 4x, 5x, 6x, 7x)
-    final levelMultiplier = level.toDouble();
-    
-    return {
-      'coins': (baseCoins * levelMultiplier).round(),
-      'xp': (baseXp * levelMultiplier).round(),
-      'diamonds': (baseDiamonds * levelMultiplier).round(),
-    };
+    return RewardCalculator.calculateRankReward(rankIndex);
   }
 
   /// Kiểm tra rank đã claim trên Firebase chưa

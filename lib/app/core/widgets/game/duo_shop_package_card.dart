@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../constants/app_assets.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_styles.dart';
 import '../../utils/number_formatter.dart';
@@ -79,12 +80,12 @@ class DuoShopPackageCard extends StatelessWidget {
   int get total => amount + bonus;
 
   String get _iconPath => type == DuoShopPackageType.diamond
-      ? 'assets/game/currency/diamond_blue_diamond_1st_256px.png'
-      : 'assets/game/currency/coin_golden_coin_1st_256px.png';
+      ? AppAssets.diamond
+      : AppAssets.coin;
 
   String get _costIconPath => type == DuoShopPackageType.diamond
-      ? 'assets/game/currency/cash_green_cash_1st_256px.png'
-      : 'assets/game/currency/diamond_blue_diamond_1st_256px.png';
+      ? AppAssets.tvuCash
+      : AppAssets.diamond;
 
   Color get _primaryColor =>
       type == DuoShopPackageType.diamond ? AppColors.primary : AppColors.yellow;

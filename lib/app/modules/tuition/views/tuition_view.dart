@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../../core/constants/app_assets.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_styles.dart';
 import '../../../core/utils/number_formatter.dart';
@@ -153,7 +154,7 @@ class _TuitionItem extends StatelessWidget {
         title: 'Nhận thưởng thành công!',
         rewards: [
           RewardItem(
-            icon: 'assets/game/currency/cash_green_cash_1st_256px.png',
+            icon: AppAssets.tvuCash,
             label: 'TVUCash',
             value: result['virtualBalance'],
             color: AppColors.green,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../constants/app_assets.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_styles.dart';
 import '../feedback/duo_progress.dart';
@@ -170,7 +171,7 @@ class DuoLevelCard extends StatelessWidget {
       ),
       child: Center(
         child: Image.asset(
-          'assets/game/main/golden_star_1st_256px.png',
+          AppAssets.xpStar,
           width: 32.w,
           height: 32.w,
           errorBuilder: (_, __, ___) => Icon(

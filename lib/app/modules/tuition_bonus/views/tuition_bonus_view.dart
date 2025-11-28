@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import '../../../core/constants/app_assets.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_styles.dart';
 import '../../../core/utils/number_formatter.dart';
@@ -201,7 +202,7 @@ class _BonusAmountCard extends StatelessWidget {
             children: [
               // Icon
               Image.asset(
-                'assets/game/currency/cash_green_cash_1st_256px.png',
+                AppAssets.tvuCash,
                 width: 40.w,
                 height: 40.w,
               ).animate(

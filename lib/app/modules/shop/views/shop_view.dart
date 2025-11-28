@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import '../../../core/constants/app_assets.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_styles.dart';
 import '../../../core/widgets/widgets.dart';
@@ -42,7 +43,7 @@ class ShopView extends GetView<ShopController> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Image.asset(
-                      'assets/game/currency/diamond_blue_diamond_1st_256px.png',
+                      AppAssets.diamond,
                       width: 24.w,
                       height: 24.w,
                     ),
@@ -56,7 +57,7 @@ class ShopView extends GetView<ShopController> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Image.asset(
-                      'assets/game/currency/coin_golden_coin_1st_256px.png',
+                      AppAssets.coin,
                       width: 24.w,
                       height: 24.w,
                     ),
@@ -133,7 +134,7 @@ class _DiamondShopTab extends StatelessWidget {
           title: 'Mua thành công!',
           rewards: [
             RewardItem(
-              icon: 'assets/game/currency/diamond_blue_diamond_1st_256px.png',
+              icon: AppAssets.diamond,
               label: 'Diamond',
               value: result['diamondAmount'],
               color: AppColors.primary,
@@ -193,7 +194,7 @@ class _CoinShopTab extends StatelessWidget {
           title: 'Mua thành công!',
           rewards: [
             RewardItem(
-              icon: 'assets/game/currency/coin_golden_coin_1st_256px.png',
+              icon: AppAssets.coin,
               label: 'Coin',
               value: result['totalCoins'] ?? result['coinAmount'],
               color: AppColors.yellow,

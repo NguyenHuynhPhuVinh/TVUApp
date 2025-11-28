@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../constants/app_assets.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_styles.dart';
 import '../../utils/number_formatter.dart';
@@ -76,7 +77,7 @@ class DuoTuitionBonusCard extends StatelessWidget {
           Row(
             children: [
               Image.asset(
-                'assets/game/currency/cash_green_cash_1st_256px.png',
+                AppAssets.tvuCash,
                 width: 32.w,
                 height: 32.w,
               ),
@@ -129,7 +130,7 @@ class DuoTuitionBonusCard extends StatelessWidget {
       child: Row(
         children: [
           Image.asset(
-            'assets/game/currency/cash_green_cash_1st_256px.png',
+            AppAssets.tvuCash,
             width: 32.w,
             height: 32.w,
           ),

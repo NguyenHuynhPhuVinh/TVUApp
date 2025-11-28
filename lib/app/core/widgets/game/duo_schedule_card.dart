@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iconsax/iconsax.dart';
 import '../../../data/services/game_service.dart';
+import '../../constants/app_assets.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_styles.dart';
 import '../base/duo_card.dart';
@@ -174,11 +175,11 @@ class DuoScheduleCard extends StatelessWidget {
                   alignment: Alignment.centerLeft,
                   child: Row(
                     children: [
-                      _buildRewardItem('assets/game/currency/coin_golden_coin_1st_256px.png', coins, textColor),
+                      _buildRewardItem(AppAssets.coin, coins, textColor),
                       SizedBox(width: AppStyles.space2),
-                      _buildRewardItem('assets/game/currency/diamond_blue_diamond_1st_256px.png', diamonds, textColor),
+                      _buildRewardItem(AppAssets.diamond, diamonds, textColor),
                       SizedBox(width: AppStyles.space2),
-                      _buildRewardItem('assets/game/main/golden_star_1st_256px.png', xp, textColor),
+                      _buildRewardItem(AppAssets.xpStar, xp, textColor),
                     ],
                   ),
                 ),

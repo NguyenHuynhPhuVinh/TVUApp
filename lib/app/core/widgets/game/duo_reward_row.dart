@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../constants/app_assets.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_styles.dart';
 import '../../utils/number_formatter.dart';
+
+/// Kích thước của DuoRewardRow
+enum DuoRewardRowSize { sm, md, lg }
 
 class DuoRewardRow extends StatelessWidget {
   final String? iconPath;

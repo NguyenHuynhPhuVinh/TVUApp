@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../constants/app_assets.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_styles.dart';
 import '../../utils/number_formatter.dart';
@@ -33,11 +34,11 @@ class DuoShopBalanceHeader extends StatelessWidget {
     required int diamonds,
   }) {
     return DuoShopBalanceHeader(
-      leftIcon: 'assets/game/currency/cash_green_cash_1st_256px.png',
+      leftIcon: AppAssets.tvuCash,
       leftLabel: 'TVUCash',
       leftValue: virtualBalance,
       leftColor: AppColors.green,
-      rightIcon: 'assets/game/currency/diamond_blue_diamond_1st_256px.png',
+      rightIcon: AppAssets.diamond,
       rightLabel: 'Diamond',
       rightValue: diamonds,
       rightColor: AppColors.primary,
@@ -50,11 +51,11 @@ class DuoShopBalanceHeader extends StatelessWidget {
     required int coins,
   }) {
     return DuoShopBalanceHeader(
-      leftIcon: 'assets/game/currency/diamond_blue_diamond_1st_256px.png',
+      leftIcon: AppAssets.diamond,
       leftLabel: 'Diamond',
       leftValue: diamonds,
       leftColor: AppColors.primary,
-      rightIcon: 'assets/game/currency/coin_golden_coin_1st_256px.png',
+      rightIcon: AppAssets.coin,
       rightLabel: 'Coin',
       rightValue: coins,
       rightColor: AppColors.yellow,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import '../../constants/app_assets.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_styles.dart';
 import '../../utils/number_formatter.dart';
@@ -239,21 +240,21 @@ class DuoRewardDialog extends StatelessWidget {
             children: [
               Flexible(
                 child: _DuoRewardItem(
-                  assetPath: 'assets/game/currency/coin_golden_coin_1st_256px.png',
+                  assetPath: AppAssets.coin,
                   value: '+${_formatNumber(earnedCoins)}',
                   label: 'Coins',
                 ),
               ),
               Flexible(
                 child: _DuoRewardItem(
-                  assetPath: 'assets/game/currency/diamond_blue_diamond_1st_256px.png',
+                  assetPath: AppAssets.diamond,
                   value: '+${_formatNumber(earnedDiamonds)}',
                   label: 'Diamonds',
                 ),
               ),
               Flexible(
                 child: _DuoRewardItem(
-                  assetPath: 'assets/game/main/golden_star_1st_256px.png',
+                  assetPath: AppAssets.xpStar,
                   value: '+${_formatNumber(earnedXp)}',
                   label: 'XP',
                 ),
