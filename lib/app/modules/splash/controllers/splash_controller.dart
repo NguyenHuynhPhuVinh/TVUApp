@@ -139,7 +139,12 @@ class SplashController extends GetxController {
     } catch (e) {
       print('Splash error: $e');
       if (_authService.isLoggedIn.value) {
-        Get.offAllNamed(Routes.main);
+        // SECURITY: Vẫn phải check isInitialized khi có lỗi
+        if (!_gameService.isInitialized) {
+          Get.offAllNamed(Routes.gameSetup);
+        } else {
+          Get.offAllNamed(Routes.main);
+        }
       } else {
         Get.offAllNamed(Routes.login);
       }
@@ -245,8 +250,12 @@ class SplashController extends GetxController {
       }
     } catch (e) {
       print('Full sync error: $e');
-      // Vẫn vào main dù có lỗi
-      Get.offAllNamed(Routes.main);
+      // SECURITY: Vẫn phải check isInitialized khi có lỗi
+      if (!_gameService.isInitialized) {
+        Get.offAllNamed(Routes.gameSetup);
+      } else {
+        Get.offAllNamed(Routes.main);
+      }
     }
   }
 

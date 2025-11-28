@@ -18,7 +18,18 @@ class GameSetupController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    _checkAlreadyInitialized();
     _calculateTotalLessons();
+  }
+
+  /// SECURITY: Kiểm tra nếu đã init rồi thì redirect về main
+  void _checkAlreadyInitialized() {
+    if (_gameService.isInitialized) {
+      // Đã init rồi, không cho vào trang setup nữa
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Get.offAllNamed(Routes.main);
+      });
+    }
   }
 
   @override
@@ -42,6 +53,9 @@ class GameSetupController extends GetxController {
   int get maxMissedSessions => totalLessons.value ~/ 4;
 
   Future<void> startCalculation() async {
+    // SECURITY: Lock để ngăn double click
+    if (isCalculating.value) return;
+    
     final missedText = missedSessionsController.text.trim();
     final missedSessions = int.tryParse(missedText) ?? 0;
 

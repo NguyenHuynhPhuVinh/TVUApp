@@ -11,6 +11,7 @@ class DuoLessonCheckIn extends StatefulWidget {
   final bool canCheckIn;
   final bool hasCheckedIn;
   final bool isLoading;
+  final bool isBeforeGameInit; // Buổi học trước khi init game
   final Duration? timeRemaining;
   final int soTiet;
   final VoidCallback? onCheckIn;
@@ -20,6 +21,7 @@ class DuoLessonCheckIn extends StatefulWidget {
     required this.canCheckIn,
     required this.hasCheckedIn,
     this.isLoading = false,
+    this.isBeforeGameInit = false,
     this.timeRemaining,
     required this.soTiet,
     this.onCheckIn,
@@ -90,6 +92,11 @@ class _DuoLessonCheckInState extends State<DuoLessonCheckIn> {
       return _buildCheckedInState();
     }
 
+    // Buổi học trước khi init game -> đã được tính rồi
+    if (widget.isBeforeGameInit) {
+      return _buildAlreadyCountedState();
+    }
+
     // Có thể điểm danh
     final canCheck = widget.canCheckIn || (_remaining == null || _remaining!.inSeconds <= 0);
     if (canCheck) {
@@ -157,6 +164,33 @@ class _DuoLessonCheckInState extends State<DuoLessonCheckIn> {
               fontSize: AppStyles.textSm,
               fontWeight: AppStyles.fontBold,
               color: AppColors.orange,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Buổi học trước khi init game -> đã được tính trong quá trình khởi tạo
+  Widget _buildAlreadyCountedState() {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: AppStyles.space3, vertical: AppStyles.space2),
+      decoration: BoxDecoration(
+        color: AppColors.primarySoft,
+        borderRadius: AppStyles.roundedLg,
+        border: Border.all(color: AppColors.primary, width: 1),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Iconsax.archive_tick, color: AppColors.primary, size: 16.w),
+          SizedBox(width: AppStyles.space2),
+          Text(
+            'Đã tính',
+            style: TextStyle(
+              fontSize: AppStyles.textSm,
+              fontWeight: AppStyles.fontBold,
+              color: AppColors.primary,
             ),
           ),
         ],

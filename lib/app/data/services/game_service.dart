@@ -58,13 +58,27 @@ class GameService extends GetxService {
 
   /// Sync stats từ Firebase (nếu có)
   /// Firebase là source of truth - luôn ưu tiên data từ Firebase
+  /// SECURITY: Verify checksum trước khi accept data
   Future<bool> syncFromFirebase(String mssv) async {
     if (mssv.isEmpty) return false;
     
     try {
       final doc = await _firestore.collection('students').doc(mssv).get();
       if (doc.exists && doc.data()?['gameStats'] != null) {
-        final firebaseStats = PlayerStats.fromJson(doc.data()!['gameStats']);
+        final gameStatsData = doc.data()!['gameStats'] as Map<String, dynamic>;
+        
+        // SECURITY: Verify checksum nếu có
+        // Nếu data có checksum nhưng không valid -> có thể bị tamper
+        if (gameStatsData.containsKey('_checksum')) {
+          final isValid = _security.verifySignedData(gameStatsData);
+          if (!isValid) {
+            debugPrint('⚠️ syncFromFirebase: Invalid checksum detected! Data may be tampered.');
+            // Vẫn load data nhưng log warning (có thể do đổi device)
+            // Trong production có thể block hoàn toàn
+          }
+        }
+        
+        final firebaseStats = PlayerStats.fromJson(gameStatsData);
         
         // Firebase là source of truth - luôn dùng data từ Firebase
         // Điều này ngăn chặn hack bằng cách xóa app data
@@ -98,6 +112,74 @@ class GameService extends GetxService {
     } catch (e) {
       debugPrint('Error syncing game stats to Firebase: $e');
       return false;
+    }
+  }
+
+  // ============ SERVER TIME VALIDATION ============
+
+  /// Lấy thời gian từ Firebase Server (chống hack đồng hồ)
+  /// Sử dụng lastUpdated timestamp từ document của user
+  /// Returns: DateTime từ server, null nếu lỗi hoặc chưa có data
+  Future<DateTime?> getServerTime(String mssv) async {
+    if (mssv.isEmpty) return null;
+
+    try {
+      // Cập nhật timestamp và đọc lại
+      await _firestore.collection('students').doc(mssv).set({
+        '_timeCheck': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+
+      final doc = await _firestore.collection('students').doc(mssv).get();
+      final timestamp = doc.data()?['_timeCheck'] as Timestamp?;
+      return timestamp?.toDate();
+    } catch (e) {
+      debugPrint('Error getting server time: $e');
+      return null;
+    }
+  }
+
+  /// So sánh thời gian local với server (cho phép sai lệch 5 phút)
+  /// Returns: true nếu thời gian hợp lệ, false nếu bị chỉnh đồng hồ
+  Future<bool> validateLocalTime(String mssv) async {
+    final serverTime = await getServerTime(mssv);
+    if (serverTime == null) {
+      // Không lấy được server time -> cho phép (offline mode)
+      debugPrint('⚠️ Cannot get server time, allowing local time');
+      return true;
+    }
+
+    final localTime = DateTime.now();
+    final difference = localTime.difference(serverTime).abs();
+    final maxDifference = const Duration(minutes: 5);
+
+    if (difference > maxDifference) {
+      debugPrint(
+          '⚠️ Time manipulation detected! Local: $localTime, Server: $serverTime, Diff: ${difference.inMinutes} minutes');
+      return false;
+    }
+
+    return true;
+  }
+
+  // ============ FIREBASE VALIDATION ============
+
+  /// Kiểm tra đã khởi tạo game trên Firebase chưa
+  /// SECURITY: Ngăn chặn init nhiều lần để nhận rewards duplicate
+  Future<bool> _checkAlreadyInitializedOnFirebase(String mssv) async {
+    // SECURITY: Nếu không có mssv, block init (return true = đã init)
+    if (mssv.isEmpty) return true;
+    
+    try {
+      final doc = await _firestore.collection('students').doc(mssv).get();
+      if (doc.exists && doc.data()?['gameStats'] != null) {
+        final gameStats = doc.data()!['gameStats'] as Map<String, dynamic>;
+        return gameStats['isInitialized'] == true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('Error checking initialized on Firebase: $e');
+      // Nếu lỗi, return true để block init (an toàn hơn)
+      return true;
     }
   }
 
@@ -193,6 +275,8 @@ class GameService extends GetxService {
 
   /// Khởi tạo game lần đầu với số buổi nghỉ (tuân thủ 3 bước: security → local → firebase)
   /// Returns: Map chứa rewards để hiển thị animation, null nếu security fail
+  /// 
+  /// SECURITY: Chỉ cho phép init 1 lần duy nhất
   Future<Map<String, dynamic>?> initializeGame({
     required String mssv,
     required int missedSessions, // Số buổi nghỉ (1 buổi = 4 tiết)
@@ -200,6 +284,22 @@ class GameService extends GetxService {
     isLoading.value = true;
     
     try {
+      // ========== BƯỚC 0: CHECK ĐÃ INIT CHƯA (Firebase là source of truth) ==========
+      // CRITICAL: Ngăn chặn init nhiều lần để nhận rewards duplicate
+      final alreadyInitialized = await _checkAlreadyInitializedOnFirebase(mssv);
+      if (alreadyInitialized) {
+        debugPrint('⚠️ initializeGame blocked: Already initialized on Firebase');
+        // Sync lại từ Firebase để đảm bảo data đúng
+        await syncFromFirebase(mssv);
+        return null;
+      }
+      
+      // Double check local (backup)
+      if (stats.value.isInitialized) {
+        debugPrint('⚠️ initializeGame blocked: Already initialized locally');
+        return null;
+      }
+      
       // 1. Security check
       if (!isSecure.value) {
         await _checkSecurity();
@@ -283,7 +383,14 @@ class GameService extends GetxService {
   }
 
   /// Thêm coins (tuân thủ 3 bước: security → local → firebase)
+  /// SECURITY: Validate amount > 0
   Future<bool> addCoins(int amount, String mssv) async {
+    // 0. Validate amount - ngăn chặn số âm
+    if (amount <= 0) {
+      debugPrint('⚠️ addCoins blocked: Invalid amount $amount');
+      return false;
+    }
+    
     // 1. Security check
     if (!isSecure.value) {
       await _checkSecurity();
@@ -305,7 +412,14 @@ class GameService extends GetxService {
   }
 
   /// Thêm diamonds (tuân thủ 3 bước: security → local → firebase)
+  /// SECURITY: Validate amount > 0
   Future<bool> addDiamonds(int amount, String mssv) async {
+    // 0. Validate amount - ngăn chặn số âm
+    if (amount <= 0) {
+      debugPrint('⚠️ addDiamonds blocked: Invalid amount $amount');
+      return false;
+    }
+    
     // 1. Security check
     if (!isSecure.value) {
       await _checkSecurity();
@@ -327,7 +441,14 @@ class GameService extends GetxService {
   }
 
   /// Thêm XP và tự động lên level (tuân thủ 3 bước: security → local → firebase)
+  /// SECURITY: Validate amount > 0
   Future<Map<String, dynamic>?> addXp(int amount, String mssv) async {
+    // 0. Validate amount - ngăn chặn số âm
+    if (amount <= 0) {
+      debugPrint('⚠️ addXp blocked: Invalid amount $amount');
+      return null;
+    }
+    
     // 1. Security check
     if (!isSecure.value) {
       await _checkSecurity();
@@ -367,11 +488,18 @@ class GameService extends GetxService {
   }
 
   /// Ghi nhận 1 buổi học (tuân thủ 3 bước: security → local → firebase)
+  /// SECURITY: Validate lessons và check security
   Future<Map<String, dynamic>?> recordAttendance({
     required String mssv,
     required int lessons, // Số tiết
     required bool attended, // Có đi học không
   }) async {
+    // 0. Validate lessons - ngăn chặn giá trị bất thường
+    if (lessons <= 0 || lessons > 12) { // Max 12 tiết/buổi
+      debugPrint('⚠️ recordAttendance blocked: Invalid lessons $lessons');
+      return null;
+    }
+    
     // 1. Security check
     if (!isSecure.value) {
       await _checkSecurity();
@@ -483,6 +611,8 @@ class GameService extends GetxService {
 
   /// Kiểm tra có thể check-in buổi học không
   /// Chỉ được check-in sau khi buổi học kết thúc VÀ buổi học phải sau thời điểm khởi tạo game
+  /// 
+  /// SECURITY: Kiểm tra cả thời gian local và initializedAt
   bool canCheckIn(DateTime lessonDate, int tietBatDau, int soTiet) {
     final now = DateTime.now();
     final endTime = calculateLessonEndTime(lessonDate, tietBatDau, soTiet);
@@ -490,13 +620,17 @@ class GameService extends GetxService {
     // Kiểm tra buổi học đã kết thúc chưa
     if (!now.isAfter(endTime)) return false;
     
-    // DEBUG: Tạm bỏ check initializedAt để test tuần hiện tại
-    // TODO: Bỏ comment sau khi test xong
-    // final initializedAt = stats.value.initializedAt;
-    // if (initializedAt != null) {
-    //   // Buổi học phải kết thúc SAU thời điểm khởi tạo game
-    //   if (endTime.isBefore(initializedAt)) return false;
-    // }
+    // SECURITY: Buổi học phải kết thúc SAU thời điểm khởi tạo game
+    // Ngăn chặn check-in các buổi học trong quá khứ (trước khi init game)
+    final initializedAt = stats.value.initializedAt;
+    if (initializedAt != null) {
+      if (endTime.isBefore(initializedAt)) return false;
+    }
+    
+    // SECURITY: Không cho check-in buổi học quá cũ (> 7 ngày)
+    // Ngăn chặn hack bằng cách chỉnh đồng hồ về quá khứ
+    final maxAge = const Duration(days: 7);
+    if (now.difference(endTime) > maxAge) return false;
     
     return true;
   }
@@ -507,12 +641,11 @@ class GameService extends GetxService {
     final now = DateTime.now();
     final endTime = calculateLessonEndTime(lessonDate, tietBatDau, soTiet);
     
-    // DEBUG: Tạm bỏ check initializedAt để test tuần hiện tại
-    // TODO: Bỏ comment sau khi test xong
-    // final initializedAt = stats.value.initializedAt;
-    // if (initializedAt != null && endTime.isBefore(initializedAt)) {
-    //   return null; // Buổi học trước khi khởi tạo game, không thể check-in
-    // }
+    // SECURITY: Buổi học phải sau thời điểm khởi tạo game
+    final initializedAt = stats.value.initializedAt;
+    if (initializedAt != null && endTime.isBefore(initializedAt)) {
+      return null; // Buổi học trước khi khởi tạo game, không thể check-in
+    }
     
     if (now.isAfter(endTime)) return null;
     return endTime.difference(now);
@@ -520,10 +653,18 @@ class GameService extends GetxService {
 
   /// Check-in buổi học và nhận thưởng
   /// Returns: Map chứa rewards, null nếu security check fail
+  /// 
+  /// SECURITY: Validate soTiet và check security
   Future<Map<String, dynamic>?> checkInLesson({
     required String mssv,
     required int soTiet,
   }) async {
+    // 0. Validate soTiet - ngăn chặn giá trị bất thường
+    if (soTiet <= 0 || soTiet > 12) { // Max 12 tiết/buổi
+      debugPrint('⚠️ Check-in blocked: Invalid soTiet $soTiet');
+      return null;
+    }
+    
     // 1. Security check trước khi cho phép nhận thưởng
     if (!isSecure.value) {
       await _checkSecurity();

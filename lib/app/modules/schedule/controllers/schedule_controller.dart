@@ -150,6 +150,22 @@ class ScheduleController extends GetxController {
     return _gameService.getTimeUntilCheckIn(lessonDate, tietBatDau, soTiet);
   }
 
+  /// Kiểm tra buổi học có trước thời điểm khởi tạo game không
+  /// Nếu true -> không thể check-in vì đã được tính trong initializeGame
+  bool isLessonBeforeGameInit(Map<String, dynamic> lesson) {
+    final lessonDate = _getLessonDate(lesson);
+    if (lessonDate == null) return false;
+
+    final tietBatDau = lesson['tiet_bat_dau'] as int? ?? 1;
+    final soTiet = lesson['so_tiet'] as int? ?? 1;
+    final endTime = GameService.calculateLessonEndTime(lessonDate, tietBatDau, soTiet);
+
+    final initializedAt = _gameService.stats.value.initializedAt;
+    if (initializedAt == null) return false;
+
+    return endTime.isBefore(initializedAt);
+  }
+
   /// Kiểm tra đã check-in buổi học chưa
   bool hasCheckedInLesson(Map<String, dynamic> lesson) {
     final key = _createCheckInKey(lesson);
@@ -166,11 +182,19 @@ class ScheduleController extends GetxController {
   /// TUÂN THỦ 3 BƯỚC: 1. Check Firebase → 2. Lưu Local → 3. Sync Firebase
   /// Firebase là SOURCE OF TRUTH - Local chỉ là cache
   /// Returns: Map rewards nếu thành công, null nếu thất bại
+  /// 
+  /// SECURITY: Có lock để ngăn race condition (double click)
   Future<Map<String, dynamic>?> checkInLesson(Map<String, dynamic> lesson) async {
     final key = _createCheckInKey(lesson);
     final mssv = _authService.username.value;
     
-    // Đánh dấu đang loading
+    // ========== BƯỚC 0: LOCK - Ngăn race condition ==========
+    // Nếu đang check-in key này rồi, return null ngay
+    if (checkingInKeys.contains(key)) {
+      return null;
+    }
+    
+    // Đánh dấu đang loading (lock)
     checkingInKeys.add(key);
     
     try {
@@ -188,13 +212,21 @@ class ScheduleController extends GetxController {
         return null;
       }
       
-      // Kiểm tra có thể check-in không (thời gian)
+      // Kiểm tra có thể check-in không (thời gian local)
       if (!canCheckInLesson(lesson)) {
         return null;
       }
-      
+
+      // ========== SECURITY: VALIDATE SERVER TIME ==========
+      // Ngăn chặn hack bằng cách chỉnh đồng hồ thiết bị
+      final isTimeValid = await _gameService.validateLocalTime(mssv);
+      if (!isTimeValid) {
+        // Thời gian thiết bị bị chỉnh sai -> block check-in
+        return null;
+      }
+
       final soTiet = lesson['so_tiet'] as int? ?? 1;
-      
+
       // Gọi game service để nhận thưởng (bao gồm security check)
       final rewards = await _gameService.checkInLesson(
         mssv: mssv,
