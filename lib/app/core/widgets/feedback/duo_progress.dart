@@ -39,21 +39,23 @@ class DuoProgressBar extends StatelessWidget {
       child: Stack(
         children: [
           // Progress fill
-          AnimatedFractionallySizedBox(
-            duration: animated ? AppStyles.durationNormal : Duration.zero,
+          Align(
             alignment: Alignment.centerLeft,
-            widthFactor: progress.clamp(0.0, 1.0),
-            child: Container(
-              decoration: BoxDecoration(
-                color: fgColor,
-                borderRadius: AppStyles.roundedFull,
-                boxShadow: [
-                  BoxShadow(
-                    color: shadow,
-                    offset: const Offset(0, 2),
-                    blurRadius: 0,
-                  ),
-                ],
+            child: AnimatedFractionallySizedBox(
+              duration: animated ? AppStyles.durationNormal : Duration.zero,
+              widthFactor: progress.clamp(0.0, 1.0),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: fgColor,
+                  borderRadius: AppStyles.roundedFull,
+                  boxShadow: [
+                    BoxShadow(
+                      color: shadow,
+                      offset: const Offset(0, 2),
+                      blurRadius: 0,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

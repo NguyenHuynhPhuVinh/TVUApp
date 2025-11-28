@@ -20,6 +20,7 @@ class DuoScheduleCard extends StatelessWidget {
   final Color accentColor;
   final bool canCheckIn;
   final bool hasCheckedIn;
+  final bool isCheckingIn;
   final Duration? timeRemaining;
   final VoidCallback? onCheckIn;
 
@@ -35,6 +36,7 @@ class DuoScheduleCard extends StatelessWidget {
     required this.accentColor,
     required this.canCheckIn,
     required this.hasCheckedIn,
+    this.isCheckingIn = false,
     this.timeRemaining,
     this.onCheckIn,
   });
@@ -116,6 +118,7 @@ class DuoScheduleCard extends StatelessWidget {
         DuoLessonCheckIn(
           canCheckIn: canCheckIn,
           hasCheckedIn: hasCheckedIn,
+          isLoading: isCheckingIn,
           timeRemaining: timeRemaining,
           soTiet: soTiet,
           onCheckIn: onCheckIn,

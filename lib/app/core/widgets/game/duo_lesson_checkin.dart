@@ -10,6 +10,7 @@ import '../base/duo_button.dart';
 class DuoLessonCheckIn extends StatefulWidget {
   final bool canCheckIn;
   final bool hasCheckedIn;
+  final bool isLoading;
   final Duration? timeRemaining;
   final int soTiet;
   final VoidCallback? onCheckIn;
@@ -18,6 +19,7 @@ class DuoLessonCheckIn extends StatefulWidget {
     super.key,
     required this.canCheckIn,
     required this.hasCheckedIn,
+    this.isLoading = false,
     this.timeRemaining,
     required this.soTiet,
     this.onCheckIn,
@@ -126,12 +128,13 @@ class _DuoLessonCheckInState extends State<DuoLessonCheckIn> {
 
   Widget _buildCanCheckInState() {
     return DuoButton(
-      text: 'Điểm danh',
-      icon: Iconsax.tick_circle,
+      text: widget.isLoading ? 'Đang xử lý...' : 'Điểm danh',
+      icon: widget.isLoading ? null : Iconsax.tick_circle,
       variant: DuoButtonVariant.success,
       size: DuoButtonSize.sm,
       fullWidth: false,
-      onPressed: widget.onCheckIn,
+      isLoading: widget.isLoading,
+      onPressed: widget.isLoading ? null : widget.onCheckIn,
     );
   }
 

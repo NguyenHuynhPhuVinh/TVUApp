@@ -55,13 +55,17 @@ class _WelcomeSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() => DuoWelcomeCard(
-          name: controller.studentName.value,
-          studentId: controller.studentId.value,
-          level: controller.level,
-          coins: controller.coins,
-          diamonds: controller.diamonds,
-        )).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0);
+    // Listen cả studentName/studentId và gameService.stats
+    return Obx(() {
+      final stats = controller.gameStats;
+      return DuoWelcomeCard(
+        name: controller.studentName.value,
+        studentId: controller.studentId.value,
+        level: stats.level,
+        coins: stats.coins,
+        diamonds: stats.diamonds,
+      );
+    }).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0);
   }
 }
 

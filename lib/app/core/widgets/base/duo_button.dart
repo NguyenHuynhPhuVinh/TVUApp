@@ -156,7 +156,38 @@ class _DuoButtonState extends State<DuoButton> {
           );
   }
 
-  Widget _buildStackButton(double shadowHeight) {
+  Widget _buildStackButton(double shadowHeight, {bool useIntrinsic = false}) {
+    if (useIntrinsic) {
+      // Cho fullWidth: false - dùng Column thay vì Stack để tránh lỗi layout
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Button layer
+          Transform.translate(
+            offset: Offset(0, _isPressed ? shadowHeight : 0),
+            child: Container(
+              height: _height,
+              padding: EdgeInsets.symmetric(horizontal: AppStyles.space4),
+              decoration: BoxDecoration(
+                color: _bgColor,
+                borderRadius: AppStyles.roundedXl,
+                boxShadow: _isPressed
+                    ? null
+                    : [
+                        BoxShadow(
+                          color: _shadowColor,
+                          offset: Offset(0, shadowHeight),
+                          blurRadius: 0,
+                        ),
+                      ],
+              ),
+              child: Center(child: _buildButtonContent()),
+            ),
+          ),
+        ],
+      );
+    }
+
     return Stack(
       children: [
         // Shadow layer (bottom)
@@ -228,12 +259,7 @@ class _DuoButtonState extends State<DuoButton> {
                   height: _height + shadowHeight,
                   child: _buildStackButton(shadowHeight),
                 )
-              : IntrinsicWidth(
-                  child: SizedBox(
-                    height: _height + shadowHeight,
-                    child: _buildStackButton(shadowHeight),
-                  ),
-                ),
+              : _buildStackButton(shadowHeight, useIntrinsic: true),
     );
   }
 }

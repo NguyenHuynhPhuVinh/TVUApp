@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import '../../../core/utils/date_formatter.dart';
+import '../../../data/models/player_stats.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../data/services/game_service.dart';
 import '../../../data/services/local_storage_service.dart';
@@ -14,7 +15,8 @@ class HomeController extends GetxController {
   final className = ''.obs;
   final todaySchedule = <Map<String, dynamic>>[].obs;
 
-  // Game stats
+  // Game stats - expose reactive stats directly
+  PlayerStats get gameStats => _gameService.stats.value;
   int get coins => _gameService.stats.value.coins;
   int get diamonds => _gameService.stats.value.diamonds;
   int get level => _gameService.stats.value.level;

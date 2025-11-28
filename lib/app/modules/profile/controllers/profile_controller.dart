@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../data/models/player_stats.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../data/services/game_service.dart';
 import '../../../data/services/local_storage_service.dart';
@@ -12,16 +13,17 @@ class ProfileController extends GetxController {
 
   final studentInfo = <String, dynamic>{}.obs;
 
-  // Game stats getters
-  int get coins => _gameService.stats.value.coins;
-  int get diamonds => _gameService.stats.value.diamonds;
-  int get level => _gameService.stats.value.level;
-  int get currentXp => _gameService.stats.value.currentXp;
+  // Game stats - expose reactive stats directly
+  PlayerStats get gameStats => _gameService.stats.value;
+  int get coins => gameStats.coins;
+  int get diamonds => gameStats.diamonds;
+  int get level => gameStats.level;
+  int get currentXp => gameStats.currentXp;
   int get xpForNextLevel => level * 100;
   double get xpProgress => currentXp / xpForNextLevel;
-  int get totalLessonsAttended => _gameService.stats.value.totalLessonsAttended;
-  int get totalLessonsMissed => _gameService.stats.value.totalLessonsMissed;
-  double get attendanceRate => _gameService.stats.value.attendanceRate;
+  int get totalLessonsAttended => gameStats.totalLessonsAttended;
+  int get totalLessonsMissed => gameStats.totalLessonsMissed;
+  double get attendanceRate => gameStats.attendanceRate;
 
   @override
   void onInit() {

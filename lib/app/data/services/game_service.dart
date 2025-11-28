@@ -416,12 +416,13 @@ class GameService extends GetxService {
     // Kiểm tra buổi học đã kết thúc chưa
     if (!now.isAfter(endTime)) return false;
     
-    // Kiểm tra buổi học có sau thời điểm khởi tạo game không
-    final initializedAt = stats.value.initializedAt;
-    if (initializedAt != null) {
-      // Buổi học phải kết thúc SAU thời điểm khởi tạo game
-      if (endTime.isBefore(initializedAt)) return false;
-    }
+    // DEBUG: Tạm bỏ check initializedAt để test tuần hiện tại
+    // TODO: Bỏ comment sau khi test xong
+    // final initializedAt = stats.value.initializedAt;
+    // if (initializedAt != null) {
+    //   // Buổi học phải kết thúc SAU thời điểm khởi tạo game
+    //   if (endTime.isBefore(initializedAt)) return false;
+    // }
     
     return true;
   }
@@ -432,11 +433,12 @@ class GameService extends GetxService {
     final now = DateTime.now();
     final endTime = calculateLessonEndTime(lessonDate, tietBatDau, soTiet);
     
-    // Kiểm tra buổi học có sau thời điểm khởi tạo game không
-    final initializedAt = stats.value.initializedAt;
-    if (initializedAt != null && endTime.isBefore(initializedAt)) {
-      return null; // Buổi học trước khi khởi tạo game, không thể check-in
-    }
+    // DEBUG: Tạm bỏ check initializedAt để test tuần hiện tại
+    // TODO: Bỏ comment sau khi test xong
+    // final initializedAt = stats.value.initializedAt;
+    // if (initializedAt != null && endTime.isBefore(initializedAt)) {
+    //   return null; // Buổi học trước khi khởi tạo game, không thể check-in
+    // }
     
     if (now.isAfter(endTime)) return null;
     return endTime.difference(now);

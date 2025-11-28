@@ -207,11 +207,13 @@ class _ScheduleCardItem extends StatelessWidget {
     return Obx(() {
       bool hasCheckedIn = false;
       bool canCheckIn = false;
+      bool isCheckingIn = false;
       Duration? timeRemaining;
 
       try {
         hasCheckedIn = controller.hasCheckedInLesson(item);
         canCheckIn = controller.canCheckInLesson(item);
+        isCheckingIn = controller.isCheckingIn(item);
         timeRemaining = controller.getTimeUntilCheckIn(item);
       } catch (e) {
         // Ignore errors
@@ -228,6 +230,7 @@ class _ScheduleCardItem extends StatelessWidget {
         accentColor: accentColor,
         canCheckIn: canCheckIn,
         hasCheckedIn: hasCheckedIn,
+        isCheckingIn: isCheckingIn,
         timeRemaining: timeRemaining,
         onCheckIn: () => _handleCheckIn(context),
       ).animate()

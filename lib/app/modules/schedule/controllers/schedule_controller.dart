@@ -16,6 +16,7 @@ class ScheduleController extends GetxController {
   final selectedSemester = Rxn<int>();
   final currentSemester = 0.obs;
   final checkInStates = <String, bool>{}.obs;
+  final checkingInKeys = <String>{}.obs;
 
   @override
   void onInit() {
@@ -153,6 +154,12 @@ class ScheduleController extends GetxController {
     return checkInStates[key] ?? _localStorage.hasCheckedIn(key);
   }
 
+  /// Kiểm tra đang check-in buổi học không
+  bool isCheckingIn(Map<String, dynamic> lesson) {
+    final key = _createCheckInKey(lesson);
+    return checkingInKeys.contains(key);
+  }
+
   /// Check-in buổi học và nhận thưởng
   /// Returns: Map rewards nếu thành công, null nếu thất bại
   Future<Map<String, dynamic>?> checkInLesson(Map<String, dynamic> lesson) async {
@@ -168,32 +175,40 @@ class ScheduleController extends GetxController {
       return null;
     }
     
-    final soTiet = lesson['so_tiet'] as int? ?? 1;
-    final mssv = _authService.username.value;
+    // Đánh dấu đang loading
+    checkingInKeys.add(key);
     
-    // Gọi game service để nhận thưởng (bao gồm security check + local + firebase)
-    final rewards = await _gameService.checkInLesson(
-      mssv: mssv,
-      soTiet: soTiet,
-    );
-    
-    // Nếu security check fail, rewards sẽ null
-    if (rewards == null) {
-      return null;
+    try {
+      final soTiet = lesson['so_tiet'] as int? ?? 1;
+      final mssv = _authService.username.value;
+      
+      // Gọi game service để nhận thưởng (bao gồm security check + local + firebase)
+      final rewards = await _gameService.checkInLesson(
+        mssv: mssv,
+        soTiet: soTiet,
+      );
+      
+      // Nếu security check fail, rewards sẽ null
+      if (rewards == null) {
+        return null;
+      }
+      
+      // Lưu check-in vào local storage
+      await _localStorage.saveLessonCheckIn(key, {
+        'checkedAt': DateTime.now().toIso8601String(),
+        'soTiet': soTiet,
+        'tenMon': lesson['ten_mon'],
+        'rewards': rewards,
+      });
+      
+      // Cập nhật state UI
+      checkInStates[key] = true;
+      
+      return rewards;
+    } finally {
+      // Bỏ loading
+      checkingInKeys.remove(key);
     }
-    
-    // Lưu check-in vào local storage
-    await _localStorage.saveLessonCheckIn(key, {
-      'checkedAt': DateTime.now().toIso8601String(),
-      'soTiet': soTiet,
-      'tenMon': lesson['ten_mon'],
-      'rewards': rewards,
-    });
-    
-    // Cập nhật state UI
-    checkInStates[key] = true;
-    
-    return rewards;
   }
 
   /// Load trạng thái check-in cho tuần hiện tại
