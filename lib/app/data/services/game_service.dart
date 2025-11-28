@@ -1093,4 +1093,137 @@ class GameService extends GetxService {
       'currentXp': newXp,
     };
   }
+
+  // ============ SUBJECT REWARD SYSTEM (CTDT) ============
+
+  /// Tính reward cho môn học đạt dựa trên số tín chỉ
+  /// Quy đổi: 1 TC = 50,000 coins + 200 XP + 100 diamonds
+  static Map<String, int> calculateSubjectReward(int soTinChi) {
+    return {
+      'coins': soTinChi * 50000,
+      'xp': soTinChi * 200,
+      'diamonds': soTinChi * 100,
+    };
+  }
+
+  /// Kiểm tra môn học đã claim trên Firebase chưa
+  Future<bool> _checkSubjectClaimedOnFirebase(String mssv, String maMon) async {
+    if (mssv.isEmpty) return true;
+    
+    try {
+      final doc = await _firestore.collection('students').doc(mssv).get();
+      if (doc.exists && doc.data()?['gameStats'] != null) {
+        final gameStats = doc.data()!['gameStats'] as Map<String, dynamic>;
+        final claimed = gameStats['claimedSubjects'] as List? ?? [];
+        return claimed.contains(maMon);
+      }
+      return false;
+    } catch (e) {
+      debugPrint('Error checking subject claimed on Firebase: $e');
+      return true; // Block nếu lỗi (an toàn hơn)
+    }
+  }
+
+  bool _isClaimingSubject = false; // Lock ngăn race condition
+
+  /// Nhận reward cho môn học đạt trong CTDT
+  /// Flow: Check Firebase → Security → Validate → Update local → Sync Firebase
+  Future<Map<String, dynamic>?> claimSubjectReward({
+    required String mssv,
+    required String maMon,
+    required String tenMon,
+    required int soTinChi,
+  }) async {
+    // 0. Check lock - ngăn double click
+    if (_isClaimingSubject) {
+      debugPrint('⚠️ claimSubjectReward blocked: Already processing');
+      return null;
+    }
+    _isClaimingSubject = true;
+    isLoading.value = true;
+    
+    try {
+      // 1. Check đã claim trên Firebase chưa (source of truth)
+      final alreadyClaimed = await _checkSubjectClaimedOnFirebase(mssv, maMon);
+      if (alreadyClaimed || stats.value.isSubjectClaimed(maMon)) {
+        debugPrint('⚠️ claimSubjectReward blocked: Subject $maMon already claimed');
+        return null;
+      }
+      
+      // 2. Security check
+      if (!isSecure.value) {
+        await _checkSecurity();
+        if (!isSecure.value) {
+          debugPrint('⚠️ claimSubjectReward blocked: Security issues');
+          return null;
+        }
+      }
+      
+      // 3. Validate input
+      if (soTinChi <= 0 || soTinChi > 20) {
+        debugPrint('⚠️ claimSubjectReward blocked: Invalid soTinChi $soTinChi');
+        return null;
+      }
+      
+      // 4. Tính reward
+      final reward = calculateSubjectReward(soTinChi);
+      final earnedCoins = reward['coins']!;
+      final earnedXp = reward['xp']!;
+      final earnedDiamonds = reward['diamonds']!;
+      
+      // 5. Tính XP và level mới
+      int newXp = stats.value.currentXp + earnedXp;
+      int newLevel = stats.value.level;
+      bool leveledUp = false;
+      
+      while (newXp >= newLevel * 100) {
+        newXp -= newLevel * 100;
+        newLevel++;
+        leveledUp = true;
+      }
+      
+      // 6. Update stats
+      final newClaimedSubjects = [...stats.value.claimedSubjects, maMon];
+      stats.value = stats.value.copyWith(
+        coins: stats.value.coins + earnedCoins,
+        diamonds: stats.value.diamonds + earnedDiamonds,
+        currentXp: newXp,
+        level: newLevel,
+        claimedSubjects: newClaimedSubjects,
+      );
+      
+      // 7. Lưu local
+      await _saveLocalStats();
+      
+      // 8. Thêm transaction
+      await _addTransaction(
+        type: TransactionType.subjectReward,
+        amount: earnedCoins,
+        description: 'Nhận thưởng môn $tenMon',
+        metadata: {'maMon': maMon, 'soTinChi': soTinChi},
+      );
+      
+      // 9. Sync Firebase
+      await syncToFirebase(mssv);
+      
+      return {
+        'maMon': maMon,
+        'tenMon': tenMon,
+        'soTinChi': soTinChi,
+        'earnedCoins': earnedCoins,
+        'earnedDiamonds': earnedDiamonds,
+        'earnedXp': earnedXp,
+        'leveledUp': leveledUp,
+        'newLevel': newLevel,
+      };
+    } finally {
+      _isClaimingSubject = false; // Release lock
+      isLoading.value = false;
+    }
+  }
+
+  /// Kiểm tra môn học đã claim chưa (local check)
+  bool isSubjectClaimed(String maMon) {
+    return stats.value.isSubjectClaimed(maMon);
+  }
 }

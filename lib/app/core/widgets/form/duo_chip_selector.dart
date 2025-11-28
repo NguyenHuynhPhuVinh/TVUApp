@@ -54,12 +54,14 @@ class DuoChipItem<T> {
   final String label;
   final bool hasContent;
   final IconData? icon;
+  final bool hasBadge; // Chấm đỏ báo có action cần thực hiện
 
   const DuoChipItem({
     required this.value,
     required this.label,
     this.hasContent = false,
     this.icon,
+    this.hasBadge = false,
   });
 }
 
@@ -151,6 +153,21 @@ class _DuoChipState<T> extends State<_DuoChip<T>> {
                     : AppStyles.fontMedium,
               ),
             ),
+            if (widget.item.hasBadge) ...[
+              SizedBox(width: AppStyles.space1),
+              Container(
+                width: 8.w,
+                height: 8.w,
+                decoration: BoxDecoration(
+                  color: AppColors.red,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: widget.isSelected ? widget.activeColor : _bgColor,
+                    width: 1.5,
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),

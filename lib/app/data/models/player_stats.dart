@@ -12,6 +12,7 @@ class PlayerStats {
   final int totalTuitionPaid; // Tổng học phí đã đóng (VND)
   final bool tuitionBonusClaimed; // Đã nhận bonus từ học phí chưa (full claim từ setup)
   final List<String> claimedTuitionSemesters; // Danh sách học kỳ đã claim
+  final List<String> claimedSubjects; // Danh sách môn học đã claim reward (mã môn)
 
   const PlayerStats({
     this.coins = 0,
@@ -26,6 +27,7 @@ class PlayerStats {
     this.totalTuitionPaid = 0,
     this.tuitionBonusClaimed = false,
     this.claimedTuitionSemesters = const [],
+    this.claimedSubjects = const [],
   });
 
   /// XP cần để lên level tiếp theo
@@ -46,6 +48,11 @@ class PlayerStats {
     return tuitionBonusClaimed || claimedTuitionSemesters.contains(semesterId);
   }
 
+  /// Kiểm tra môn học đã claim reward chưa
+  bool isSubjectClaimed(String maMon) {
+    return claimedSubjects.contains(maMon);
+  }
+
   PlayerStats copyWith({
     int? coins,
     int? diamonds,
@@ -59,6 +66,7 @@ class PlayerStats {
     int? totalTuitionPaid,
     bool? tuitionBonusClaimed,
     List<String>? claimedTuitionSemesters,
+    List<String>? claimedSubjects,
   }) {
     return PlayerStats(
       coins: coins ?? this.coins,
@@ -73,6 +81,7 @@ class PlayerStats {
       totalTuitionPaid: totalTuitionPaid ?? this.totalTuitionPaid,
       tuitionBonusClaimed: tuitionBonusClaimed ?? this.tuitionBonusClaimed,
       claimedTuitionSemesters: claimedTuitionSemesters ?? this.claimedTuitionSemesters,
+      claimedSubjects: claimedSubjects ?? this.claimedSubjects,
     );
   }
 
@@ -89,6 +98,7 @@ class PlayerStats {
     'totalTuitionPaid': totalTuitionPaid,
     'tuitionBonusClaimed': tuitionBonusClaimed,
     'claimedTuitionSemesters': claimedTuitionSemesters,
+    'claimedSubjects': claimedSubjects,
   };
 
   factory PlayerStats.fromJson(Map<String, dynamic> json) => PlayerStats(
@@ -106,6 +116,8 @@ class PlayerStats {
     totalTuitionPaid: json['totalTuitionPaid'] ?? 0,
     tuitionBonusClaimed: json['tuitionBonusClaimed'] ?? false,
     claimedTuitionSemesters: (json['claimedTuitionSemesters'] as List?)
+        ?.map((e) => e.toString()).toList() ?? [],
+    claimedSubjects: (json['claimedSubjects'] as List?)
         ?.map((e) => e.toString()).toList() ?? [],
   );
 }

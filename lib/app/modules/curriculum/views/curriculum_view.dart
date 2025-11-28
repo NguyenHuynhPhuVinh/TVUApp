@@ -91,11 +91,13 @@ class _SemesterSelectorSection extends StatelessWidget {
                 subjects.where((s) => s['mon_da_dat'] == 'x').length;
             final isAllCompleted =
                 completed == subjects.length && subjects.isNotEmpty;
+            final hasUnclaimedReward = controller.semesterHasUnclaimedReward(index);
 
             return DuoChipItem<int>(
               value: index,
               label: shortName,
               hasContent: isAllCompleted,
+              hasBadge: hasUnclaimedReward, // Chấm đỏ nếu có môn chưa nhận thưởng
             );
           }).toList(),
           onSelected: controller.selectSemester,
@@ -133,6 +135,7 @@ class _SubjectListSection extends StatelessWidget {
         itemBuilder: (context, index) => _SubjectItem(
           item: subjects[index],
           index: index,
+          controller: controller,
         ),
       );
     });
@@ -143,25 +146,37 @@ class _SubjectListSection extends StatelessWidget {
 class _SubjectItem extends StatelessWidget {
   final Map<String, dynamic> item;
   final int index;
+  final CurriculumController controller;
 
   const _SubjectItem({
     required this.item,
     required this.index,
+    required this.controller,
   });
 
   @override
   Widget build(BuildContext context) {
+    final maMon = item['ma_mon'] ?? '';
+    
     return Container(
       margin: EdgeInsets.only(bottom: AppStyles.space3),
-      child: DuoSubjectCard(
-        tenMon: item['ten_mon'] ?? 'N/A',
-        maMon: item['ma_mon'] ?? '',
-        soTinChi: item['so_tin_chi']?.toString() ?? '0',
-        isCompleted: item['mon_da_dat'] == 'x',
-        isRequired: item['mon_bat_buoc'] == 'x',
-        lyThuyet: item['ly_thuyet']?.toString(),
-        thucHanh: item['thuc_hanh']?.toString(),
-      ),
+      child: Obx(() {
+        // Đọc observable để trigger rebuild
+        final _ = controller.claimingSubject.value;
+        final claimedSubjects = controller.isSubjectClaimed(maMon);
+        
+        return DuoSubjectCard(
+          tenMon: item['ten_mon'] ?? 'N/A',
+          maMon: maMon,
+          soTinChi: item['so_tin_chi']?.toString() ?? '0',
+          isCompleted: item['mon_da_dat'] == 'x',
+          isRequired: item['mon_bat_buoc'] == 'x',
+          lyThuyet: item['ly_thuyet']?.toString(),
+          thucHanh: item['thuc_hanh']?.toString(),
+          rewardStatus: controller.getSubjectRewardStatus(item),
+          onClaimReward: () => controller.claimSubjectReward(item),
+        );
+      }),
     ).animate()
         .fadeIn(duration: 300.ms, delay: (index * 30).ms)
         .slideX(begin: 0.05, end: 0);

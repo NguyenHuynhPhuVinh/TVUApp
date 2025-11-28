@@ -77,7 +77,7 @@ class _QuickActionsSection extends StatelessWidget {
     {'icon': Iconsax.calendar, 'label': 'Thời khóa biểu', 'route': '/schedule', 'color': AppColors.primary, 'badgeKey': 'schedule'},
     {'icon': Iconsax.chart, 'label': 'Điểm học tập', 'route': '/grades', 'color': AppColors.green, 'badgeKey': null},
     {'icon': Iconsax.wallet, 'label': 'Học phí', 'route': '/tuition', 'color': AppColors.orange, 'badgeKey': 'tuition'},
-    {'icon': Iconsax.book_1, 'label': 'CTĐT', 'route': '/curriculum', 'color': AppColors.purple, 'badgeKey': null},
+    {'icon': Iconsax.book_1, 'label': 'CTĐT', 'route': '/curriculum', 'color': AppColors.purple, 'badgeKey': 'curriculum'},
     {'icon': Iconsax.shop, 'label': 'Cửa hàng', 'route': '/shop', 'color': AppColors.yellow, 'badgeKey': null},
     {'icon': Iconsax.user, 'label': 'Hồ sơ', 'route': '/profile', 'color': AppColors.purple, 'badgeKey': null},
   ];
@@ -87,6 +87,8 @@ class _QuickActionsSection extends StatelessWidget {
       return controller.hasPendingCheckIn.value;
     } else if (badgeKey == 'tuition') {
       return controller.hasUnclaimedTuitionBonus.value;
+    } else if (badgeKey == 'curriculum') {
+      return controller.hasUnclaimedCurriculumReward.value;
     }
     return false;
   }

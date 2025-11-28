@@ -1,12 +1,18 @@
 import 'package:get/get.dart';
+import '../../../core/widgets/widgets.dart';
+import '../../../data/services/auth_service.dart';
+import '../../../data/services/game_service.dart';
 import '../../../data/services/local_storage_service.dart';
 
 class CurriculumController extends GetxController {
   final LocalStorageService _localStorage = Get.find<LocalStorageService>();
+  final GameService _gameService = Get.find<GameService>();
+  final AuthService _authService = Get.find<AuthService>();
 
   final semesters = <Map<String, dynamic>>[].obs;
   final selectedSemesterIndex = 0.obs;
   final majorName = ''.obs;
+  final claimingSubject = ''.obs; // Mã môn đang claim
 
   // Thống kê
   int get totalCredits {
@@ -85,5 +91,94 @@ class CurriculumController extends GetxController {
     final semester = semesters[selectedSemesterIndex.value];
     final subjects = semester['ds_CTDT_mon_hoc'] as List? ?? [];
     return subjects.map((e) => Map<String, dynamic>.from(e)).toList();
+  }
+
+  /// Kiểm tra môn học đã claim reward chưa
+  bool isSubjectClaimed(String maMon) {
+    return _gameService.isSubjectClaimed(maMon);
+  }
+
+  /// Kiểm tra học kỳ có môn đạt chưa nhận thưởng không
+  bool semesterHasUnclaimedReward(int semesterIndex) {
+    if (semesterIndex >= semesters.length) return false;
+    final semester = semesters[semesterIndex];
+    final subjects = semester['ds_CTDT_mon_hoc'] as List? ?? [];
+    
+    for (var sub in subjects) {
+      final isCompleted = sub['mon_da_dat'] == 'x';
+      final maMon = sub['ma_mon'] as String? ?? '';
+      if (isCompleted && maMon.isNotEmpty && !isSubjectClaimed(maMon)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// Đếm số môn chưa nhận thưởng trong học kỳ
+  int countUnclaimedInSemester(int semesterIndex) {
+    if (semesterIndex >= semesters.length) return 0;
+    final semester = semesters[semesterIndex];
+    final subjects = semester['ds_CTDT_mon_hoc'] as List? ?? [];
+    
+    int count = 0;
+    for (var sub in subjects) {
+      final isCompleted = sub['mon_da_dat'] == 'x';
+      final maMon = sub['ma_mon'] as String? ?? '';
+      if (isCompleted && maMon.isNotEmpty && !isSubjectClaimed(maMon)) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  /// Tổng số môn chưa nhận thưởng
+  int get totalUnclaimedRewards {
+    int count = 0;
+    for (int i = 0; i < semesters.length; i++) {
+      count += countUnclaimedInSemester(i);
+    }
+    return count;
+  }
+
+  /// Lấy trạng thái reward của môn học
+  SubjectRewardStatus getSubjectRewardStatus(Map<String, dynamic> subject) {
+    final isCompleted = subject['mon_da_dat'] == 'x';
+    final maMon = subject['ma_mon'] as String? ?? '';
+    
+    if (!isCompleted) return SubjectRewardStatus.notCompleted;
+    if (claimingSubject.value == maMon) return SubjectRewardStatus.claiming;
+    if (isSubjectClaimed(maMon)) return SubjectRewardStatus.claimed;
+    return SubjectRewardStatus.canClaim;
+  }
+
+  /// Nhận thưởng cho môn học đạt
+  Future<void> claimSubjectReward(Map<String, dynamic> subject) async {
+    final maMon = subject['ma_mon'] as String? ?? '';
+    final tenMon = subject['ten_mon'] as String? ?? '';
+    final soTinChi = int.tryParse(subject['so_tin_chi']?.toString() ?? '0') ?? 0;
+    
+    if (maMon.isEmpty || soTinChi <= 0) return;
+    if (claimingSubject.value.isNotEmpty) return; // Đang claim môn khác
+    
+    claimingSubject.value = maMon;
+    
+    try {
+      final result = await _gameService.claimSubjectReward(
+        mssv: _authService.username.value,
+        maMon: maMon,
+        tenMon: tenMon,
+        soTinChi: soTinChi,
+      );
+      
+      if (result != null) {
+        // Hiển thị dialog nhận thưởng môn học
+        DuoRewardDialog.showSubjectReward(
+          tenMon: tenMon,
+          rewards: result,
+        );
+      }
+    } finally {
+      claimingSubject.value = '';
+    }
   }
 }

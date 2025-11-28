@@ -17,41 +17,99 @@ class LoginView extends GetView<AuthController> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: AppStyles.space6),
-            child: Column(
-              children: [
-                SizedBox(height: AppStyles.space10),
-                const TVUMascot(
-                  mood: TVUMascotMood.happy,
-                  size: TVUMascotSize.lg,
-                  hasGlow: true,
-                  hasAnimation: true,
-                  hasHat: true,
-                ),
-                SizedBox(height: AppStyles.space6),
-                _buildWelcomeText(),
-                SizedBox(height: AppStyles.space8),
-                _buildLoginForm(),
-                SizedBox(height: AppStyles.space4),
-                _buildTermsCheckbox(),
-                SizedBox(height: AppStyles.space4),
-                _buildLoginButton(),
-                SizedBox(height: AppStyles.space4),
-                _buildErrorMessage(),
-                SizedBox(height: AppStyles.space8),
-                _buildFooterDecoration(),
-                SizedBox(height: AppStyles.space10),
-              ],
+        child: Obx(() => controller.showLoginForm.value
+            ? _buildLoginScreen()
+            : _buildIntroScreen()),
+      ),
+    );
+  }
+
+  /// Màn hình giới thiệu ban đầu
+  Widget _buildIntroScreen() {
+    return SingleChildScrollView(
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: AppStyles.space6),
+        child: Column(
+          children: [
+            SizedBox(height: AppStyles.space10),
+            const TVUMascot(
+              mood: TVUMascotMood.happy,
+              size: TVUMascotSize.lg,
+              hasGlow: true,
+              hasAnimation: true,
+              hasHat: true,
             ),
-          ),
+            SizedBox(height: AppStyles.space6),
+            _buildIntroWelcomeText(),
+            SizedBox(height: AppStyles.space8),
+            _buildIntroFeatures(),
+            SizedBox(height: AppStyles.space8),
+            _buildLoginWithTTSVButton(),
+            SizedBox(height: AppStyles.space8),
+            _buildFooterDecoration(),
+            SizedBox(height: AppStyles.space10),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildWelcomeText() {
+  /// Màn hình form đăng nhập
+  Widget _buildLoginScreen() {
+    return SingleChildScrollView(
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: AppStyles.space6),
+        child: Column(
+          children: [
+            SizedBox(height: AppStyles.space6),
+            _buildBackButton(),
+            SizedBox(height: AppStyles.space4),
+            const TVUMascot(
+              mood: TVUMascotMood.happy,
+              size: TVUMascotSize.md,
+              hasGlow: true,
+              hasAnimation: true,
+              hasHat: true,
+            ),
+            SizedBox(height: AppStyles.space4),
+            _buildWelcomeText(),
+            SizedBox(height: AppStyles.space6),
+            _buildLoginForm(),
+            SizedBox(height: AppStyles.space4),
+            _buildTermsCheckbox(),
+            SizedBox(height: AppStyles.space4),
+            _buildLoginButton(),
+            SizedBox(height: AppStyles.space4),
+            _buildErrorMessage(),
+            SizedBox(height: AppStyles.space8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBackButton() {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: GestureDetector(
+        onTap: controller.hideForm,
+        child: Container(
+          padding: EdgeInsets.all(AppStyles.space2),
+          decoration: BoxDecoration(
+            color: AppColors.backgroundDark,
+            borderRadius: AppStyles.roundedFull,
+          ),
+          child: Icon(
+            Iconsax.arrow_left,
+            color: AppColors.textSecondary,
+            size: 20.sp,
+          ),
+        ),
+      ),
+    ).animate().fadeIn(duration: 300.ms);
+  }
+
+  Widget _buildIntroWelcomeText() {
     return Column(
       children: [
         Row(
@@ -65,7 +123,7 @@ class LoginView extends GetView<AuthController> {
               ),
               child: AnimatedTextKit(
                 animatedTexts: [
-                  WavyAnimatedText('Chào mừng đến TVU!', speed: const Duration(milliseconds: 100)),
+                  WavyAnimatedText('TVU App', speed: const Duration(milliseconds: 100)),
                 ],
                 isRepeatingAnimation: false,
                 displayFullTextOnTap: true,
@@ -77,9 +135,96 @@ class LoginView extends GetView<AuthController> {
         ),
         SizedBox(height: AppStyles.space2),
         Text(
-          'Đăng nhập để bắt đầu hành trình học tập',
-          style: TextStyle(fontSize: AppStyles.textBase, color: AppColors.textSecondary),
+          'Ứng dụng hỗ trợ sinh viên TVU',
+          style: TextStyle(fontSize: AppStyles.textLg, color: AppColors.textSecondary),
         ).animate().fadeIn(duration: 500.ms, delay: 800.ms).slideY(begin: 0.3, end: 0),
+      ],
+    );
+  }
+
+  Widget _buildIntroFeatures() {
+    final features = [
+      {'icon': Iconsax.calendar, 'text': 'Xem thời khóa biểu', 'color': AppColors.primary},
+      {'icon': Iconsax.chart, 'text': 'Tra cứu điểm học tập', 'color': AppColors.green},
+      {'icon': Iconsax.wallet, 'text': 'Quản lý học phí', 'color': AppColors.orange},
+      {'icon': Iconsax.game, 'text': 'Trò chơi hóa học tập', 'color': AppColors.purple},
+    ];
+
+    return Column(
+      children: features.asMap().entries.map((entry) {
+        final index = entry.key;
+        final feature = entry.value;
+        return Padding(
+          padding: EdgeInsets.only(bottom: AppStyles.space3),
+          child: Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(AppStyles.space3),
+                decoration: BoxDecoration(
+                  color: (feature['color'] as Color).withValues(alpha: 0.1),
+                  borderRadius: AppStyles.roundedLg,
+                ),
+                child: Icon(
+                  feature['icon'] as IconData,
+                  color: feature['color'] as Color,
+                  size: 20.sp,
+                ),
+              ),
+              SizedBox(width: AppStyles.space3),
+              Text(
+                feature['text'] as String,
+                style: TextStyle(
+                  fontSize: AppStyles.textBase,
+                  color: AppColors.textPrimary,
+                  fontWeight: AppStyles.fontMedium,
+                ),
+              ),
+            ],
+          ),
+        ).animate()
+            .fadeIn(duration: 400.ms, delay: (600 + index * 100).ms)
+            .slideX(begin: -0.2, end: 0);
+      }).toList(),
+    );
+  }
+
+  Widget _buildLoginWithTTSVButton() {
+    return DuoButton(
+      text: 'Đăng nhập với TTSV',
+      icon: Iconsax.login,
+      variant: DuoButtonVariant.primary,
+      size: DuoButtonSize.xl,
+      onPressed: controller.showForm,
+    )
+        .animate()
+        .fadeIn(duration: 500.ms, delay: 1000.ms)
+        .slideY(begin: 0.3, end: 0)
+        .then()
+        .animate(onPlay: (c) => c.repeat(reverse: true))
+        .scale(
+          begin: const Offset(1, 1),
+          end: const Offset(1.02, 1.02),
+          duration: 1500.ms,
+          curve: Curves.easeInOut,
+        );
+  }
+
+  Widget _buildWelcomeText() {
+    return Column(
+      children: [
+        Text(
+          'Đăng nhập TTSV',
+          style: TextStyle(
+            fontSize: AppStyles.text2xl,
+            fontWeight: AppStyles.fontBold,
+            color: AppColors.textPrimary,
+          ),
+        ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.2, end: 0),
+        SizedBox(height: AppStyles.space2),
+        Text(
+          'Sử dụng tài khoản Thông tin sinh viên',
+          style: TextStyle(fontSize: AppStyles.textBase, color: AppColors.textSecondary),
+        ).animate().fadeIn(duration: 500.ms, delay: 200.ms),
       ],
     );
   }

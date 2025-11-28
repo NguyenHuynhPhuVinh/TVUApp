@@ -19,6 +19,7 @@ class HomeController extends GetxController {
   // Badge indicators
   final hasPendingCheckIn = false.obs;
   final hasUnclaimedTuitionBonus = false.obs;
+  final hasUnclaimedCurriculumReward = false.obs;
 
   // Game stats - expose reactive stats directly
   PlayerStats get gameStats => _gameService.stats.value;
@@ -36,6 +37,7 @@ class HomeController extends GetxController {
     // Listen game stats changes để cập nhật badge
     ever(_gameService.stats, (_) {
       checkUnclaimedTuitionBonus();
+      checkUnclaimedCurriculumReward();
     });
   }
 
@@ -44,6 +46,7 @@ class HomeController extends GetxController {
     loadTodaySchedule();
     checkPendingCheckIn();
     checkUnclaimedTuitionBonus();
+    checkUnclaimedCurriculumReward();
   }
 
   void loadStudentInfo() {
@@ -174,5 +177,33 @@ class HomeController extends GetxController {
       }
     }
     hasUnclaimedTuitionBonus.value = false;
+  }
+
+  /// Kiểm tra có môn học nào đạt chưa nhận thưởng không
+  void checkUnclaimedCurriculumReward() {
+    final curriculumData = _localStorage.getCurriculum();
+    if (curriculumData == null || curriculumData['data'] == null) {
+      hasUnclaimedCurriculumReward.value = false;
+      return;
+    }
+
+    final semList = curriculumData['data']['ds_CTDT_hocky'] as List? ?? [];
+    
+    for (var semester in semList) {
+      final subjects = semester['ds_CTDT_mon_hoc'] as List? ?? [];
+      for (var sub in subjects) {
+        final isCompleted = sub['mon_da_dat'] == 'x';
+        final maMon = sub['ma_mon'] as String? ?? '';
+        
+        // Nếu môn đã đạt và chưa claim reward
+        if (isCompleted && maMon.isNotEmpty) {
+          if (!_gameService.stats.value.isSubjectClaimed(maMon)) {
+            hasUnclaimedCurriculumReward.value = true;
+            return;
+          }
+        }
+      }
+    }
+    hasUnclaimedCurriculumReward.value = false;
   }
 }

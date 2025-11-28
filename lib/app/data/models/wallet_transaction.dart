@@ -43,6 +43,7 @@ enum TransactionType {
   buyDiamond,      // Mua diamond bằng tiền ảo
   buyCoin,         // Mua coin bằng diamond
   reward,          // Nhận thưởng
+  subjectReward,   // Nhận thưởng môn học đạt (CTDT)
   other,           // Khác
 }
 
@@ -57,6 +58,8 @@ extension TransactionTypeExt on TransactionType {
         return 'Mua Coin';
       case TransactionType.reward:
         return 'Nhận thưởng';
+      case TransactionType.subjectReward:
+        return 'Thưởng môn học';
       case TransactionType.other:
         return 'Khác';
     }
@@ -66,6 +69,7 @@ extension TransactionTypeExt on TransactionType {
     switch (this) {
       case TransactionType.tuitionBonus:
       case TransactionType.reward:
+      case TransactionType.subjectReward:
         return true;
       case TransactionType.buyDiamond:
       case TransactionType.buyCoin:

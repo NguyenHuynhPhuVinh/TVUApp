@@ -15,6 +15,16 @@ class AuthController extends GetxController {
   final isPasswordVisible = false.obs;
   final errorMessage = ''.obs;
   final acceptedTerms = false.obs;
+  final showLoginForm = false.obs; // Hiển thị form đăng nhập hay màn hình giới thiệu
+
+  void showForm() {
+    showLoginForm.value = true;
+  }
+
+  void hideForm() {
+    showLoginForm.value = false;
+    errorMessage.value = '';
+  }
 
   void togglePasswordVisibility() {
     isPasswordVisible.value = !isPasswordVisible.value;

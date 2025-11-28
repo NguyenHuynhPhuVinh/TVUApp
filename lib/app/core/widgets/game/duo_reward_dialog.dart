@@ -48,6 +48,7 @@ class DuoRewardDialog extends StatelessWidget {
   static void show({
     required String tenMon,
     required Map<String, dynamic> rewards,
+    String? title,
   }) {
     Get.dialog(
       DuoRewardDialog(
@@ -57,6 +58,26 @@ class DuoRewardDialog extends StatelessWidget {
         earnedXp: rewards['earnedXp'] ?? 0,
         leveledUp: rewards['leveledUp'] == true,
         newLevel: rewards['newLevel'],
+        customTitle: title,
+      ),
+      barrierDismissible: true,
+    );
+  }
+
+  /// Show dialog cho nhận thưởng môn học CTDT
+  static void showSubjectReward({
+    required String tenMon,
+    required Map<String, dynamic> rewards,
+  }) {
+    Get.dialog(
+      DuoRewardDialog(
+        tenMon: tenMon,
+        earnedCoins: rewards['earnedCoins'] ?? 0,
+        earnedDiamonds: rewards['earnedDiamonds'] ?? 0,
+        earnedXp: rewards['earnedXp'] ?? 0,
+        leveledUp: rewards['leveledUp'] == true,
+        newLevel: rewards['newLevel'],
+        customTitle: 'Nhận thưởng thành công!',
       ),
       barrierDismissible: true,
     );
