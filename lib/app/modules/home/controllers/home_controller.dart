@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import '../../../core/game_rules/check_in_manager.dart';
 import '../../../core/utils/date_formatter.dart';
 import '../../../core/utils/number_formatter.dart';
+import '../../../core/utils/rank_helper.dart';
 import '../../../data/models/player_stats.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../data/services/game_service.dart';
@@ -200,7 +201,7 @@ class HomeController extends GetxController {
     final latestSemester = semesters.first as Map<String, dynamic>;
     final gpa10Str = latestSemester['dtb_tich_luy_he_10']?.toString() ?? '0';
     final gpa = double.tryParse(gpa10Str) ?? 0;
-    final rankIndex = ((gpa / 10) * 55).floor().clamp(0, 55);
+    final rankIndex = RankHelper.getRankIndexFromGpa(gpa);
 
     // Kiểm tra có rank nào chưa claim không
     hasUnclaimedRankReward.value = _gameService.countUnclaimedRanks(rankIndex) > 0;

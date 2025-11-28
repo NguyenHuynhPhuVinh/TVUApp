@@ -52,8 +52,7 @@ class GradesController extends GetxController {
   // === RANK CALCULATION ===
   int get rankIndex {
     final gpa = double.tryParse(gpa10) ?? 0;
-    final index = ((gpa / 10) * 55).floor().clamp(0, 55);
-    return index;
+    return RankHelper.getRankIndexFromGpa(gpa);
   }
 
   RankTier get currentTier => RankHelper.getTierFromIndex(rankIndex);

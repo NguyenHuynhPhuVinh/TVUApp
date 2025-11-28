@@ -1,6 +1,5 @@
 import 'package:get/get.dart';
 import '../../../core/game_rules/check_in_manager.dart';
-import '../../../core/utils/date_formatter.dart';
 import '../../../data/services/storage_service.dart';
 import '../../../data/services/game_service.dart';
 import '../../../data/services/auth_service.dart';
@@ -61,16 +60,14 @@ class ScheduleController extends GetxController {
       weeks.value = weekList.map((e) => Map<String, dynamic>.from(e)).toList();
 
       if (weeks.isNotEmpty) {
-        // Find current week
-        final now = DateTime.now();
+        // Find current week using CheckInManager
+        final currentWeek = _checkInManager.findCurrentWeek(weeks);
         int currentWeekIdx = 0;
-        for (int i = 0; i < weeks.length; i++) {
-          final startStr = weeks[i]['ngay_bat_dau'] as String?;
-          final endStr = weeks[i]['ngay_ket_thuc'] as String?;
-          if (DateFormatter.isDateInRange(now, startStr, endStr)) {
-            currentWeekIdx = i;
-            break;
-          }
+        if (currentWeek != null) {
+          currentWeekIdx = weeks.indexWhere(
+            (w) => w['tuan_hoc_ky'] == currentWeek['tuan_hoc_ky'],
+          );
+          if (currentWeekIdx < 0) currentWeekIdx = 0;
         }
         selectWeek(currentWeekIdx);
       }

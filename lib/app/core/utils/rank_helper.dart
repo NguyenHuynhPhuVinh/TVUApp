@@ -156,4 +156,16 @@ class RankHelper {
   static bool isMaxRank(int rankIndex) {
     return rankIndex >= totalRanks - 1;
   }
+
+  /// Tính rank index từ GPA (hệ 10)
+  /// Công thức: (gpa / 10) * (totalRanks - 1)
+  /// GPA 0 -> rank 0, GPA 10 -> rank 55
+  static int getRankIndexFromGpa(double gpa) {
+    return ((gpa / 10) * (totalRanks - 1)).floor().clamp(0, totalRanks - 1);
+  }
+
+  /// Tính GPA cần để đạt rank tiếp theo
+  static double getGpaForRank(int rankIndex) {
+    return (rankIndex / (totalRanks - 1)) * 10;
+  }
 }
