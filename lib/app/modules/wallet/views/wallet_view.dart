@@ -4,7 +4,6 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_styles.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../../data/models/wallet_transaction.dart';
-import '../../../routes/app_routes.dart';
 import '../controllers/wallet_controller.dart';
 
 class WalletView extends GetView<WalletController> {
@@ -24,31 +23,8 @@ class WalletView extends GetView<WalletController> {
           // Thẻ ví
           DuoWalletBalanceCard(
             virtualBalance: controller.virtualBalance,
-            diamonds: controller.diamonds,
-            coins: controller.coins,
             cardHolder: controller.fullName,
-          ),
-          SizedBox(height: AppStyles.space4),
-          
-          // Quick actions
-          Row(
-            children: [
-              Expanded(
-                child: DuoButton(
-                  text: 'Nạp Diamond',
-                  variant: DuoButtonVariant.primary,
-                  onPressed: () => Get.toNamed(Routes.diamondShop),
-                ),
-              ),
-              SizedBox(width: AppStyles.space3),
-              Expanded(
-                child: DuoButton(
-                  text: 'Mua Coin',
-                  variant: DuoButtonVariant.warning,
-                  onPressed: () => Get.toNamed(Routes.coinShop),
-                ),
-              ),
-            ],
+            cardNumber: controller.mssv,
           ),
           SizedBox(height: AppStyles.space4),
           

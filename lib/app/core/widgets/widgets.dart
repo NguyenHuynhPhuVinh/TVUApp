@@ -70,3 +70,4 @@ export 'game/duo_tuition_preview_card.dart';
 export 'game/duo_transaction_item.dart';
 export 'game/duo_shop_package_card.dart';
 export 'game/duo_shop_balance_header.dart';
+export 'game/duo_purchase_bottom_sheet.dart';

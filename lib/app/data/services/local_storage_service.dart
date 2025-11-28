@@ -122,7 +122,7 @@ class LocalStorageService extends GetxService {
   String? getStudentName() {
     final info = getStudentInfo();
     if (info != null && info['data'] != null) {
-      return info['data']['ho_ten'] as String?;
+      return info['data']['ten_day_du'] as String?;
     }
     return null;
   }

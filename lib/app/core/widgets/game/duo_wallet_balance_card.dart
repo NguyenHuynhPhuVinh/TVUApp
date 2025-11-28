@@ -7,16 +7,14 @@ import '../../utils/number_formatter.dart';
 /// Card hiển thị ví như thẻ ngân hàng thật
 class DuoWalletBalanceCard extends StatelessWidget {
   final int virtualBalance;
-  final int diamonds;
-  final int coins;
   final String? cardHolder;
+  final String? cardNumber; // MSSV
 
   const DuoWalletBalanceCard({
     super.key,
     required this.virtualBalance,
-    required this.diamonds,
-    required this.coins,
     this.cardHolder,
+    this.cardNumber,
   });
 
   @override
@@ -158,10 +156,10 @@ class DuoWalletBalanceCard extends StatelessWidget {
                 
                 SizedBox(height: AppStyles.space5),
                 
-                // Card holder
-                if (cardHolder != null) ...[
+                // Card number (MSSV)
+                if (cardNumber != null) ...[
                   Text(
-                    'CHỦ THẺ',
+                    'SỐ THẺ',
                     style: TextStyle(
                       fontSize: 10.sp,
                       color: AppColors.backgroundWhite.withValues(alpha: 0.5),
@@ -170,35 +168,68 @@ class DuoWalletBalanceCard extends StatelessWidget {
                   ),
                   SizedBox(height: 2.h),
                   Text(
-                    cardHolder!.toUpperCase(),
+                    _formatCardNumber(cardNumber!),
                     style: TextStyle(
-                      fontSize: AppStyles.textSm,
+                      fontSize: AppStyles.textLg,
                       fontWeight: AppStyles.fontSemibold,
                       color: AppColors.backgroundWhite,
-                      letterSpacing: 1.5,
+                      letterSpacing: 3,
+                      fontFamily: 'monospace',
                     ),
                   ),
                   SizedBox(height: AppStyles.space4),
                 ],
                 
-                // Mini balances
-                Row(
-                  children: [
-                    Expanded(child: _DuoMiniBalance(
-                      icon: 'assets/game/currency/diamond_blue_diamond_1st_64px.png',
-                      label: 'Diamond',
-                      value: diamonds,
-                      color: AppColors.primary,
-                    )),
-                    SizedBox(width: AppStyles.space3),
-                    Expanded(child: _DuoMiniBalance(
-                      icon: 'assets/game/currency/coin_golden_coin_1st_64px.png',
-                      label: 'Coin',
-                      value: coins,
-                      color: AppColors.yellow,
-                    )),
-                  ],
-                ),
+                // Card holder
+                if (cardHolder != null)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'CHỦ THẺ',
+                            style: TextStyle(
+                              fontSize: 10.sp,
+                              color: AppColors.backgroundWhite.withValues(alpha: 0.5),
+                              letterSpacing: 1,
+                            ),
+                          ),
+                          SizedBox(height: 2.h),
+                          Text(
+                            cardHolder!.toUpperCase(),
+                            style: TextStyle(
+                              fontSize: AppStyles.textSm,
+                              fontWeight: AppStyles.fontSemibold,
+                              color: AppColors.backgroundWhite,
+                              letterSpacing: 1.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                      // TVU Logo placeholder
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: AppStyles.space3,
+                          vertical: AppStyles.space1,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.backgroundWhite.withValues(alpha: 0.15),
+                          borderRadius: AppStyles.roundedLg,
+                        ),
+                        child: Text(
+                          'TVU',
+                          style: TextStyle(
+                            fontSize: AppStyles.textSm,
+                            fontWeight: AppStyles.fontBold,
+                            color: AppColors.backgroundWhite,
+                            letterSpacing: 2,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
               ],
             ),
           ),
@@ -208,63 +239,15 @@ class DuoWalletBalanceCard extends StatelessWidget {
   }
 }
 
-class _DuoMiniBalance extends StatelessWidget {
-  final String icon;
-  final String label;
-  final int value;
-  final Color color;
-
-  const _DuoMiniBalance({
-    required this.icon,
-    required this.label,
-    required this.value,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: AppStyles.space3,
-        vertical: AppStyles.space2,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.backgroundWhite.withValues(alpha: 0.1),
-        borderRadius: AppStyles.roundedLg,
-        border: Border.all(
-          color: AppColors.backgroundWhite.withValues(alpha: 0.1),
-        ),
-      ),
-      child: Row(
-        children: [
-          Image.asset(icon, width: 20.w, height: 20.w),
-          SizedBox(width: AppStyles.space2),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 10.sp,
-                    color: AppColors.backgroundWhite.withValues(alpha: 0.6),
-                  ),
-                ),
-                Text(
-                  NumberFormatter.compact(value),
-                  style: TextStyle(
-                    fontSize: AppStyles.textSm,
-                    fontWeight: AppStyles.fontBold,
-                    color: color,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
+/// Format số thẻ theo nhóm 3 số (phù hợp MSSV 9 số: 110 122 203)
+String _formatCardNumber(String number) {
+  final cleaned = number.replaceAll(RegExp(r'\D'), '');
+  final buffer = StringBuffer();
+  for (var i = 0; i < cleaned.length; i++) {
+    if (i > 0 && i % 3 == 0) buffer.write(' ');
+    buffer.write(cleaned[i]);
   }
+  return buffer.toString();
 }
 
 /// Painter cho chip thẻ

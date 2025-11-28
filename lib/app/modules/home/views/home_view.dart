@@ -76,8 +76,8 @@ class _QuickActionsSection extends StatelessWidget {
     {'icon': Iconsax.chart, 'label': 'Điểm học tập', 'route': '/grades', 'color': AppColors.green},
     {'icon': Iconsax.wallet, 'label': 'Học phí', 'route': '/tuition', 'color': AppColors.orange},
     {'icon': Iconsax.book_1, 'label': 'CTĐT', 'route': '/curriculum', 'color': AppColors.purple},
-    {'icon': Iconsax.document_text, 'label': 'Thông báo', 'route': '/news', 'color': AppColors.red},
-    {'icon': Iconsax.user, 'label': 'Hồ sơ', 'route': '/profile', 'color': AppColors.primary},
+    {'icon': Iconsax.shop, 'label': 'Cửa hàng', 'route': '/shop', 'color': AppColors.yellow},
+    {'icon': Iconsax.user, 'label': 'Hồ sơ', 'route': '/profile', 'color': AppColors.purple},
   ];
 
   @override

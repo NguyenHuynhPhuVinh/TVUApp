@@ -2,12 +2,8 @@ import 'package:get/get.dart';
 
 import '../modules/auth/bindings/auth_binding.dart';
 import '../modules/auth/views/login_view.dart';
-import '../modules/coin_shop/bindings/coin_shop_binding.dart';
-import '../modules/coin_shop/views/coin_shop_view.dart';
 import '../modules/curriculum/bindings/curriculum_binding.dart';
 import '../modules/curriculum/views/curriculum_view.dart';
-import '../modules/diamond_shop/bindings/diamond_shop_binding.dart';
-import '../modules/diamond_shop/views/diamond_shop_view.dart';
 import '../modules/game_setup/bindings/game_setup_binding.dart';
 import '../modules/game_setup/views/game_setup_view.dart';
 import '../modules/game_stats/bindings/game_stats_binding.dart';
@@ -34,6 +30,8 @@ import '../modules/tuition_bonus/bindings/tuition_bonus_binding.dart';
 import '../modules/tuition_bonus/views/tuition_bonus_view.dart';
 import '../modules/wallet/bindings/wallet_binding.dart';
 import '../modules/wallet/views/wallet_view.dart';
+import '../modules/shop/bindings/shop_binding.dart';
+import '../modules/shop/views/shop_view.dart';
 import 'app_routes.dart';
 
 class AppPages {
@@ -116,14 +114,9 @@ class AppPages {
       binding: WalletBinding(),
     ),
     GetPage(
-      name: Routes.diamondShop,
-      page: () => const DiamondShopView(),
-      binding: DiamondShopBinding(),
-    ),
-    GetPage(
-      name: Routes.coinShop,
-      page: () => const CoinShopView(),
-      binding: CoinShopBinding(),
+      name: Routes.shop,
+      page: () => const ShopView(),
+      binding: ShopBinding(),
     ),
   ];
 }

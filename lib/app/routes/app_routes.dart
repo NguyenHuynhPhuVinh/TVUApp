@@ -15,6 +15,5 @@ abstract class Routes {
   static const gameRewards = '/game-rewards';
   static const tuitionBonus = '/tuition-bonus';
   static const wallet = '/wallet';
-  static const diamondShop = '/diamond-shop';
-  static const coinShop = '/coin-shop';
+  static const shop = '/shop';
 }
