@@ -6,7 +6,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_styles.dart';
 import '../../../../core/components/base/duo_button.dart';
 import '../../../../core/components/base/duo_card.dart';
-import '../../../../features/gamification/widgets/duo_currency_row.dart';
+import '../../../../features/gamification/shared/widgets/duo_currency_row.dart';
 
 /// Card hiển thị học phí theo học kỳ
 class DuoTuitionCard extends StatelessWidget {

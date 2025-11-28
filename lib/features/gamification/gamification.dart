@@ -1,26 +1,20 @@
 // Gamification feature barrel file
-// Core services
+
+// Core services & logic
 export 'core/game_service.dart';
 export 'core/game_sync_service.dart';
 export 'core/game_security_guard.dart';
 export 'core/check_in_manager.dart';
 export 'core/reward_calculator.dart';
+export 'core/shop_config.dart';
+export 'core/rank_helper.dart';
 
-// Config
-export 'config/shop_config.dart';
+// Shared models
+export 'shared/models/player_stats.dart';
+export 'shared/models/wallet_transaction.dart';
 
-// Models
-export 'models/player_stats.dart';
-export 'models/wallet_transaction.dart';
+// Shared widgets
+export 'shared/widgets/game_widgets.dart';
 
-// Utils
-export 'utils/rank_helper.dart';
-
-// Shop
-export 'shop/shop_service.dart';
-
-// Wallet (transaction model đã chuyển sang models/)
-
-// Widgets
-export 'widgets/game_widgets.dart';
-
+// Modules - Shop
+export 'modules/shop/shop_service.dart';

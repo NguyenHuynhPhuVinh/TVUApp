@@ -8,7 +8,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_styles.dart';
 import '../../../../core/components/widgets.dart';
 import '../../../../features/academic/widgets/academic_widgets.dart';
-import '../../../../features/gamification/widgets/game_widgets.dart';
+import '../../../../features/gamification/shared/widgets/game_widgets.dart';
 import '../../../../features/academic/models/tuition_semester.dart';
 import '../controllers/tuition_controller.dart';
 

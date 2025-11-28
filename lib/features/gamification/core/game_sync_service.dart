@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../models/player_stats.dart';
+import '../shared/models/player_stats.dart';
 import '../../../infrastructure/security/security_service.dart';
 
 /// Service chuyên xử lý sync data game với Firebase

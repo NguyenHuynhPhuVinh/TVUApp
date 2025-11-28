@@ -3,7 +3,7 @@ import 'package:iconsax/iconsax.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_styles.dart';
 import '../base/duo_card.dart';
-import '../../../../features/gamification/widgets/duo_game_stats_bar.dart';
+import '../../../../features/gamification/shared/widgets/duo_game_stats_bar.dart';
 
 /// Card chào mừng với thông tin user và game stats
 class DuoWelcomeCard extends StatelessWidget {

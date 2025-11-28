@@ -5,8 +5,8 @@ import '../../../../core/constants/app_assets.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../features/auth/data/auth_service.dart';
 import '../../../../features/gamification/core/game_service.dart';
-import '../../../../features/gamification/utils/rank_helper.dart';
-import '../../../../features/gamification/widgets/game_widgets.dart';
+import '../../../../features/gamification/core/rank_helper.dart';
+import '../../../../features/gamification/shared/widgets/game_widgets.dart';
 import '../../../../infrastructure/storage/storage_service.dart';
 import '../../models/grade_model.dart';
 

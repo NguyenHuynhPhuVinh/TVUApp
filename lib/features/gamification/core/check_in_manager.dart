@@ -1,6 +1,6 @@
 import 'game_service.dart';
 import '../../../infrastructure/storage/storage_service.dart';
-import '../../../../core/utils/date_formatter.dart';
+import '../../../core/utils/date_formatter.dart';
 
 /// Trạng thái check-in của buổi học
 enum CheckInStatus {

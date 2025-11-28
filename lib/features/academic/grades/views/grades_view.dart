@@ -7,8 +7,8 @@ import '../../../../core/extensions/animation_extensions.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_styles.dart';
 import '../../../../core/components/widgets.dart';
-import '../../../../features/gamification/utils/rank_helper.dart';
-import '../../../../features/gamification/widgets/game_widgets.dart';
+import '../../../../features/gamification/core/rank_helper.dart';
+import '../../../../features/gamification/shared/widgets/game_widgets.dart';
 import '../controllers/grades_controller.dart';
 
 class GradesView extends GetView<GradesController> {

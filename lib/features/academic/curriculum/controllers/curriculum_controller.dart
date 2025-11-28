@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import '../../../../core/enums/reward_claim_status.dart';
 import '../../../../features/auth/data/auth_service.dart';
 import '../../../../features/gamification/core/game_service.dart';
-import '../../../../features/gamification/widgets/duo_reward_dialog.dart';
+import '../../../../features/gamification/shared/widgets/duo_reward_dialog.dart';
 import '../../../../infrastructure/storage/storage_service.dart';
 import '../../models/curriculum_model.dart';
 

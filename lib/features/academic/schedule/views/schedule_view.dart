@@ -7,7 +7,7 @@ import '../../../../core/extensions/animation_extensions.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_styles.dart';
 import '../../../../features/academic/widgets/academic_widgets.dart';
-import '../../../../features/gamification/widgets/game_widgets.dart';
+import '../../../../features/gamification/shared/widgets/game_widgets.dart';
 import '../../models/schedule_model.dart';
 import '../controllers/schedule_controller.dart';
 

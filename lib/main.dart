@@ -20,7 +20,7 @@ import 'features/auth/data/auth_service.dart';
 import 'features/gamification/core/game_service.dart';
 import 'features/gamification/core/game_security_guard.dart';
 import 'features/gamification/core/game_sync_service.dart';
-import 'features/gamification/shop/shop_service.dart';
+import 'features/gamification/modules/shop/shop_service.dart';
 
 // Features - App
 import 'routes/app_pages.dart';
