@@ -4,6 +4,7 @@ import 'package:iconsax/iconsax.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_styles.dart';
+import '../../../core/utils/rank_helper.dart';
 import '../../../core/widgets/widgets.dart';
 import '../controllers/grades_controller.dart';
 
@@ -12,119 +13,266 @@ class GradesView extends GetView<GradesController> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: const DuoAppBar(title: 'Điểm học tập', showLogo: false),
-      body: Column(
+    return DefaultTabController(
+      length: 3,
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(
+          backgroundColor: AppColors.primary,
+          elevation: 0,
+          centerTitle: true,
+          title: Text(
+            'Xếp hạng học tập',
+            style: TextStyle(
+              fontSize: AppStyles.textLg,
+              fontWeight: AppStyles.fontBold,
+              color: Colors.white,
+            ),
+          ),
+          bottom: TabBar(
+            onTap: controller.selectTab,
+            labelColor: Colors.white,
+            unselectedLabelColor: AppColors.withAlpha(Colors.white, 0.6),
+            indicatorColor: Colors.white,
+            indicatorWeight: 3,
+            labelStyle: TextStyle(
+              fontSize: AppStyles.textSm,
+              fontWeight: AppStyles.fontSemibold,
+            ),
+            tabs: const [
+              Tab(text: 'Rank'),
+              Tab(text: 'Học kỳ'),
+              Tab(text: 'Phân tích'),
+            ],
+          ),
+        ),
+        body: TabBarView(
+          children: [
+            _buildRankTab(),
+            _buildSemesterTab(),
+            _buildAnalysisTab(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // === TAB 1: RANK ===
+  Widget _buildRankTab() {
+    return SingleChildScrollView(
+      padding: EdgeInsets.all(AppStyles.space4),
+      child: Column(
         children: [
-          _buildGPASummary(),
-          _buildSemesterSelector(),
-          _buildSemesterInfo(),
-          Expanded(child: _buildGradesList()),
+          Obx(() => DuoRankCard(
+                tier: controller.currentTier,
+                level: controller.currentLevel,
+                rankIndex: controller.rankIndex,
+                rankAsset: controller.rankAsset,
+              )).animate().fadeIn(duration: 400.ms).slideY(begin: -0.1, end: 0),
+          SizedBox(height: AppStyles.space4),
+          Obx(() => DuoStatCard(
+                title: 'Điểm tích lũy',
+                stats: [
+                  DuoStatItem(label: 'GPA (Hệ 10)', value: controller.gpa10),
+                  DuoStatItem(label: 'GPA (Hệ 4)', value: controller.gpa4),
+                  DuoStatItem(label: 'Tín chỉ', value: controller.totalCredits),
+                ],
+              )).animate().fadeIn(delay: 100.ms),
+          SizedBox(height: AppStyles.space4),
+          Obx(() => DuoRankProgress(
+                currentRankName: controller.rankName,
+                nextRankName: RankHelper.isMaxRank(controller.rankIndex)
+                    ? ''
+                    : RankHelper.getRankNameFromIndex(controller.rankIndex + 1),
+                gpaForNextRank: controller.gpaForNextRank,
+                progress: controller.progressToNextRank,
+                rankColor: controller.rankColor,
+                isMaxRank: RankHelper.isMaxRank(controller.rankIndex),
+              )).animate().fadeIn(delay: 200.ms),
+          SizedBox(height: AppStyles.space6),
         ],
       ),
     );
   }
 
-  Widget _buildGPASummary() {
-    return Padding(
-      padding: EdgeInsets.all(AppStyles.space4),
-      child: Obx(() => DuoStatCard(
-            title: 'Tích lũy',
-            stats: [
-              DuoStatItem(label: 'GPA (Hệ 10)', value: controller.gpa10),
-              DuoStatItem(label: 'GPA (Hệ 4)', value: controller.gpa4),
-              DuoStatItem(label: 'Tín chỉ', value: controller.totalCredits),
-            ],
-          )).animate().fadeIn(duration: 400.ms).slideY(begin: -0.1, end: 0),
+  // === TAB 2: SEMESTER ===
+  Widget _buildSemesterTab() {
+    return Column(
+      children: [
+        // Semester selector
+        Obx(() {
+          if (controller.gradesBySemester.isEmpty) return const SizedBox.shrink();
+          return Padding(
+            padding: EdgeInsets.only(top: AppStyles.space3, bottom: AppStyles.space2),
+            child: DuoChipSelector<int>(
+              selectedValue: controller.selectedSemesterIndex.value,
+              activeColor: AppColors.primary,
+              height: 40,
+              items: controller.gradesBySemester.asMap().entries.map((entry) {
+                final index = entry.key;
+                final semester = entry.value;
+                final tenHK = semester['ten_hoc_ky'] as String? ?? '';
+                final shortName = tenHK.replaceAll('Học kỳ ', 'HK').replaceAll(' - Năm học ', ' ');
+                final hasGrades = (semester['ds_diem_mon_hoc'] as List?)?.any((g) {
+                      final score = g['diem_tk']?.toString() ?? '';
+                      return score.isNotEmpty;
+                    }) ??
+                    false;
+                return DuoChipItem<int>(
+                  value: index,
+                  label: shortName,
+                  hasContent: hasGrades,
+                );
+              }).toList(),
+              onSelected: controller.selectSemester,
+            ),
+          );
+        }),
+        // Semester info
+        Obx(() {
+          final gpa10 = controller.semesterGpa10;
+          final gpa4 = controller.semesterGpa4;
+          final credits = controller.semesterCredits;
+          final classification = controller.semesterClassification;
+
+          if (gpa10.isEmpty && credits.isEmpty) {
+            return Padding(
+              padding: EdgeInsets.symmetric(horizontal: AppStyles.space4),
+              child: DuoMiniStatRow(
+                stats: const [
+                  DuoStatItem(label: 'Trạng thái', value: 'Đang học'),
+                ],
+              ),
+            );
+          }
+
+          final stats = <DuoStatItem>[
+            DuoStatItem(label: 'ĐTB (10)', value: gpa10),
+            DuoStatItem(label: 'ĐTB (4)', value: gpa4),
+            DuoStatItem(label: 'TC đạt', value: credits),
+          ];
+          if (classification.isNotEmpty) {
+            stats.add(DuoStatItem(label: 'Xếp loại', value: classification));
+          }
+
+          return Padding(
+            padding: EdgeInsets.symmetric(horizontal: AppStyles.space4),
+            child: DuoMiniStatRow(stats: stats),
+          );
+        }),
+        SizedBox(height: AppStyles.space3),
+        // Grades list
+        Expanded(
+          child: Obx(() {
+            final grades = controller.currentSemesterGrades;
+            if (grades.isEmpty) {
+              return DuoEmptyState(
+                icon: Iconsax.document,
+                title: 'Chưa có điểm',
+                subtitle: 'Điểm sẽ được cập nhật khi có kết quả',
+              );
+            }
+
+            return ListView.builder(
+              padding: EdgeInsets.symmetric(horizontal: AppStyles.space4),
+              itemCount: grades.length,
+              itemBuilder: (context, index) {
+                final grade = grades[index];
+                final score = controller.getScore(grade);
+                return Padding(
+                  padding: EdgeInsets.only(bottom: AppStyles.space3),
+                  child: DuoGradeCard(
+                    subject: grade['ten_mon'] ?? 'N/A',
+                    credits: grade['so_tin_chi']?.toString() ?? '0',
+                    group: grade['nhom_to']?.toString(),
+                    score: score,
+                    letterGrade: grade['diem_tk_chu']?.toString(),
+                    score4: grade['diem_tk_so']?.toString(),
+                    note: score.isEmpty ? 'Chưa có điểm' : null,
+                  ),
+                ).animate().fadeIn(duration: 200.ms, delay: (index * 30).ms);
+              },
+            );
+          }),
+        ),
+      ],
     );
   }
 
-  Widget _buildSemesterSelector() {
-    return Obx(() {
-      if (controller.gradesBySemester.isEmpty) return const SizedBox.shrink();
-
-      return Padding(
-        padding: EdgeInsets.only(bottom: AppStyles.space2),
-        child: DuoChipSelector<int>(
-          selectedValue: controller.selectedSemesterIndex.value,
-          activeColor: AppColors.primary,
-          height: 44,
-          items: controller.gradesBySemester.asMap().entries.map((entry) {
-            final index = entry.key;
-            final semester = entry.value;
-            final tenHK = semester['ten_hoc_ky'] as String? ?? '';
-            final shortName = tenHK.replaceAll('Học kỳ ', 'HK').replaceAll(' - Năm học ', ' ');
-            return DuoChipItem<int>(
-              value: index,
-              label: shortName,
-              hasContent: true,
+  // === TAB 3: ANALYSIS ===
+  Widget _buildAnalysisTab() {
+    return SingleChildScrollView(
+      padding: EdgeInsets.all(AppStyles.space4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Obx(() => DuoGradeOverview(
+                totalSubjects: controller.totalSubjects,
+                passedSubjects: controller.passedSubjects,
+                excellentSubjects: controller.excellentSubjects,
+              )).animate().fadeIn(duration: 300.ms),
+          SizedBox(height: AppStyles.space4),
+          Obx(() {
+            final dist = controller.gradesByClassification;
+            return DuoGradeDistribution(
+              distribution: {
+                'Xuất sắc': dist['Xuất sắc']!.length,
+                'Giỏi': dist['Giỏi']!.length,
+                'Khá': dist['Khá']!.length,
+                'Trung bình': dist['Trung bình']!.length,
+                'Yếu': dist['Yếu']!.length,
+              },
+              totalSubjects: controller.totalSubjects,
+              getColor: controller.getClassificationColor,
             );
-          }).toList(),
-          onSelected: controller.selectSemester,
-        ),
-      );
-    });
-  }
+          }).animate().fadeIn(delay: 100.ms),
+          SizedBox(height: AppStyles.space4),
+          Obx(() {
+            final highest = controller.highestGrade;
+            final lowest = controller.lowestGrade;
+            if (highest == null) {
+              return DuoEmptyState(
+                icon: Iconsax.chart_fail,
+                title: 'Chưa có dữ liệu',
+                subtitle: 'Điểm sẽ hiển thị khi có kết quả',
+              );
+            }
 
-  Widget _buildSemesterInfo() {
-    return Obx(() {
-      final semGpa10 = controller.semesterGpa10;
-      final semGpa4 = controller.semesterGpa4;
-      final semCredits = controller.semesterCredits;
-      final classification = controller.classification;
-
-      if (semGpa10.isEmpty && semCredits.isEmpty) return const SizedBox.shrink();
-
-      final stats = <DuoStatItem>[
-        DuoStatItem(label: 'ĐTB HK (10)', value: semGpa10),
-        DuoStatItem(label: 'ĐTB HK (4)', value: semGpa4),
-        DuoStatItem(label: 'TC đạt', value: semCredits),
-      ];
-
-      if (classification.isNotEmpty) {
-        stats.add(DuoStatItem(label: 'Xếp loại', value: classification));
-      }
-
-      return Padding(
-        padding: EdgeInsets.symmetric(horizontal: AppStyles.space4),
-        child: DuoMiniStatRow(stats: stats),
-      ).animate().fadeIn(duration: 300.ms);
-    });
-  }
-
-  Widget _buildGradesList() {
-    return Obx(() {
-      final grades = controller.currentSemesterGrades;
-      if (grades.isEmpty) {
-        return DuoEmptyState(
-          icon: Iconsax.document,
-          title: 'Chưa có điểm',
-          subtitle: 'Điểm sẽ được cập nhật khi có kết quả',
-          iconColor: AppColors.textTertiary,
-          iconBackgroundColor: AppColors.backgroundDark,
-        ).animate().fadeIn(duration: 300.ms);
-      }
-
-      return ListView.builder(
-        padding: EdgeInsets.all(AppStyles.space4),
-        itemCount: grades.length,
-        itemBuilder: (context, index) {
-          final grade = grades[index];
-          return Padding(
-            padding: EdgeInsets.only(bottom: AppStyles.space3),
-            child: DuoGradeCard(
-              subject: grade['ten_mon'] ?? 'N/A',
-              credits: grade['so_tin_chi']?.toString() ?? '0',
-              group: grade['nhom_to']?.toString(),
-              score: grade['diem_tk']?.toString(),
-              letterGrade: grade['diem_tk_chu']?.toString(),
-              score4: grade['diem_tk_so']?.toString(),
-              note: grade['ly_do_khong_tinh_diem_tbtl']?.toString(),
-            ),
-          ).animate().fadeIn(duration: 300.ms, delay: (index * 50).ms).slideX(begin: 0.05, end: 0);
-        },
-      );
-    });
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Điểm nổi bật',
+                  style: TextStyle(
+                    fontSize: AppStyles.textLg,
+                    fontWeight: AppStyles.fontBold,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                SizedBox(height: AppStyles.space3),
+                DuoGradeHighlight(
+                  title: 'Điểm cao nhất',
+                  subject: highest['ten_mon'] ?? '',
+                  score: controller.getScore(highest),
+                  color: AppColors.green,
+                  isHighest: true,
+                ),
+                if (lowest != null) ...[
+                  SizedBox(height: AppStyles.space3),
+                  DuoGradeHighlight(
+                    title: 'Điểm thấp nhất',
+                    subject: lowest['ten_mon'] ?? '',
+                    score: controller.getScore(lowest),
+                    color: AppColors.orange,
+                    isHighest: false,
+                  ),
+                ],
+              ],
+            );
+          }).animate().fadeIn(delay: 200.ms),
+          SizedBox(height: AppStyles.space6),
+        ],
+      ),
+    );
   }
 }
