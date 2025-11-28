@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import '../../../core/constants/app_assets.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_styles.dart';
 import '../../../core/widgets/widgets.dart';
@@ -76,13 +75,9 @@ class GameRewardsView extends GetView<GameRewardsController> {
 
                   // Coins Card
                   Obx(() => controller.showCoins.value
-                      ? DuoRewardRow(
-                          iconPath: AppAssets.coin,
-                          fallbackIcon: Icons.monetization_on_rounded,
-                          label: 'Coins',
+                      ? DuoRewardTile.coin(
                           value: controller.animatedCoins.value,
-                          color: AppColors.yellow,
-                          bgColor: AppColors.yellowSoft,
+                          size: DuoRewardTileSize.md,
                         )
                           .animate()
                           .fadeIn(duration: 400.ms)
@@ -93,13 +88,9 @@ class GameRewardsView extends GetView<GameRewardsController> {
 
                   // Diamonds Card
                   Obx(() => controller.showDiamonds.value
-                      ? DuoRewardRow(
-                          iconPath: AppAssets.diamond,
-                          fallbackIcon: Icons.diamond_rounded,
-                          label: 'Diamonds',
+                      ? DuoRewardTile.diamond(
                           value: controller.animatedDiamonds.value,
-                          color: AppColors.primary,
-                          bgColor: AppColors.primarySoft,
+                          size: DuoRewardTileSize.md,
                         )
                           .animate()
                           .fadeIn(duration: 400.ms)

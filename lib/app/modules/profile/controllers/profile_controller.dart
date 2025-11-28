@@ -3,12 +3,12 @@ import 'package:get/get.dart';
 import '../../../data/models/player_stats.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../data/services/game_service.dart';
-import '../../../data/services/local_storage_service.dart';
+import '../../../data/services/storage_service.dart';
 import '../../../routes/app_routes.dart';
 
 class ProfileController extends GetxController {
   final AuthService _authService = Get.find<AuthService>();
-  final LocalStorageService _localStorage = Get.find<LocalStorageService>();
+  final StorageService _storage = Get.find<StorageService>();
   final GameService _gameService = Get.find<GameService>();
 
   final studentInfo = <String, dynamic>{}.obs;
@@ -32,7 +32,7 @@ class ProfileController extends GetxController {
   }
 
   void loadProfile() {
-    final studentInfoData = _localStorage.getStudentInfo();
+    final studentInfoData = _storage.getStudentInfo();
     if (studentInfoData != null && studentInfoData['data'] != null) {
       studentInfo.value = Map<String, dynamic>.from(studentInfoData['data']);
     }

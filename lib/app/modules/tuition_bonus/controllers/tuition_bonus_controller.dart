@@ -2,13 +2,13 @@ import 'package:get/get.dart';
 import '../../../core/utils/number_formatter.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../data/services/game_service.dart';
-import '../../../data/services/local_storage_service.dart';
+import '../../../data/services/storage_service.dart';
 import '../../../routes/app_routes.dart';
 
 class TuitionBonusController extends GetxController {
   final GameService _gameService = Get.find<GameService>();
   final AuthService _authService = Get.find<AuthService>();
-  final LocalStorageService _localStorage = Get.find<LocalStorageService>();
+  final StorageService _storage = Get.find<StorageService>();
 
   final tuitionPaid = 0.obs;
   final virtualBalance = 0.obs;
@@ -18,7 +18,7 @@ class TuitionBonusController extends GetxController {
   final isClaimed = false.obs;
 
   String get mssv => _authService.username.value;
-  String get fullName => _localStorage.getStudentName() ?? mssv;
+  String get fullName => _storage.getStudentName() ?? mssv;
 
   @override
   void onInit() {
@@ -27,7 +27,7 @@ class TuitionBonusController extends GetxController {
   }
 
   void _loadTuitionData() {
-    final tuitionData = _localStorage.getTuition();
+    final tuitionData = _storage.getTuition();
     if (tuitionData != null && tuitionData['data'] != null) {
       final list = tuitionData['data']['ds_hoc_phi_hoc_ky'] as List? ?? [];
       

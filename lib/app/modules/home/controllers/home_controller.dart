@@ -4,10 +4,10 @@ import '../../../core/utils/number_formatter.dart';
 import '../../../data/models/player_stats.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../data/services/game_service.dart';
-import '../../../data/services/local_storage_service.dart';
+import '../../../data/services/storage_service.dart';
 
 class HomeController extends GetxController {
-  final LocalStorageService _localStorage = Get.find<LocalStorageService>();
+  final StorageService _storage = Get.find<StorageService>();
   final AuthService _authService = Get.find<AuthService>();
   final GameService _gameService = Get.find<GameService>();
 
@@ -57,7 +57,7 @@ class HomeController extends GetxController {
     studentId.value = _authService.username.value;
     
     // Lấy thông tin sinh viên từ local
-    final studentInfoData = _localStorage.getStudentInfo();
+    final studentInfoData = _storage.getStudentInfo();
     if (studentInfoData != null && studentInfoData['data'] != null) {
       final student = studentInfoData['data'];
       studentName.value = student['ten_day_du'] ?? '';
@@ -66,13 +66,13 @@ class HomeController extends GetxController {
   }
 
   void loadTodaySchedule() {
-    final semestersData = _localStorage.getSemesters();
+    final semestersData = _storage.getSemesters();
     if (semestersData == null || semestersData['data'] == null) return;
 
     final currentSemester = semestersData['data']['hoc_ky_theo_ngay_hien_tai'] as int? ?? 0;
     if (currentSemester == 0) return;
 
-    final scheduleData = _localStorage.getSchedule(currentSemester);
+    final scheduleData = _storage.getSchedule(currentSemester);
     if (scheduleData != null) {
       final weeks = scheduleData['ds_tuan_tkb'] as List? ?? [];
       final now = DateTime.now();
@@ -121,7 +121,7 @@ class HomeController extends GetxController {
       if (now.isAfter(checkInStart) && now.isBefore(checkInDeadline)) {
         // Kiểm tra đã điểm danh chưa
         final checkInKey = _createCheckInKey(lesson, now);
-        if (!_localStorage.hasCheckedIn(checkInKey)) {
+        if (!_storage.hasCheckedIn(checkInKey)) {
           hasPendingCheckIn.value = true;
           return;
         }
@@ -132,11 +132,11 @@ class HomeController extends GetxController {
 
   /// Tạo key check-in cho buổi học
   String _createCheckInKey(Map<String, dynamic> lesson, DateTime date) {
-    final semestersData = _localStorage.getSemesters();
+    final semestersData = _storage.getSemesters();
     final currentSemester = semestersData?['data']?['hoc_ky_theo_ngay_hien_tai'] as int? ?? 0;
     
     // Tìm tuần hiện tại
-    final scheduleData = _localStorage.getSchedule(currentSemester);
+    final scheduleData = _storage.getSchedule(currentSemester);
     int week = 0;
     if (scheduleData != null) {
       final weeks = scheduleData['ds_tuan_tkb'] as List? ?? [];
@@ -158,7 +158,7 @@ class HomeController extends GetxController {
 
   /// Kiểm tra có học phí nào chưa claim bonus không
   void checkUnclaimedTuitionBonus() {
-    final tuitionData = _localStorage.getTuition();
+    final tuitionData = _storage.getTuition();
     if (tuitionData == null || tuitionData['data'] == null) {
       hasUnclaimedTuitionBonus.value = false;
       return;
@@ -184,7 +184,7 @@ class HomeController extends GetxController {
 
   /// Kiểm tra có môn học nào đạt chưa nhận thưởng không
   void checkUnclaimedCurriculumReward() {
-    final curriculumData = _localStorage.getCurriculum();
+    final curriculumData = _storage.getCurriculum();
     if (curriculumData == null || curriculumData['data'] == null) {
       hasUnclaimedCurriculumReward.value = false;
       return;
@@ -212,7 +212,7 @@ class HomeController extends GetxController {
 
   /// Kiểm tra có rank nào chưa nhận thưởng không
   void checkUnclaimedRankReward() {
-    final gradesData = _localStorage.getGrades();
+    final gradesData = _storage.getGrades();
     if (gradesData == null || gradesData['data'] == null) {
       hasUnclaimedRankReward.value = false;
       return;

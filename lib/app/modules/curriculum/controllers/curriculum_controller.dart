@@ -2,10 +2,10 @@ import 'package:get/get.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../data/services/game_service.dart';
-import '../../../data/services/local_storage_service.dart';
+import '../../../data/services/storage_service.dart';
 
 class CurriculumController extends GetxController {
-  final LocalStorageService _localStorage = Get.find<LocalStorageService>();
+  final StorageService _storage = Get.find<StorageService>();
   final GameService _gameService = Get.find<GameService>();
   final AuthService _authService = Get.find<AuthService>();
 
@@ -66,7 +66,7 @@ class CurriculumController extends GetxController {
   }
 
   void loadCurriculum() {
-    final curriculumData = _localStorage.getCurriculum();
+    final curriculumData = _storage.getCurriculum();
     if (curriculumData != null && curriculumData['data'] != null) {
       final data = curriculumData['data'];
 

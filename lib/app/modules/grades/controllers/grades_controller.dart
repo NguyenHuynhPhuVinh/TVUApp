@@ -6,10 +6,10 @@ import '../../../core/utils/rank_helper.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../data/services/game_service.dart';
-import '../../../data/services/local_storage_service.dart';
+import '../../../data/services/storage_service.dart';
 
 class GradesController extends GetxController {
-  final LocalStorageService _localStorage = Get.find<LocalStorageService>();
+  final StorageService _storage = Get.find<StorageService>();
   final GameService _gameService = Get.find<GameService>();
   final AuthService _authService = Get.find<AuthService>();
 
@@ -166,7 +166,7 @@ class GradesController extends GetxController {
   }
 
   void loadGrades() {
-    final gradesData = _localStorage.getGrades();
+    final gradesData = _storage.getGrades();
 
     if (gradesData != null && gradesData['data'] != null) {
       final data = gradesData['data'];

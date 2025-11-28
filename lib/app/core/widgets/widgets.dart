@@ -4,7 +4,7 @@ library;
 
 // Base widgets
 export 'base/duo_button.dart';
-export 'base/duo_card.dart';
+export 'base/duo_card.dart'; // Includes DuoPressableCard (deprecated alias)
 export 'base/duo_avatar.dart';
 
 // Feedback widgets
@@ -55,8 +55,7 @@ export 'game/duo_currency_card.dart';
 export 'game/duo_level_badge.dart';
 export 'game/duo_level_card.dart';
 export 'game/duo_level_progress_card.dart';
-export 'game/duo_reward_card.dart';
-export 'game/duo_reward_row.dart';
+export 'game/duo_reward_tile.dart';
 export 'game/duo_xp_progress.dart';
 export 'game/duo_game_stats_bar.dart';
 export 'game/duo_attendance_card.dart';

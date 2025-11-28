@@ -1,10 +1,10 @@
 import 'package:get/get.dart';
 import '../../../core/utils/number_formatter.dart';
-import '../../../data/services/local_storage_service.dart';
+import '../../../data/services/storage_service.dart';
 import '../../../routes/app_routes.dart';
 
 class GameRewardsController extends GetxController {
-  final LocalStorageService _localStorage = Get.find<LocalStorageService>();
+  final StorageService _storage = Get.find<StorageService>();
 
   // Data từ tính toán
   late final int earnedCoins;
@@ -52,7 +52,7 @@ class GameRewardsController extends GetxController {
 
   /// Kiểm tra có học phí đã đóng không
   void _checkTuitionBonus() {
-    final tuitionData = _localStorage.getTuition();
+    final tuitionData = _storage.getTuition();
     if (tuitionData != null && tuitionData['data'] != null) {
       final list = tuitionData['data']['ds_hoc_phi_hoc_ky'] as List? ?? [];
       

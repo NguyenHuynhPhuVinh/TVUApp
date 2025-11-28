@@ -3,10 +3,10 @@ import '../../../core/utils/number_formatter.dart';
 import '../../../data/models/tuition_semester.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../data/services/game_service.dart';
-import '../../../data/services/local_storage_service.dart';
+import '../../../data/services/storage_service.dart';
 
 class TuitionController extends GetxController {
-  final LocalStorageService _localStorage = Get.find<LocalStorageService>();
+  final StorageService _storage = Get.find<StorageService>();
   final GameService _gameService = Get.find<GameService>();
   final AuthService _authService = Get.find<AuthService>();
 
@@ -25,7 +25,7 @@ class TuitionController extends GetxController {
   }
 
   void loadTuition() {
-    final tuitionData = _localStorage.getTuition();
+    final tuitionData = _storage.getTuition();
     if (tuitionData != null && tuitionData['data'] != null) {
       final data = tuitionData['data'];
       final list = data['ds_hoc_phi_hoc_ky'] as List? ?? [];

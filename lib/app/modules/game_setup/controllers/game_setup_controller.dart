@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../data/services/game_service.dart';
-import '../../../data/services/local_storage_service.dart';
+import '../../../data/services/storage_service.dart';
 import '../../../routes/app_routes.dart';
 
 class GameSetupController extends GetxController {
   final GameService _gameService = Get.find<GameService>();
   final AuthService _authService = Get.find<AuthService>();
-  final LocalStorageService _localStorage = Get.find<LocalStorageService>();
+  final StorageService _storage = Get.find<StorageService>();
 
   final missedSessionsController = TextEditingController();
   final isCalculating = false.obs;
@@ -42,7 +42,7 @@ class GameSetupController extends GetxController {
     totalLessons.value = _gameService.calculateTotalLessons();
     
     // Đếm số học kỳ
-    final semestersData = _localStorage.getSemesters();
+    final semestersData = _storage.getSemesters();
     if (semestersData != null && semestersData['data'] != null) {
       final semesterList = semestersData['data']['ds_hoc_ky'] as List? ?? [];
       totalSemesters.value = semesterList.length;

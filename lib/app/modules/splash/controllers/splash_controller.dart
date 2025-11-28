@@ -7,7 +7,7 @@ import '../../../data/services/api_service.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../data/services/firebase_service.dart';
 import '../../../data/services/game_service.dart';
-import '../../../data/services/local_storage_service.dart';
+import '../../../data/services/storage_service.dart';
 import '../../../data/services/update_service.dart';
 import '../../../data/services/security_service.dart';
 import '../../../routes/app_routes.dart';
@@ -17,7 +17,7 @@ class SplashController extends GetxController {
   final ApiService _apiService = Get.find<ApiService>();
   final FirebaseService _firebaseService = Get.find<FirebaseService>();
   final GameService _gameService = Get.find<GameService>();
-  final LocalStorageService _localStorage = Get.find<LocalStorageService>();
+  final StorageService _storage = Get.find<StorageService>();
   final UpdateService _updateService = Get.find<UpdateService>();
   final SecurityService _securityService = Get.find<SecurityService>();
 
@@ -107,8 +107,8 @@ class SplashController extends GetxController {
       }
 
       // Check xem đây có phải lần đầu (chưa có data local) hay không
-      final hasLocalData = _localStorage.getGrades() != null || 
-                           _localStorage.getSemesters() != null;
+      final hasLocalData = _storage.getGrades() != null || 
+                           _storage.getSemesters() != null;
       
       // Nếu vừa login xong (từ argument) hoặc chưa có data local -> sync hết
       final justLoggedIn = Get.arguments?['justLoggedIn'] == true;
@@ -126,7 +126,7 @@ class SplashController extends GetxController {
         // Sync check-ins từ Firebase về local (ngăn hack bằng xóa app data)
         final firebaseCheckIns = await _gameService.getCheckInsFromFirebase(mssv);
         if (firebaseCheckIns.isNotEmpty) {
-          await _localStorage.mergeCheckInsFromFirebase(firebaseCheckIns);
+          await _storage.mergeCheckInsFromFirebase(firebaseCheckIns);
         }
         
         if (!_gameService.isInitialized) {
@@ -159,7 +159,7 @@ class SplashController extends GetxController {
       syncProgress.value = 0.1;
       final studentInfoResponse = await _apiService.getStudentInfo();
       if (studentInfoResponse != null && studentInfoResponse['data'] != null) {
-        await _localStorage.saveStudentInfo({'data': studentInfoResponse['data']});
+        await _storage.saveStudentInfo({'data': studentInfoResponse['data']});
       }
 
       // 2. Danh sách học kỳ + TKB tất cả học kỳ
@@ -174,7 +174,7 @@ class SplashController extends GetxController {
       final gradesResponse = await _apiService.getGrades();
       if (gradesResponse != null && gradesResponse['data'] != null) {
         gradesData = {'data': gradesResponse['data']};
-        await _localStorage.saveGrades(gradesData);
+        await _storage.saveGrades(gradesData);
       }
 
       // 4. CTDT
@@ -184,7 +184,7 @@ class SplashController extends GetxController {
       final curriculumResponse = await _apiService.getCurriculum();
       if (curriculumResponse != null && curriculumResponse['data'] != null) {
         curriculumData = {'data': curriculumResponse['data']};
-        await _localStorage.saveCurriculum(curriculumData);
+        await _storage.saveCurriculum(curriculumData);
       }
 
       // 5. Học phí
@@ -194,7 +194,7 @@ class SplashController extends GetxController {
       final tuitionResponse = await _apiService.getTuition();
       if (tuitionResponse != null && tuitionResponse['data'] != null) {
         tuitionData = {'data': tuitionResponse['data']};
-        await _localStorage.saveTuition(tuitionData);
+        await _storage.saveTuition(tuitionData);
       }
 
       // 6. Thông báo
@@ -202,7 +202,7 @@ class SplashController extends GetxController {
       syncProgress.value = 0.75;
       final notificationsResponse = await _apiService.getNotifications();
       if (notificationsResponse != null && notificationsResponse['data'] != null) {
-        await _localStorage.saveNotifications({'data': notificationsResponse['data']});
+        await _storage.saveNotifications({'data': notificationsResponse['data']});
       }
 
       // 7. Sync Firebase
@@ -218,7 +218,7 @@ class SplashController extends GetxController {
       // 7.1 Sync check-ins từ Firebase về local (ngăn hack bằng xóa app data)
       final firebaseCheckIns = await _gameService.getCheckInsFromFirebase(mssv);
       if (firebaseCheckIns.isNotEmpty) {
-        await _localStorage.mergeCheckInsFromFirebase(firebaseCheckIns);
+        await _storage.mergeCheckInsFromFirebase(firebaseCheckIns);
       }
 
       // Sync tất cả TKB lên Firebase
@@ -231,7 +231,7 @@ class SplashController extends GetxController {
         }
       }
 
-      final semestersData = _localStorage.getSemesters();
+      final semestersData = _storage.getSemesters();
       if (semestersData != null) {
         await _firebaseService.saveSemesters(mssv, semestersData);
       }
@@ -276,7 +276,7 @@ class SplashController extends GetxController {
       }
 
       final data = semestersResponse['data'];
-      await _localStorage.saveSemesters({'data': data});
+      await _storage.saveSemesters({'data': data});
 
       final semesterList = data['ds_hoc_ky'] as List? ?? [];
       final Map<String, dynamic> allSchedules = {};
@@ -291,7 +291,7 @@ class SplashController extends GetxController {
 
         final scheduleResponse = await _apiService.getSchedule(hocKy);
         if (scheduleResponse != null && scheduleResponse['data'] != null) {
-          await _localStorage.saveSchedule(hocKy, scheduleResponse['data']);
+          await _storage.saveSchedule(hocKy, scheduleResponse['data']);
           allSchedules[hocKy.toString()] = scheduleResponse['data'];
         }
       }
@@ -316,14 +316,14 @@ class SplashController extends GetxController {
       final currentSemester = data['hoc_ky_theo_ngay_hien_tai'] as int? ?? 0;
 
       // Lưu old schedule trước khi ghi đè
-      final oldSchedule = _localStorage.getSchedule(currentSemester);
+      final oldSchedule = _storage.getSchedule(currentSemester);
       
-      await _localStorage.saveSemesters({'data': data});
+      await _storage.saveSemesters({'data': data});
 
       if (currentSemester > 0) {
         final scheduleResponse = await _apiService.getSchedule(currentSemester);
         if (scheduleResponse != null && scheduleResponse['data'] != null) {
-          await _localStorage.saveSchedule(
+          await _storage.saveSchedule(
               currentSemester, scheduleResponse['data']);
           
           // Return để dùng cho sync Firebase sau
@@ -347,52 +347,52 @@ class SplashController extends GetxController {
       // 1. Thông tin sinh viên (chỉ lưu local)
       final studentInfoResponse = await _apiService.getStudentInfo();
       if (studentInfoResponse != null && studentInfoResponse['data'] != null) {
-        await _localStorage.saveStudentInfo({'data': studentInfoResponse['data']});
+        await _storage.saveStudentInfo({'data': studentInfoResponse['data']});
       }
 
       // 2. Điểm - check thay đổi trước khi đẩy Firebase
       Map<String, dynamic>? gradesData;
       bool gradesChanged = false;
-      final oldGrades = _localStorage.getGrades();
+      final oldGrades = _storage.getGrades();
       final gradesResponse = await _apiService.getGrades();
       if (gradesResponse != null && gradesResponse['data'] != null) {
         gradesData = {'data': gradesResponse['data']};
         gradesChanged = _isDataChanged(gradesData, oldGrades);
         if (gradesChanged) {
-          await _localStorage.saveGrades(gradesData);
+          await _storage.saveGrades(gradesData);
         }
       }
 
       // 3. CTDT - check thay đổi
       Map<String, dynamic>? curriculumData;
       bool curriculumChanged = false;
-      final oldCurriculum = _localStorage.getCurriculum();
+      final oldCurriculum = _storage.getCurriculum();
       final curriculumResponse = await _apiService.getCurriculum();
       if (curriculumResponse != null && curriculumResponse['data'] != null) {
         curriculumData = {'data': curriculumResponse['data']};
         curriculumChanged = _isDataChanged(curriculumData, oldCurriculum);
         if (curriculumChanged) {
-          await _localStorage.saveCurriculum(curriculumData);
+          await _storage.saveCurriculum(curriculumData);
         }
       }
 
       // 4. Học phí - check thay đổi
       Map<String, dynamic>? tuitionData;
       bool tuitionChanged = false;
-      final oldTuition = _localStorage.getTuition();
+      final oldTuition = _storage.getTuition();
       final tuitionResponse = await _apiService.getTuition();
       if (tuitionResponse != null && tuitionResponse['data'] != null) {
         tuitionData = {'data': tuitionResponse['data']};
         tuitionChanged = _isDataChanged(tuitionData, oldTuition);
         if (tuitionChanged) {
-          await _localStorage.saveTuition(tuitionData);
+          await _storage.saveTuition(tuitionData);
         }
       }
 
       // 5. Thông báo (chỉ lưu local)
       final notificationsResponse = await _apiService.getNotifications();
       if (notificationsResponse != null && notificationsResponse['data'] != null) {
-        await _localStorage.saveNotifications({'data': notificationsResponse['data']});
+        await _storage.saveNotifications({'data': notificationsResponse['data']});
       }
 
       // 6. Chỉ đẩy Firebase nếu có thay đổi
@@ -415,13 +415,13 @@ class SplashController extends GetxController {
   /// Sync TKB các học kỳ còn lại (chạy nền)
   Future<void> _syncRemainingSchedules(String mssv, Map<String, dynamic>? currentScheduleData) async {
     try {
-      final semestersData = _localStorage.getSemesters();
+      final semestersData = _storage.getSemesters();
       if (semestersData == null) return;
 
       final data = semestersData['data'];
       final semesterList = data['ds_hoc_ky'] as List? ?? [];
       final currentSemester = data['hoc_ky_theo_ngay_hien_tai'] as int? ?? 0;
-      final savedSemesters = _localStorage.getSavedScheduleSemesters();
+      final savedSemesters = _storage.getSavedScheduleSemesters();
 
       for (var semester in semesterList) {
         final hocKy = semester['hoc_ky'] as int? ?? 0;
@@ -430,7 +430,7 @@ class SplashController extends GetxController {
         if (!savedSemesters.contains(hocKy)) {
           final scheduleResponse = await _apiService.getSchedule(hocKy);
           if (scheduleResponse != null && scheduleResponse['data'] != null) {
-            await _localStorage.saveSchedule(hocKy, scheduleResponse['data']);
+            await _storage.saveSchedule(hocKy, scheduleResponse['data']);
             await _firebaseService.saveSchedule(
                 mssv, hocKy, scheduleResponse['data']);
           }

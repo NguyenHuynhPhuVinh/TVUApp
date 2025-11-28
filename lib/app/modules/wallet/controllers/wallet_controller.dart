@@ -2,13 +2,13 @@ import 'package:get/get.dart';
 import '../../../data/models/wallet_transaction.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../data/services/game_service.dart';
-import '../../../data/services/local_storage_service.dart';
+import '../../../data/services/storage_service.dart';
 import '../../../core/utils/number_formatter.dart';
 
 class WalletController extends GetxController {
   final GameService _gameService = Get.find<GameService>();
   final AuthService _authService = Get.find<AuthService>();
-  final LocalStorageService _localStorage = Get.find<LocalStorageService>();
+  final StorageService _storage = Get.find<StorageService>();
 
   // Getters
   int get virtualBalance => _gameService.stats.value.virtualBalance;
@@ -17,7 +17,7 @@ class WalletController extends GetxController {
   List<WalletTransaction> get transactions => _gameService.transactions;
 
   String get mssv => _authService.username.value;
-  String get fullName => _localStorage.getStudentName() ?? mssv;
+  String get fullName => _storage.getStudentName() ?? mssv;
 
   /// Format tiền ảo
   String formatBalance(int amount) => NumberFormatter.compact(amount);

@@ -9,7 +9,9 @@ import 'app/data/services/auth_service.dart';
 import 'app/data/services/api_service.dart';
 import 'app/data/services/firebase_service.dart';
 import 'app/data/services/game_service.dart';
-import 'app/data/services/local_storage_service.dart';
+import 'app/data/services/game_security_guard.dart';
+import 'app/data/services/game_sync_service.dart';
+import 'app/data/services/storage_service.dart';
 import 'app/data/services/update_service.dart';
 import 'app/data/services/security_service.dart';
 import 'app/routes/app_pages.dart';
@@ -36,11 +38,22 @@ void main() async {
 }
 
 Future<void> initServices() async {
-  await Get.putAsync(() => LocalStorageService().init());
+  // Core storage service
+  await Get.putAsync(() => StorageService().init());
+
+  // Auth & Firebase
   await Get.putAsync(() => AuthService().init());
   await Get.putAsync(() => FirebaseService().init());
+
+  // Security services (must init before game services)
   await Get.putAsync(() => SecurityService().init());
+  await Get.putAsync(() => GameSecurityGuard().init());
+  await Get.putAsync(() => GameSyncService().init());
+
+  // Game service (depends on security & sync)
   await Get.putAsync(() => GameService().init());
+
+  // Other services
   await Get.putAsync(() => UpdateService().init());
   Get.put(ApiService());
 }

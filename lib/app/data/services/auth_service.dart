@@ -1,7 +1,7 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get/get.dart';
 import 'game_service.dart';
-import 'local_storage_service.dart';
+import 'storage_service.dart';
 
 class AuthService extends GetxService {
   final _storage = const FlutterSecureStorage();
@@ -53,8 +53,8 @@ class AuthService extends GetxService {
   Future<void> logout() async {
     await _storage.deleteAll();
     // Clear local storage data
-    final localStorage = Get.find<LocalStorageService>();
-    await localStorage.clearAll();
+    final storage = Get.find<StorageService>();
+    await storage.clearAll();
     
     // Reset game stats
     final gameService = Get.find<GameService>();

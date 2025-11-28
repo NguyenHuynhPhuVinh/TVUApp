@@ -1,12 +1,12 @@
 import 'package:get/get.dart';
 import '../../../core/utils/date_formatter.dart';
-import '../../../data/services/local_storage_service.dart';
+import '../../../data/services/storage_service.dart';
 import '../../../data/services/game_service.dart';
 import '../../../data/services/auth_service.dart';
 import '../../home/controllers/home_controller.dart';
 
 class ScheduleController extends GetxController {
-  late final LocalStorageService _localStorage;
+  late final StorageService _storage;
   late final GameService _gameService;
   late final AuthService _authService;
 
@@ -22,7 +22,7 @@ class ScheduleController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    _localStorage = Get.find<LocalStorageService>();
+    _storage = Get.find<StorageService>();
     _gameService = Get.find<GameService>();
     _authService = Get.find<AuthService>();
     loadSemesters();
@@ -31,7 +31,7 @@ class ScheduleController extends GetxController {
   }
 
   void loadSemesters() {
-    final semestersData = _localStorage.getSemesters();
+    final semestersData = _storage.getSemesters();
     if (semestersData != null && semestersData['data'] != null) {
       final data = semestersData['data'];
       final semesterList = data['ds_hoc_ky'] as List? ?? [];
@@ -49,7 +49,7 @@ class ScheduleController extends GetxController {
   void loadSchedule() {
     if (selectedSemester.value == null) return;
 
-    final scheduleData = _localStorage.getSchedule(selectedSemester.value!);
+    final scheduleData = _storage.getSchedule(selectedSemester.value!);
     if (scheduleData != null) {
       final weekList = scheduleData['ds_tuan_tkb'] as List? ?? [];
       weeks.value = weekList.map((e) => Map<String, dynamic>.from(e)).toList();
@@ -180,7 +180,7 @@ class ScheduleController extends GetxController {
   /// Kiểm tra đã check-in buổi học chưa
   bool hasCheckedInLesson(Map<String, dynamic> lesson) {
     final key = _createCheckInKey(lesson);
-    return checkInStates[key] ?? _localStorage.hasCheckedIn(key);
+    return checkInStates[key] ?? _storage.hasCheckedIn(key);
   }
 
   /// Kiểm tra đang check-in buổi học không
@@ -219,7 +219,7 @@ class ScheduleController extends GetxController {
       }
       
       // Kiểm tra local cache (để UX nhanh hơn nếu đã sync)
-      if (_localStorage.hasCheckedIn(key)) {
+      if (_storage.hasCheckedIn(key)) {
         return null;
       }
       
@@ -258,7 +258,7 @@ class ScheduleController extends GetxController {
       };
       
       // ========== BƯỚC 2: LƯU LOCAL (Cache) ==========
-      await _localStorage.saveLessonCheckIn(key, checkInData);
+      await _storage.saveLessonCheckIn(key, checkInData);
       
       // ========== BƯỚC 3: SYNC FIREBASE (Source of Truth) ==========
       await _gameService.saveCheckInToFirebase(
@@ -297,7 +297,7 @@ class ScheduleController extends GetxController {
       checkInStates.clear();
       for (var lesson in currentWeekSchedule) {
         final key = _createCheckInKey(lesson);
-        checkInStates[key] = _localStorage.hasCheckedIn(key);
+        checkInStates[key] = _storage.hasCheckedIn(key);
       }
     } catch (e) {
       // Ignore errors during loading check-in states
@@ -317,8 +317,8 @@ class ScheduleController extends GetxController {
         final data = entry.value as Map<String, dynamic>;
         
         // Nếu local chưa có, lưu vào local
-        if (!_localStorage.hasCheckedIn(key)) {
-          await _localStorage.saveLessonCheckIn(key, data);
+        if (!_storage.hasCheckedIn(key)) {
+          await _storage.saveLessonCheckIn(key, data);
         }
       }
       

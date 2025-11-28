@@ -1,9 +1,9 @@
 import 'package:get/get.dart';
 import '../../../core/utils/date_formatter.dart';
-import '../../../data/services/local_storage_service.dart';
+import '../../../data/services/storage_service.dart';
 
 class NewsController extends GetxController {
-  final LocalStorageService _localStorage = Get.find<LocalStorageService>();
+  final StorageService _storage = Get.find<StorageService>();
 
   final notificationList = <Map<String, dynamic>>[].obs;
   final unreadCount = 0.obs;
@@ -15,7 +15,7 @@ class NewsController extends GetxController {
   }
 
   void loadNotifications() {
-    final notificationsData = _localStorage.getNotifications();
+    final notificationsData = _storage.getNotifications();
     if (notificationsData != null && notificationsData['data'] != null) {
       final data = notificationsData['data'];
       final list = data['ds_thong_bao'] as List? ?? [];

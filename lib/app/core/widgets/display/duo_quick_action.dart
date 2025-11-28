@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_styles.dart';
-import '../base/duo_card.dart';
+import '../widgets.dart';
 
 /// Item action nhanh trong grid
 class DuoQuickAction extends StatelessWidget {
@@ -23,7 +23,7 @@ class DuoQuickAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DuoPressableCard(
+    return DuoCard.pressable(
       padding: EdgeInsets.all(AppStyles.space2),
       onTap: onTap,
       child: Column(
