@@ -91,10 +91,18 @@ class DuoRewardRow extends StatelessWidget {
   }
 
   String _formatNumber(int number) {
-    if (number >= 1000000) {
-      return '${(number / 1000000).toStringAsFixed(1)}M';
+    if (number >= 1000000000) {
+      // Tỷ
+      final billions = number / 1000000000;
+      return '${billions.toStringAsFixed(billions >= 10 ? 1 : 2)}B';
+    } else if (number >= 1000000) {
+      // Triệu
+      final millions = number / 1000000;
+      return '${millions.toStringAsFixed(millions >= 10 ? 1 : 2)}M';
     } else if (number >= 1000) {
-      return '${(number / 1000).toStringAsFixed(1)}K';
+      // Nghìn
+      final thousands = number / 1000;
+      return '${thousands.toStringAsFixed(thousands >= 10 ? 1 : 2)}K';
     }
     return number.toString();
   }

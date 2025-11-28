@@ -1,5 +1,6 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get/get.dart';
+import 'game_service.dart';
 import 'local_storage_service.dart';
 
 class AuthService extends GetxService {
@@ -54,6 +55,10 @@ class AuthService extends GetxService {
     // Clear local storage data
     final localStorage = Get.find<LocalStorageService>();
     await localStorage.clearAll();
+    
+    // Reset game stats
+    final gameService = Get.find<GameService>();
+    await gameService.resetGame();
     
     accessToken.value = '';
     username.value = '';
