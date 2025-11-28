@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_styles.dart';
+import '../../utils/feedback_helper.dart';
 
 /// Loại feedback card
 enum DuoFeedbackType {
@@ -77,38 +78,39 @@ class DuoFeedbackCard extends StatelessWidget {
     );
   }
 
-  /// Factory từ attendance rate - thay thế cả 2 widget cũ
+  /// Factory từ attendance rate - sử dụng FeedbackHelper
   factory DuoFeedbackCard.fromAttendanceRate(double rate) {
-    if (rate >= 90) {
-      return DuoFeedbackCard(
-        message: 'Xuất sắc! Bạn là sinh viên gương mẫu!',
-        icon: Icons.emoji_events_rounded,
-        type: DuoFeedbackType.excellent,
-      );
-    } else if (rate >= 80) {
-      return DuoFeedbackCard(
-        message: 'Tốt lắm! Tiếp tục phát huy nhé!',
-        icon: Icons.thumb_up_rounded,
-        type: DuoFeedbackType.success,
-      );
-    } else if (rate >= 70) {
-      return DuoFeedbackCard(
-        message: 'Khá tốt! Cố gắng thêm một chút nữa!',
-        icon: Icons.trending_up_rounded,
-        type: DuoFeedbackType.info,
-      );
-    } else if (rate >= 50) {
-      return DuoFeedbackCard(
-        message: 'Cần cố gắng hơn để đạt kết quả tốt!',
-        icon: Icons.warning_rounded,
-        type: DuoFeedbackType.warning,
-      );
-    } else {
-      return DuoFeedbackCard(
-        message: 'Hãy cải thiện chuyên cần để học tốt hơn!',
-        icon: Icons.priority_high_rounded,
-        type: DuoFeedbackType.error,
-      );
+    final feedback = FeedbackHelper.fromAttendanceRate(rate);
+    return DuoFeedbackCard(
+      message: feedback.message,
+      icon: feedback.icon,
+      type: _mapFeedbackLevel(feedback.level),
+    );
+  }
+
+  /// Factory từ GPA - sử dụng FeedbackHelper
+  factory DuoFeedbackCard.fromGpa(double gpa) {
+    final feedback = FeedbackHelper.fromGpa(gpa);
+    return DuoFeedbackCard(
+      message: feedback.message,
+      icon: feedback.icon,
+      type: _mapFeedbackLevel(feedback.level),
+    );
+  }
+
+  /// Map FeedbackLevel sang DuoFeedbackType
+  static DuoFeedbackType _mapFeedbackLevel(FeedbackLevel level) {
+    switch (level) {
+      case FeedbackLevel.excellent:
+        return DuoFeedbackType.excellent;
+      case FeedbackLevel.good:
+        return DuoFeedbackType.success;
+      case FeedbackLevel.fair:
+        return DuoFeedbackType.info;
+      case FeedbackLevel.needsImprovement:
+        return DuoFeedbackType.warning;
+      case FeedbackLevel.poor:
+        return DuoFeedbackType.error;
     }
   }
 

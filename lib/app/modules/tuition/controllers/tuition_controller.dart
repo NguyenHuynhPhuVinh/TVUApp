@@ -1,5 +1,5 @@
 import 'package:get/get.dart';
-import '../../../core/utils/number_formatter.dart';
+import '../../../core/extensions/number_extensions.dart';
 import '../../../data/models/tuition_semester.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../data/services/game_service.dart';
@@ -75,7 +75,5 @@ class TuitionController extends GetxController {
     }
   }
 
-  String formatCurrency(num amount) {
-    return '${NumberFormatter.currency(amount)}đ';
-  }
+  String formatCurrency(num amount) => amount.toVND;
 }

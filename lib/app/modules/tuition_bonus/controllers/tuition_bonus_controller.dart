@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import '../../../core/extensions/number_extensions.dart';
 import '../../../core/utils/number_formatter.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../data/services/game_service.dart';
@@ -99,6 +100,6 @@ class TuitionBonusController extends GetxController {
     Get.offAllNamed(Routes.main);
   }
 
-  String formatCurrency(int amount) => '${NumberFormatter.currency(amount)}đ';
-  String formatBalance(int amount) => NumberFormatter.withCommas(amount);
+  String formatCurrency(int amount) => amount.toVND;
+  String formatBalance(int amount) => amount.toCommas;
 }

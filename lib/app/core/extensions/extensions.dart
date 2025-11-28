@@ -3,3 +3,4 @@
 library;
 
 export 'animation_extensions.dart';
+export 'number_extensions.dart';

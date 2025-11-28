@@ -1,9 +1,9 @@
 import 'package:get/get.dart';
+import '../../../core/extensions/number_extensions.dart';
 import '../../../data/models/wallet_transaction.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../data/services/game_service.dart';
 import '../../../data/services/storage_service.dart';
-import '../../../core/utils/number_formatter.dart';
 
 class WalletController extends GetxController {
   final GameService _gameService = Get.find<GameService>();
@@ -20,8 +20,8 @@ class WalletController extends GetxController {
   String get fullName => _storage.getStudentName() ?? mssv;
 
   /// Format tiền ảo
-  String formatBalance(int amount) => NumberFormatter.compact(amount);
-  
+  String formatBalance(int amount) => amount.toCompact;
+
   /// Format tiền VND
-  String formatCurrency(int amount) => '${NumberFormatter.currency(amount)}đ';
+  String formatCurrency(int amount) => amount.toVND;
 }
