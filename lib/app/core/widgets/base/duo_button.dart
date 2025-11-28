@@ -106,6 +106,56 @@ class _DuoButtonState extends State<DuoButton> {
     }
   }
 
+  Widget _buildButtonContent() {
+    return widget.isLoading
+        ? Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                width: 20.w,
+                height: 20.w,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  valueColor: AlwaysStoppedAnimation<Color>(_textColor),
+                ),
+              ),
+              SizedBox(width: AppStyles.space3),
+              Text(
+                'Đang xử lý...',
+                style: TextStyle(
+                  fontSize: _fontSize,
+                  fontWeight: AppStyles.fontBold,
+                  color: _textColor,
+                ),
+              ),
+            ],
+          )
+        : Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (widget.icon != null) ...[
+                Icon(widget.icon, color: _textColor, size: _fontSize + 4),
+                SizedBox(width: AppStyles.space2),
+              ],
+              Flexible(
+                child: Text(
+                  widget.text,
+                  style: TextStyle(
+                    fontSize: _fontSize,
+                    fontWeight: AppStyles.fontBold,
+                    color: _textColor,
+                    letterSpacing: 0.5,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+              ),
+            ],
+          );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isGhost = widget.variant == DuoButtonVariant.ghost;
@@ -120,97 +170,60 @@ class _DuoButtonState extends State<DuoButton> {
         }
       },
       onTapCancel: () => setState(() => _isPressed = false),
-      child: SizedBox(
-        width: widget.fullWidth ? double.infinity : null,
-        height: _height + shadowHeight,
-        child: Stack(
-          children: [
-            // Shadow layer (bottom)
-            if (!isGhost)
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: Container(
-                  height: _height,
-                  decoration: BoxDecoration(
-                    color: _shadowColor,
-                    borderRadius: AppStyles.roundedXl,
-                  ),
+      // Ghost button - không có shadow, không lún
+      child: isGhost
+          ? Container(
+              width: widget.fullWidth ? double.infinity : null,
+              height: _height,
+              padding: EdgeInsets.symmetric(horizontal: AppStyles.space6),
+              decoration: BoxDecoration(
+                color: _isPressed ? AppColors.background : Colors.transparent,
+                borderRadius: AppStyles.roundedXl,
+                border: Border.all(
+                  color: AppColors.border,
+                  width: AppStyles.border2,
                 ),
               ),
-            // Button layer (top) - moves down when pressed
-            Positioned(
-              left: 0,
-              right: 0,
-              top: _isPressed ? shadowHeight : 0,
-              child: Container(
-                height: _height,
-                padding: EdgeInsets.symmetric(horizontal: AppStyles.space6),
-                decoration: BoxDecoration(
-                  color: _bgColor,
-                  borderRadius: AppStyles.roundedXl,
-                  border: isGhost
-                      ? Border.all(
-                          color: AppColors.border, width: AppStyles.border2)
-                      : null,
-                ),
-                child: Center(
-                  child: widget.isLoading
-                      ? Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            SizedBox(
-                              width: 20.w,
-                              height: 20.w,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2.5,
-                                valueColor:
-                                    AlwaysStoppedAnimation<Color>(_textColor),
-                              ),
-                            ),
-                            SizedBox(width: AppStyles.space3),
-                            Text(
-                              'Đang xử lý...',
-                              style: TextStyle(
-                                fontSize: _fontSize,
-                                fontWeight: AppStyles.fontBold,
-                                color: _textColor,
-                              ),
-                            ),
-                          ],
-                        )
-                      : Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (widget.icon != null) ...[
-                              Icon(widget.icon,
-                                  color: _textColor, size: _fontSize + 4),
-                              SizedBox(width: AppStyles.space2),
-                            ],
-                            Flexible(
-                              child: Text(
-                                widget.text,
-                                style: TextStyle(
-                                  fontSize: _fontSize,
-                                  fontWeight: AppStyles.fontBold,
-                                  color: _textColor,
-                                  letterSpacing: 0.5,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                              ),
-                            ),
-                          ],
-                        ),
-                ),
+              child: Center(child: _buildButtonContent()),
+            )
+          // Normal button - có shadow, lún khi bấm
+          : SizedBox(
+              width: widget.fullWidth ? double.infinity : null,
+              height: _height + shadowHeight,
+              child: Stack(
+                children: [
+                  // Shadow layer (bottom)
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: Container(
+                      height: _height,
+                      decoration: BoxDecoration(
+                        color: _shadowColor,
+                        borderRadius: AppStyles.roundedXl,
+                      ),
+                    ),
+                  ),
+                  // Button layer (top) - moves down when pressed
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    top: _isPressed ? shadowHeight : 0,
+                    child: Container(
+                      height: _height,
+                      padding:
+                          EdgeInsets.symmetric(horizontal: AppStyles.space6),
+                      decoration: BoxDecoration(
+                        color: _bgColor,
+                        borderRadius: AppStyles.roundedXl,
+                      ),
+                      child: Center(child: _buildButtonContent()),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
-      ),
     );
   }
 }
