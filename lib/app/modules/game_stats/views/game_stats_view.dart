@@ -19,21 +19,26 @@ class GameStatsView extends GetView<GameStatsController> {
           padding: EdgeInsets.all(AppStyles.space6),
           child: Column(
             children: [
-              SizedBox(height: 10.h),
+              SizedBox(height: 20.h),
 
-              // Mascot
-              const TVUMascot(
-                mood: TVUMascotMood.happy,
-                size: TVUMascotSize.sm,
-                color: AppColors.primary,
-              ).animate().scale(
-                    begin: const Offset(0, 0),
-                    end: const Offset(1, 1),
-                    duration: 600.ms,
-                    curve: Curves.elasticOut,
+              // Header with icon
+              Container(
+                width: 80.w,
+                height: 80.w,
+                decoration: BoxDecoration(
+                  color: AppColors.primarySoft,
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Icon(
+                    Icons.school_rounded,
+                    size: 40.w,
+                    color: AppColors.primary,
                   ),
+                ),
+              ).animate().scale(duration: 400.ms, curve: Curves.easeOutBack),
 
-              SizedBox(height: AppStyles.space3),
+              SizedBox(height: AppStyles.space4),
 
               // Title
               Text(
@@ -43,45 +48,60 @@ class GameStatsView extends GetView<GameStatsController> {
                   fontWeight: AppStyles.fontBold,
                   color: AppColors.textPrimary,
                 ),
-              ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.3, end: 0),
+              ).animate().fadeIn(delay: 200.ms, duration: 300.ms),
 
-              SizedBox(height: AppStyles.space1),
+              SizedBox(height: 32.h),
 
-              Text(
-                'Đây là kết quả chuyên cần của bạn',
-                style: TextStyle(
-                  fontSize: AppStyles.textSm,
-                  color: AppColors.textSecondary,
-                ),
-              ).animate().fadeIn(delay: 400.ms),
+              // Stats Card
+              DuoStatCard(
+                title: 'KẾT QUẢ CHUYÊN CẦN',
+                backgroundColor: _getColorByRate(controller.attendanceRate),
+                shadowColor: _getDarkColorByRate(controller.attendanceRate),
+                stats: [
+                  DuoStatItem(
+                    label: 'Tổng tiết',
+                    value: '${controller.totalLessons}',
+                  ),
+                  DuoStatItem(
+                    label: 'Đã học',
+                    value: '${controller.attendedLessons}',
+                  ),
+                  DuoStatItem(
+                    label: 'Nghỉ',
+                    value: '${controller.missedLessons}',
+                  ),
+                ],
+              )
+                  .animate()
+                  .fadeIn(delay: 300.ms, duration: 400.ms)
+                  .slideY(begin: 0.1, end: 0),
 
               SizedBox(height: 24.h),
 
-              // Attendance Card
-              DuoAttendanceCard(
-                attendanceRate: controller.attendanceRate,
-                totalLessons: controller.totalLessons,
-                attendedLessons: controller.attendedLessons,
-                missedLessons: controller.missedLessons,
-              ).animate().fadeIn(delay: 500.ms).slideY(begin: 0.2, end: 0),
-
-              SizedBox(height: 16.h),
-
-              // Summary message
-              DuoMessageCard.fromAttendance(controller.attendanceRate)
+              // Attendance Rate Card
+              DuoAttendanceRateCard(rate: controller.attendanceRate)
                   .animate()
-                  .fadeIn(delay: 800.ms)
-                  .slideY(begin: 0.2, end: 0),
+                  .fadeIn(delay: 500.ms, duration: 400.ms)
+                  .slideY(begin: 0.1, end: 0),
 
-              SizedBox(height: 32.h),
+              SizedBox(height: 24.h),
+
+              // Message Card
+              DuoFeedbackMessage.fromAttendanceRate(controller.attendanceRate)
+                  .animate()
+                  .fadeIn(delay: 700.ms, duration: 400.ms),
+
+              SizedBox(height: 40.h),
 
               // Continue Button
               DuoButton(
                 text: 'Xem phần thưởng',
                 variant: DuoButtonVariant.success,
-                icon: Icons.card_giftcard_rounded,
                 onPressed: controller.continueToRewards,
-              ).animate().fadeIn(delay: 1000.ms).slideY(begin: 0.3, end: 0),
+              )
+                  .animate()
+                  .fadeIn(delay: 900.ms, duration: 400.ms)
+                  .slideY(begin: 0.2, end: 0),
 
               SizedBox(height: 20.h),
             ],
@@ -89,5 +109,17 @@ class GameStatsView extends GetView<GameStatsController> {
         ),
       ),
     );
+  }
+
+  Color _getColorByRate(double rate) {
+    if (rate >= 80) return AppColors.green;
+    if (rate >= 50) return AppColors.orange;
+    return AppColors.red;
+  }
+
+  Color _getDarkColorByRate(double rate) {
+    if (rate >= 80) return AppColors.greenDark;
+    if (rate >= 50) return AppColors.orangeDark;
+    return AppColors.redDark;
   }
 }

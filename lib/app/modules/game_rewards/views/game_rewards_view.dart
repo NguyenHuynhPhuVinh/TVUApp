@@ -14,10 +14,10 @@ class GameRewardsView extends GetView<GameRewardsController> {
   @override
   Widget build(BuildContext context) {
     final confettiController =
-        ConfettiController(duration: const Duration(seconds: 4));
+        ConfettiController(duration: const Duration(seconds: 3));
 
-    // Start confetti when level shows
-    Future.delayed(const Duration(milliseconds: 2100), () {
+    // Start confetti when all cards shown
+    Future.delayed(const Duration(milliseconds: 2500), () {
       confettiController.play();
     });
 
@@ -25,20 +25,6 @@ class GameRewardsView extends GetView<GameRewardsController> {
       backgroundColor: AppColors.background,
       body: Stack(
         children: [
-          // Background gradient
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  AppColors.primarySoft,
-                  AppColors.background,
-                ],
-              ),
-            ),
-          ),
-
           SafeArea(
             child: SingleChildScrollView(
               padding: EdgeInsets.all(AppStyles.space6),
@@ -46,20 +32,36 @@ class GameRewardsView extends GetView<GameRewardsController> {
                 children: [
                   SizedBox(height: 20.h),
 
+                  // Header icon
+                  Container(
+                    width: 72.w,
+                    height: 72.w,
+                    decoration: BoxDecoration(
+                      color: AppColors.greenSoft,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(
+                      child: Icon(
+                        Icons.card_giftcard_rounded,
+                        size: 36.w,
+                        color: AppColors.green,
+                      ),
+                    ),
+                  ).animate().scale(duration: 400.ms, curve: Curves.easeOutBack),
+
+                  SizedBox(height: AppStyles.space4),
+
                   // Title
                   Text(
-                    '🎁 Phần thưởng!',
+                    'Phần thưởng của bạn',
                     style: TextStyle(
-                      fontSize: 24.sp,
+                      fontSize: 22.sp,
                       fontWeight: AppStyles.fontBold,
                       color: AppColors.textPrimary,
                     ),
-                  )
-                      .animate()
-                      .fadeIn(duration: 500.ms)
-                      .slideY(begin: -0.3, end: 0),
+                  ).animate().fadeIn(delay: 200.ms, duration: 300.ms),
 
-                  SizedBox(height: 4.h),
+                  SizedBox(height: AppStyles.space1),
 
                   Text(
                     'Dựa trên thành tích học tập',
@@ -67,37 +69,90 @@ class GameRewardsView extends GetView<GameRewardsController> {
                       fontSize: AppStyles.textSm,
                       color: AppColors.textSecondary,
                     ),
-                  ).animate().fadeIn(delay: 300.ms),
+                  ).animate().fadeIn(delay: 300.ms, duration: 300.ms),
 
-                  SizedBox(height: 40.h),
+                  SizedBox(height: 32.h),
 
-                  // Coins Card - BIG
+                  // Coins Card
                   Obx(() => controller.showCoins.value
-                      ? _buildCoinsCard()
-                      : const SizedBox.shrink()),
+                      ? DuoRewardRow(
+                          iconPath: 'assets/game/currency/coin_golden_coin_1st_64px.png',
+                          fallbackIcon: Icons.monetization_on_rounded,
+                          label: 'Coins',
+                          value: controller.animatedCoins.value,
+                          color: AppColors.yellow,
+                          bgColor: AppColors.yellowSoft,
+                        )
+                          .animate()
+                          .fadeIn(duration: 400.ms)
+                          .slideX(begin: -0.1, end: 0)
+                      : SizedBox(height: 72.h)),
 
-                  SizedBox(height: 16.h),
+                  SizedBox(height: 12.h),
 
                   // Diamonds Card
                   Obx(() => controller.showDiamonds.value
-                      ? _buildDiamondsCard()
-                      : const SizedBox.shrink()),
+                      ? DuoRewardRow(
+                          iconPath: 'assets/game/currency/diamond_blue_diamond_1st_64px.png',
+                          fallbackIcon: Icons.diamond_rounded,
+                          label: 'Diamonds',
+                          value: controller.animatedDiamonds.value,
+                          color: AppColors.primary,
+                          bgColor: AppColors.primarySoft,
+                        )
+                          .animate()
+                          .fadeIn(duration: 400.ms)
+                          .slideX(begin: 0.1, end: 0)
+                      : SizedBox(height: 72.h)),
 
-                  SizedBox(height: 16.h),
+                  SizedBox(height: 12.h),
+
+                  // XP Card
+                  Obx(() => controller.showLevel.value
+                      ? DuoRewardRow(
+                          iconPath: 'assets/game/main/star_golden_star_1st_64px.png',
+                          fallbackIcon: Icons.star_rounded,
+                          label: 'XP',
+                          value: controller.animatedXp.value,
+                          color: AppColors.green,
+                          bgColor: AppColors.greenSoft,
+                        )
+                          .animate()
+                          .fadeIn(duration: 400.ms)
+                          .slideX(begin: -0.1, end: 0)
+                      : SizedBox(height: 72.h)),
+
+                  SizedBox(height: 24.h),
 
                   // Level Card
                   Obx(() => controller.showLevel.value
-                      ? _buildLevelCard()
-                      : const SizedBox.shrink()),
+                      ? DuoLevelBadge(
+                          level: controller.animatedLevel.value,
+                          iconPath: 'assets/game/main/star_golden_star_1st_64px.png',
+                        )
+                          .animate()
+                          .fadeIn(delay: 200.ms, duration: 400.ms)
+                          .scale(
+                            begin: const Offset(0.95, 0.95),
+                            end: const Offset(1, 1),
+                          )
+                      : SizedBox(height: 100.h)),
 
                   SizedBox(height: 40.h),
 
                   // Continue Button
                   Obx(() => controller.showButton.value
-                      ? _buildContinueButton()
+                      ? DuoButton(
+                          text: 'Bắt đầu học',
+                          variant: DuoButtonVariant.success,
+                          onPressed: controller.continueToMain,
+                        )
+                          .animate()
+                          .fadeIn(duration: 400.ms)
+                          .slideY(begin: 0.1, end: 0)
                       : const SizedBox.shrink()),
 
-                  SizedBox(height: 30.h),
+                  SizedBox(height: 20.h),
                 ],
               ),
             ),
@@ -117,285 +172,12 @@ class GameRewardsView extends GetView<GameRewardsController> {
                 AppColors.purple,
                 AppColors.orange,
               ],
-              numberOfParticles: 40,
-              gravity: 0.15,
+              numberOfParticles: 30,
+              gravity: 0.2,
             ),
           ),
         ],
       ),
     );
-  }
-
-  Widget _buildCoinsCard() {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.symmetric(
-        horizontal: AppStyles.space5,
-        vertical: AppStyles.space4,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.yellowSoft,
-        borderRadius: AppStyles.rounded2xl,
-        border: Border.all(
-          color: AppColors.yellow.withValues(alpha: 0.3),
-          width: 2,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.yellow.withValues(alpha: 0.3),
-            offset: const Offset(0, 4),
-            blurRadius: 0,
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // Icon with glow
-          Container(
-            padding: EdgeInsets.all(AppStyles.space2),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-              boxShadow: AppColors.glowEffect(AppColors.yellow, blur: 15, spread: 3),
-            ),
-            child: Image.asset(
-              'assets/game/currency/coin_golden_coin_1st_64px.png',
-              width: 44.w,
-              height: 44.w,
-              errorBuilder: (_, __, ___) => Icon(
-                Icons.monetization_on_rounded,
-                size: 44.w,
-                color: AppColors.yellow,
-              ),
-            ),
-          )
-              .animate(onPlay: (c) => c.repeat(reverse: true))
-              .scale(
-                begin: const Offset(1, 1),
-                end: const Offset(1.1, 1.1),
-                duration: 1000.ms,
-              ),
-          SizedBox(width: AppStyles.space3),
-          // Value
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'COINS',
-                  style: TextStyle(
-                    fontSize: AppStyles.textXs,
-                    fontWeight: AppStyles.fontBold,
-                    color: AppColors.yellow,
-                    letterSpacing: 1,
-                  ),
-                ),
-                Obx(() => Text(
-                      '+${_formatNumber(controller.animatedCoins.value)}',
-                      style: TextStyle(
-                        fontSize: 32.sp,
-                        fontWeight: AppStyles.fontExtrabold,
-                        color: AppColors.textPrimary,
-                      ),
-                    )),
-              ],
-            ),
-          ),
-        ],
-      ),
-    )
-        .animate()
-        .scale(
-          begin: const Offset(0.5, 0.5),
-          end: const Offset(1, 1),
-          curve: Curves.elasticOut,
-          duration: 600.ms,
-        );
-  }
-
-  Widget _buildDiamondsCard() {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(AppStyles.space4),
-      decoration: BoxDecoration(
-        color: AppColors.primarySoft,
-        borderRadius: AppStyles.rounded2xl,
-        border: Border.all(
-          color: AppColors.primary.withValues(alpha: 0.3),
-          width: 2,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.2),
-            offset: const Offset(0, 4),
-            blurRadius: 0,
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Image.asset(
-            'assets/game/currency/diamond_blue_diamond_1st_64px.png',
-            width: 40.w,
-            height: 40.w,
-            errorBuilder: (_, __, ___) => Icon(
-              Icons.diamond_rounded,
-              size: 40.w,
-              color: AppColors.primary,
-            ),
-          )
-              .animate(onPlay: (c) => c.repeat(reverse: true))
-              .rotate(begin: -0.05, end: 0.05, duration: 500.ms),
-          SizedBox(width: AppStyles.space3),
-          Text(
-            'DIAMONDS',
-            style: TextStyle(
-              fontSize: AppStyles.textBase,
-              fontWeight: AppStyles.fontBold,
-              color: AppColors.primary,
-            ),
-          ),
-          const Spacer(),
-          Obx(() => Text(
-                '+${controller.animatedDiamonds.value}',
-                style: TextStyle(
-                  fontSize: 28.sp,
-                  fontWeight: AppStyles.fontBold,
-                  color: AppColors.textPrimary,
-                ),
-              )),
-        ],
-      ),
-    )
-        .animate()
-        .slideX(begin: -1, end: 0, duration: 500.ms)
-        .fadeIn();
-  }
-
-  Widget _buildLevelCard() {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(AppStyles.space5),
-      decoration: BoxDecoration(
-        gradient: AppColors.purpleGradient,
-        borderRadius: AppStyles.rounded2xl,
-        boxShadow: AppColors.buttonBoxShadow(AppColors.purpleDark),
-      ),
-      child: Row(
-        children: [
-          // Level badge
-          Container(
-            width: 56.w,
-            height: 56.w,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              shape: BoxShape.circle,
-              border: Border.all(color: AppColors.yellow, width: 3),
-            ),
-            child: Center(
-              child: Image.asset(
-                'assets/game/main/star_golden_star_1st_64px.png',
-                width: 32.w,
-                height: 32.w,
-                errorBuilder: (_, __, ___) => Icon(
-                  Icons.star_rounded,
-                  size: 32.w,
-                  color: AppColors.yellow,
-                ),
-              ),
-            ),
-          )
-              .animate(onPlay: (c) => c.repeat(reverse: true))
-              .scale(
-                begin: const Offset(1, 1),
-                end: const Offset(1.15, 1.15),
-                duration: 800.ms,
-              ),
-          SizedBox(width: AppStyles.space4),
-          // Level info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'CẤP ĐỘ',
-                  style: TextStyle(
-                    fontSize: AppStyles.textXs,
-                    fontWeight: AppStyles.fontBold,
-                    color: Colors.white.withValues(alpha: 0.8),
-                    letterSpacing: 1,
-                  ),
-                ),
-                Obx(() => Text(
-                      'Level ${controller.animatedLevel.value}',
-                      style: TextStyle(
-                        fontSize: 28.sp,
-                        fontWeight: AppStyles.fontBold,
-                        color: Colors.white,
-                      ),
-                    )),
-              ],
-            ),
-          ),
-          // XP earned
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                'XP',
-                style: TextStyle(
-                  fontSize: AppStyles.textXs,
-                  color: Colors.white.withValues(alpha: 0.8),
-                ),
-              ),
-              Obx(() => Text(
-                    '+${_formatNumber(controller.animatedXp.value)}',
-                    style: TextStyle(
-                      fontSize: AppStyles.textXl,
-                      fontWeight: AppStyles.fontBold,
-                      color: AppColors.yellow,
-                    ),
-                  )),
-            ],
-          ),
-        ],
-      ),
-    )
-        .animate()
-        .slideX(begin: 1, end: 0, duration: 500.ms)
-        .fadeIn();
-  }
-
-  Widget _buildContinueButton() {
-    return Column(
-      children: [
-        DuoButton(
-          text: 'Bắt đầu hành trình!',
-          variant: DuoButtonVariant.success,
-          icon: Icons.rocket_launch_rounded,
-          onPressed: controller.continueToMain,
-        ),
-        SizedBox(height: AppStyles.space3),
-        Text(
-          'Tiếp tục học để nhận thêm phần thưởng!',
-          style: TextStyle(
-            fontSize: AppStyles.textSm,
-            color: AppColors.textTertiary,
-          ),
-        ),
-      ],
-    )
-        .animate()
-        .slideY(begin: 0.5, end: 0, duration: 400.ms)
-        .fadeIn();
-  }
-
-  String _formatNumber(int number) {
-    if (number >= 1000000) {
-      return '${(number / 1000000).toStringAsFixed(1)}M';
-    } else if (number >= 1000) {
-      return '${(number / 1000).toStringAsFixed(1)}K';
-    }
-    return number.toString();
   }
 }

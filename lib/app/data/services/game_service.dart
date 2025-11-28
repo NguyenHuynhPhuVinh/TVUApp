@@ -107,19 +107,35 @@ class GameService extends GetxService {
       final missedLessons = missedSessions * 4; // 1 buổi = 4 tiết
       final attendedLessons = (totalLessons - missedLessons).clamp(0, totalLessons);
       
-      // Tính rewards dựa trên số tiết đã học (TĂNG MẠNH HƠN)
-      // 1 tiết = 50 coins + 25 XP
-      // Bonus: +20% coins nếu chuyên cần >= 80%
-      // Bonus diamond mỗi 20 tiết
+      // ============ BẢNG THƯỞNG CHỐT HẠ ============
+      // 1 buổi (4 tiết):
+      //   - 1,000,000 coins (1M)
+      //   - 5,000 XP
+      //   - 1,650 diamonds (~11 lần quay gacha)
+      //
+      // 4 năm (~6000 tiết, chuyên cần >= 90%):
+      //   - Coins: 2.25 TỶ
+      //   - XP: 11.25M → Level ~1,500
+      //   - Diamonds: 3.7M → ~24,700 lần quay
+      //
+      // Bonus chuyên cần: +50% (>=90%), +25% (>=80%)
+      // =============================================
       final attendanceRate = totalLessons > 0 ? (attendedLessons / totalLessons) * 100 : 100.0;
-      var earnedCoins = attendedLessons * 50;
-      if (attendanceRate >= 80) {
-        earnedCoins = (earnedCoins * 1.2).round(); // Bonus 20%
-      }
-      final earnedXp = attendedLessons * 25;
-      final earnedDiamonds = attendedLessons ~/ 20; // 1 diamond mỗi 20 tiết
+      var earnedCoins = attendedLessons * 250000;
+      var earnedDiamonds = attendedLessons * 413;
+      var earnedXp = attendedLessons * 1250;
       
-      // Tính level từ XP
+      if (attendanceRate >= 90) {
+        earnedCoins = (earnedCoins * 1.5).round(); // Bonus 50%
+        earnedDiamonds = (earnedDiamonds * 1.5).round(); // Bonus 50%
+        earnedXp = (earnedXp * 1.5).round(); // Bonus 50%
+      } else if (attendanceRate >= 80) {
+        earnedCoins = (earnedCoins * 1.25).round(); // Bonus 25%
+        earnedDiamonds = (earnedDiamonds * 1.25).round(); // Bonus 25%
+        earnedXp = (earnedXp * 1.25).round(); // Bonus 25%
+      }
+      
+      // Tính level từ XP (mỗi level cần level * 100 XP)
       int level = 1;
       int remainingXp = earnedXp;
       while (remainingXp >= level * 100) {
