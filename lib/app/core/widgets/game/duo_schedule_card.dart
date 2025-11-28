@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iconsax/iconsax.dart';
+import '../../../data/services/game_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_styles.dart';
 import '../base/duo_card.dart';
@@ -115,9 +116,9 @@ class DuoScheduleCard extends StatelessWidget {
   }
 
   Widget _buildCheckInSection() {
-    final coins = soTiet * 250000;
-    final xp = soTiet * 2500;
-    final diamonds = soTiet * 413;
+    final coins = soTiet * GameService.coinsPerLesson;
+    final xp = soTiet * GameService.xpPerLesson;
+    final diamonds = soTiet * GameService.diamondsPerLesson;
 
     // Style theo trạng thái giống CTDT
     Color bgColor;

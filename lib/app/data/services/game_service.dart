@@ -17,6 +17,16 @@ class GameService extends GetxService {
   static const String _statsKey = 'player_stats';
   static const String _transactionsKey = 'wallet_transactions';
   
+  // ============ REWARD CONSTANTS ============
+  /// Coins per tiết học
+  static const int coinsPerLesson = 250000;
+  /// XP per tiết học
+  static const int xpPerLesson = 2500;
+  /// Diamonds per tiết học
+  static const int diamondsPerLesson = 413;
+  /// Số tiết per tín chỉ (15 LT + 30 TH)
+  static const int lessonsPerCredit = 45;
+  
   final stats = PlayerStats().obs;
   final transactions = <WalletTransaction>[].obs;
   final isLoading = false.obs;
@@ -372,9 +382,9 @@ class GameService extends GetxService {
       // Bonus chuyên cần: +50% (>=90%), +25% (>=80%)
       // =============================================
       final attendanceRate = totalLessons > 0 ? (attendedLessons / totalLessons) * 100 : 100.0;
-      var earnedCoins = attendedLessons * 250000;
-      var earnedDiamonds = attendedLessons * 413;
-      var earnedXp = attendedLessons * 2500;
+      var earnedCoins = attendedLessons * coinsPerLesson;
+      var earnedDiamonds = attendedLessons * diamondsPerLesson;
+      var earnedXp = attendedLessons * xpPerLesson;
       
       if (attendanceRate >= 90) {
         earnedCoins = (earnedCoins * 1.5).round(); // Bonus 50%
@@ -555,10 +565,10 @@ class GameService extends GetxService {
     }
     
     if (attended) {
-      // Tính thưởng: mỗi tiết = 250,000 coins + 2,500 XP + 413 diamonds
-      final earnedCoins = lessons * 250000;
-      final earnedXp = lessons * 2500;
-      final earnedDiamonds = lessons * 413;
+      // Tính thưởng theo constants
+      final earnedCoins = lessons * coinsPerLesson;
+      final earnedXp = lessons * xpPerLesson;
+      final earnedDiamonds = lessons * diamondsPerLesson;
       
       // 2. Tính XP và level
       int newXp = stats.value.currentXp + earnedXp;
@@ -1061,10 +1071,10 @@ class GameService extends GetxService {
       }
     }
     
-    // 2. Tính thưởng: mỗi tiết = 250,000 coins + 2,500 XP + 413 diamonds
-    final earnedCoins = soTiet * 250000;
-    final earnedXp = soTiet * 2500;
-    final earnedDiamonds = soTiet * 413;
+    // 2. Tính thưởng theo constants
+    final earnedCoins = soTiet * coinsPerLesson;
+    final earnedXp = soTiet * xpPerLesson;
+    final earnedDiamonds = soTiet * diamondsPerLesson;
     
     // 3. Tính XP và level mới
     int newXp = stats.value.currentXp + earnedXp;
@@ -1112,9 +1122,9 @@ class GameService extends GetxService {
   /// 4 năm (~140 TC): 1.575 TỶ coins + 15.75M XP + 2.6M diamonds
   static Map<String, int> calculateSubjectReward(int soTinChi) {
     return {
-      'coins': soTinChi * 11250000,
-      'xp': soTinChi * 112500,
-      'diamonds': soTinChi * 18585,
+      'coins': soTinChi * lessonsPerCredit * coinsPerLesson,
+      'xp': soTinChi * lessonsPerCredit * xpPerLesson,
+      'diamonds': soTinChi * lessonsPerCredit * diamondsPerLesson,
     };
   }
 
