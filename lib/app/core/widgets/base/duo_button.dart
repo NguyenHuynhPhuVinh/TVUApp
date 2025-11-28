@@ -173,13 +173,17 @@ class _DuoButtonState extends State<DuoButton> {
                       Icon(widget.icon, color: _textColor, size: _fontSize + 4),
                       SizedBox(width: AppStyles.space2),
                     ],
-                    Text(
-                      widget.text,
-                      style: TextStyle(
-                        fontSize: _fontSize,
-                        fontWeight: AppStyles.fontBold,
-                        color: _textColor,
-                        letterSpacing: 0.5,
+                    Flexible(
+                      child: Text(
+                        widget.text,
+                        style: TextStyle(
+                          fontSize: _fontSize,
+                          fontWeight: AppStyles.fontBold,
+                          color: _textColor,
+                          letterSpacing: 0.5,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
                       ),
                     ),
                   ],

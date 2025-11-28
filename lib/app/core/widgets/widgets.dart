@@ -14,6 +14,7 @@ export 'feedback/duo_progress.dart';
 export 'feedback/duo_empty_state.dart';
 export 'feedback/duo_feedback_message.dart';
 export 'feedback/duo_tag.dart';
+export 'feedback/duo_update_dialog.dart';
 
 // Navigation widgets
 export 'navigation/duo_app_bar.dart';

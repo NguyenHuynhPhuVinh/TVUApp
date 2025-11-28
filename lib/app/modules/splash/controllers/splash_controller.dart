@@ -1,10 +1,13 @@
 import 'dart:convert';
 import 'package:get/get.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/widgets.dart';
 import '../../../data/services/api_service.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../data/services/firebase_service.dart';
 import '../../../data/services/game_service.dart';
 import '../../../data/services/local_storage_service.dart';
+import '../../../data/services/update_service.dart';
 import '../../../routes/app_routes.dart';
 
 class SplashController extends GetxController {
@@ -13,6 +16,7 @@ class SplashController extends GetxController {
   final FirebaseService _firebaseService = Get.find<FirebaseService>();
   final GameService _gameService = Get.find<GameService>();
   final LocalStorageService _localStorage = Get.find<LocalStorageService>();
+  final UpdateService _updateService = Get.find<UpdateService>();
 
   // Progress cho UI
   final syncProgress = 0.0.obs;
@@ -22,7 +26,47 @@ class SplashController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    _checkAuthAndLoad();
+    _checkUpdateAndLoad();
+  }
+
+  /// Kiểm tra cập nhật trước, sau đó load app
+  Future<void> _checkUpdateAndLoad() async {
+    try {
+      // Kiểm tra update từ GitHub
+      final hasUpdate = await _updateService.checkForUpdate();
+      
+      if (hasUpdate) {
+        // Hiển thị dialog cập nhật (bắt buộc)
+        await DuoUpdateDialog.show(
+          currentVersion: _updateService.currentVersion.value,
+          latestVersion: _updateService.latestVersion.value,
+          releaseNotes: _updateService.releaseNotes.value,
+          isDownloading: _updateService.isDownloading,
+          downloadProgress: _updateService.downloadProgress,
+          onUpdate: () => _handleUpdate(),
+        );
+      } else {
+        _checkAuthAndLoad();
+      }
+    } catch (e) {
+      print('Check update error: $e');
+      _checkAuthAndLoad();
+    }
+  }
+
+  /// Xử lý tải và cài đặt update
+  Future<void> _handleUpdate() async {
+    final success = await _updateService.downloadAndInstall();
+    if (!success) {
+      // Lỗi tải -> hiện snackbar, vẫn giữ dialog (bắt buộc cập nhật)
+      Get.snackbar(
+        'Lỗi',
+        'Không thể tải bản cập nhật. Vui lòng thử lại.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: AppColors.redSoft,
+        colorText: AppColors.red,
+      );
+    }
   }
 
   Future<void> _checkAuthAndLoad() async {
