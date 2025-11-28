@@ -2,34 +2,45 @@
 /// Import file này để sử dụng tất cả widgets
 library;
 
-export 'duo_button.dart';
-export 'duo_input.dart';
-export 'duo_card.dart';
-export 'duo_avatar.dart';
-export 'duo_badge.dart';
-export 'duo_progress.dart';
-export 'duo_alert.dart';
-export 'duo_icon_button.dart';
-export 'duo_app_bar.dart';
-export 'duo_list_tile.dart';
-export 'duo_empty_state.dart';
-export 'duo_nav_bar.dart';
-export 'duo_dropdown.dart';
-export 'duo_chip_selector.dart';
-export 'duo_stat_card.dart';
-export 'duo_profile_card.dart';
-export 'tvu_mascot.dart';
-export 'duo_reward_card.dart';
-export 'duo_level_card.dart';
-export 'duo_attendance_card.dart';
-export 'duo_number_input.dart';
-export 'duo_message_card.dart';
-export 'duo_reward_row.dart';
-export 'duo_level_badge.dart';
-export 'duo_attendance_rate_card.dart';
-export 'duo_feedback_message.dart';
-export 'duo_xp_progress.dart';
-export 'duo_mini_stat.dart';
-export 'duo_currency_card.dart';
-export 'duo_game_stats_bar.dart';
-export 'duo_level_progress_card.dart';
+// Base widgets
+export 'base/duo_button.dart';
+export 'base/duo_card.dart';
+export 'base/duo_avatar.dart';
+
+// Feedback widgets
+export 'feedback/duo_alert.dart';
+export 'feedback/duo_badge.dart';
+export 'feedback/duo_progress.dart';
+export 'feedback/duo_empty_state.dart';
+export 'feedback/duo_feedback_message.dart';
+
+// Navigation widgets
+export 'navigation/duo_app_bar.dart';
+export 'navigation/duo_nav_bar.dart';
+export 'navigation/duo_icon_button.dart';
+
+// Form widgets
+export 'form/duo_input.dart';
+export 'form/duo_dropdown.dart';
+export 'form/duo_chip_selector.dart';
+export 'form/duo_number_input.dart';
+
+// Display widgets
+export 'display/duo_list_tile.dart';
+export 'display/duo_stat_card.dart';
+export 'display/duo_profile_card.dart';
+export 'display/duo_message_card.dart';
+export 'display/duo_mini_stat.dart';
+export 'display/tvu_mascot.dart';
+
+// Game widgets
+export 'game/duo_currency_card.dart';
+export 'game/duo_level_badge.dart';
+export 'game/duo_level_card.dart';
+export 'game/duo_level_progress_card.dart';
+export 'game/duo_reward_card.dart';
+export 'game/duo_reward_row.dart';
+export 'game/duo_xp_progress.dart';
+export 'game/duo_game_stats_bar.dart';
+export 'game/duo_attendance_card.dart';
+export 'game/duo_attendance_rate_card.dart';
