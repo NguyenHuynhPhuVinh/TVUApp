@@ -122,7 +122,7 @@ class GradesView extends GetView<GradesController> {
                     .replaceAll('Học kỳ ', 'HK')
                     .replaceAll(' - Năm học ', ' ');
                 final hasGrades = semester.subjects
-                    .any((g) => g.diemTongKet != null);
+                    .any((g) => g.hasGrade);
                 return DuoChipItem<int>(
                   value: index,
                   label: shortName,
@@ -187,10 +187,10 @@ class GradesView extends GetView<GradesController> {
                   child: DuoGradeCard(
                     subject: grade.tenMon,
                     credits: grade.soTinChi.toString(),
-                    group: null,
+                    group: grade.nhomTo,
                     score: score,
-                    letterGrade: grade.diemChu,
-                    score4: grade.diemHe4?.toStringAsFixed(1),
+                    letterGrade: grade.diemTkChu,
+                    score4: grade.diemTkSo,
                     note: score.isEmpty ? 'Chưa có điểm' : null,
                   ),
                 ).animateListItem(index: index, staggerDelay: 30, duration: 200);
@@ -342,7 +342,7 @@ class GradesView extends GetView<GradesController> {
                 .map((g) => DuoGradeCategoryItem(
                       subject: g.tenMon,
                       score: controller.getScore(g),
-                      letterGrade: g.diemChu ?? '',
+                      letterGrade: g.diemTkChu,
                     ))
                 .toList(),
           );

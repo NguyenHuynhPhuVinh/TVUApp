@@ -28,9 +28,9 @@ class GradesController extends GetxController {
   SemesterGrade? get _latestSemester =>
       gradesBySemester.isNotEmpty ? gradesBySemester.first : null;
 
-  String get gpa10 => _latestSemester?.dtbTichLuyHe10?.toStringAsFixed(2) ?? '0';
-  String get gpa4 => _latestSemester?.dtbTichLuyHe4?.toStringAsFixed(2) ?? '0';
-  String get totalCredits => _latestSemester?.soTinChiTichLuy.toString() ?? '0';
+  String get gpa10 => _latestSemester?.dtbTichLuyHe10 ?? '0';
+  String get gpa4 => _latestSemester?.dtbTichLuyHe4 ?? '0';
+  String get totalCredits => _latestSemester?.soTinChiDatTichLuy ?? '0';
 
   // === SEMESTER DATA ===
   SemesterGrade? get currentSemester {
@@ -38,11 +38,9 @@ class GradesController extends GetxController {
     return gradesBySemester[selectedSemesterIndex.value];
   }
 
-  String get semesterGpa10 =>
-      currentSemester?.dtbHocKyHe10?.toStringAsFixed(2) ?? '';
-  String get semesterGpa4 =>
-      currentSemester?.dtbHocKyHe4?.toStringAsFixed(2) ?? '';
-  String get semesterCredits => currentSemester?.soTinChiDat.toString() ?? '';
+  String get semesterGpa10 => currentSemester?.dtbHkHe10 ?? '';
+  String get semesterGpa4 => currentSemester?.dtbHkHe4 ?? '';
+  String get semesterCredits => currentSemester?.soTinChiDatHk ?? '';
   String get semesterClassification => currentSemester?.academicRank ?? '';
 
   List<SubjectGrade> get currentSemesterGrades =>
@@ -50,7 +48,7 @@ class GradesController extends GetxController {
 
   // === RANK CALCULATION ===
   int get rankIndex {
-    final gpa = _latestSemester?.dtbTichLuyHe10 ?? 0;
+    final gpa = _latestSemester?.dtbTichLuyHe10Double ?? 0;
     return RankHelper.getRankIndexFromGpa(gpa);
   }
 
@@ -62,7 +60,7 @@ class GradesController extends GetxController {
 
   double get progressToNextRank {
     if (RankHelper.isMaxRank(rankIndex)) return 1.0;
-    final gpa = _latestSemester?.dtbTichLuyHe10 ?? 0;
+    final gpa = _latestSemester?.dtbTichLuyHe10Double ?? 0;
     final currentRankGpa = (rankIndex / 55) * 10;
     final nextRankGpa = ((rankIndex + 1) / 55) * 10;
     final progress = (gpa - currentRankGpa) / (nextRankGpa - currentRankGpa);
@@ -75,7 +73,6 @@ class GradesController extends GetxController {
     return nextGpa.toStringAsFixed(2);
   }
 
-
   // === GRADE ANALYSIS ===
   Map<String, List<SubjectGrade>> get gradesByClassification {
     final result = <String, List<SubjectGrade>>{
@@ -87,7 +84,7 @@ class GradesController extends GetxController {
     };
 
     for (final grade in gradedSubjects) {
-      final score = grade.diemTongKet;
+      final score = grade.diemTkDouble;
       if (score == null) continue;
 
       if (score >= 9.0) {
@@ -112,8 +109,8 @@ class GradesController extends GetxController {
   SubjectGrade? get highestGrade {
     if (gradedSubjects.isEmpty) return null;
     return gradedSubjects.reduce((a, b) {
-      final scoreA = a.diemTongKet ?? 0;
-      final scoreB = b.diemTongKet ?? 0;
+      final scoreA = a.diemTkDouble ?? 0;
+      final scoreB = b.diemTkDouble ?? 0;
       return scoreA > scoreB ? a : b;
     });
   }
@@ -121,14 +118,14 @@ class GradesController extends GetxController {
   SubjectGrade? get lowestGrade {
     if (gradedSubjects.isEmpty) return null;
     return gradedSubjects.reduce((a, b) {
-      final scoreA = a.diemTongKet ?? 10;
-      final scoreB = b.diemTongKet ?? 10;
+      final scoreA = a.diemTkDouble ?? 10;
+      final scoreB = b.diemTkDouble ?? 10;
       return scoreA < scoreB ? a : b;
     });
   }
 
   String getScore(SubjectGrade grade) {
-    return grade.diemTongKet?.toStringAsFixed(1) ?? '';
+    return grade.diemTk;
   }
 
   Color getClassificationColor(String classification) {
@@ -167,7 +164,7 @@ class GradesController extends GetxController {
       final graded = <SubjectGrade>[];
       for (final semester in gradesBySemester) {
         for (final subject in semester.subjects) {
-          if (subject.diemTongKet != null) {
+          if (subject.hasGrade) {
             graded.add(subject);
           }
         }
@@ -178,7 +175,6 @@ class GradesController extends GetxController {
 
   void selectTab(int index) => selectedTab.value = index;
   void selectSemester(int index) => selectedSemesterIndex.value = index;
-
 
   // === RANK REWARDS ===
 

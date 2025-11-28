@@ -1,11 +1,12 @@
 import 'package:get/get.dart';
 import '../../../core/utils/date_formatter.dart';
 import '../../../infrastructure/storage/storage_service.dart';
+import '../models/notification_model.dart';
 
 class NotificationsController extends GetxController {
   final StorageService _storage = Get.find<StorageService>();
 
-  final notificationList = <Map<String, dynamic>>[].obs;
+  final notificationList = <NotificationItem>[].obs;
   final unreadCount = 0.obs;
 
   @override
@@ -20,7 +21,7 @@ class NotificationsController extends GetxController {
       final data = notificationsData['data'];
       final list = data['ds_thong_bao'] as List? ?? [];
       notificationList.value =
-          list.map((e) => Map<String, dynamic>.from(e)).toList();
+          list.map((e) => NotificationItem.fromJson(e)).toList();
       unreadCount.value = data['notification'] ?? 0;
     }
   }

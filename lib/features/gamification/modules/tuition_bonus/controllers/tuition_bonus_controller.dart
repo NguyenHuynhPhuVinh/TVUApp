@@ -1,10 +1,10 @@
 import 'package:get/get.dart';
-import '../../../../core/extensions/number_extensions.dart';
-import '../../../../core/utils/number_formatter.dart';
-import '../../../../features/auth/data/auth_service.dart';
-import '../../../../features/gamification/core/game_service.dart';
-import '../../../../infrastructure/storage/storage_service.dart';
-import '../../../../routes/app_routes.dart';
+import '../../../../../core/extensions/number_extensions.dart';
+import '../../../../../core/utils/number_formatter.dart';
+import '../../../../../features/auth/data/auth_service.dart';
+import '../../../core/game_service.dart';
+import '../../../../../infrastructure/storage/storage_service.dart';
+import '../../../../../routes/app_routes.dart';
 
 class TuitionBonusController extends GetxController {
   final GameService _gameService = Get.find<GameService>();

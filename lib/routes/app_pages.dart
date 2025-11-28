@@ -21,8 +21,8 @@ import '../features/academic/schedule/bindings/schedule_binding.dart';
 import '../features/academic/schedule/views/schedule_view.dart';
 import '../features/academic/tuition/bindings/tuition_binding.dart';
 import '../features/academic/tuition/views/tuition_view.dart';
-import '../features/academic/tuition_bonus/bindings/tuition_bonus_binding.dart';
-import '../features/academic/tuition_bonus/views/tuition_bonus_view.dart';
+import '../features/gamification/modules/tuition_bonus/bindings/tuition_bonus_binding.dart';
+import '../features/gamification/modules/tuition_bonus/views/tuition_bonus_view.dart';
 
 // Gamification features
 import '../features/gamification/modules/game_setup/bindings/game_setup_binding.dart';

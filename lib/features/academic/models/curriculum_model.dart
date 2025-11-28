@@ -58,10 +58,16 @@ class CurriculumSemester {
   factory CurriculumSemester.fromJson(Map<String, dynamic> json) {
     final subjectList = json['ds_CTDT_mon_hoc'] as List? ?? [];
     return CurriculumSemester(
-      hocKy: json['hoc_ky'] as int? ?? 0,
+      hocKy: _parseInt(json['hoc_ky']),
       tenHocKy: json['ten_hoc_ky']?.toString() ?? '',
       subjects: subjectList.map((e) => CurriculumSubject.fromJson(e)).toList(),
     );
+  }
+
+  static int _parseInt(dynamic value) {
+    if (value == null) return 0;
+    if (value is int) return value;
+    return int.tryParse(value.toString()) ?? 0;
   }
 
   /// Tổng tín chỉ trong học kỳ

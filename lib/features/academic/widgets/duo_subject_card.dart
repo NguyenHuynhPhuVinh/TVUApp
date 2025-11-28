@@ -110,19 +110,25 @@ class DuoSubjectCard extends StatelessWidget {
                 SizedBox(height: AppStyles.space1),
                 Row(
                   children: [
-                    DuoCurrencyRow.coin(
-                      value: reward['coins']!,
-                      size: DuoCurrencySize.xs,
+                    Flexible(
+                      child: DuoCurrencyRow.coin(
+                        value: reward['coins']!,
+                        size: DuoCurrencySize.xs,
+                      ),
                     ),
                     SizedBox(width: AppStyles.space2),
-                    DuoCurrencyRow.diamond(
-                      value: reward['diamonds']!,
-                      size: DuoCurrencySize.xs,
+                    Flexible(
+                      child: DuoCurrencyRow.diamond(
+                        value: reward['diamonds']!,
+                        size: DuoCurrencySize.xs,
+                      ),
                     ),
                     SizedBox(width: AppStyles.space2),
-                    DuoCurrencyRow.xp(
-                      value: reward['xp']!,
-                      size: DuoCurrencySize.xs,
+                    Flexible(
+                      child: DuoCurrencyRow.xp(
+                        value: reward['xp']!,
+                        size: DuoCurrencySize.xs,
+                      ),
                     ),
                   ],
                 ),

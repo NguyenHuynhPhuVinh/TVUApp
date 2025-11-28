@@ -190,12 +190,15 @@ class DuoPurchaseBottomSheet extends StatelessWidget {
               SizedBox(height: AppStyles.space1),
               Row(
                 children: [
-                  Text(
-                    NumberFormatter.withCommas(itemAmount),
-                    style: TextStyle(
-                      fontSize: AppStyles.text2xl,
-                      fontWeight: AppStyles.fontBold,
-                      color: AppColors.primary,
+                  Flexible(
+                    child: Text(
+                      NumberFormatter.withCommas(itemAmount),
+                      style: TextStyle(
+                        fontSize: AppStyles.text2xl,
+                        fontWeight: AppStyles.fontBold,
+                        color: AppColors.primary,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   if (bonusAmount != null && bonusAmount! > 0) ...[

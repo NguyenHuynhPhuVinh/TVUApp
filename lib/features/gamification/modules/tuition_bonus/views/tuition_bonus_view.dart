@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import '../../../../core/constants/app_assets.dart';
-import '../../../../core/extensions/animation_extensions.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_styles.dart';
-import '../../../../core/utils/number_formatter.dart';
-import '../../../../core/components/widgets.dart';
+import '../../../../../core/constants/app_assets.dart';
+import '../../../../../core/extensions/animation_extensions.dart';
+import '../../../../../core/theme/app_colors.dart';
+import '../../../../../core/theme/app_styles.dart';
+import '../../../../../core/utils/number_formatter.dart';
+import '../../../../../core/components/widgets.dart';
 import '../controllers/tuition_bonus_controller.dart';
 
 class TuitionBonusView extends GetView<TuitionBonusController> {

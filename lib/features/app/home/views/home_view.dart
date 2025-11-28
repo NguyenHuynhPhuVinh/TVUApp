@@ -25,7 +25,7 @@ class HomeView extends GetView<HomeController> {
               icon: Iconsax.notification,
               variant: DuoIconButtonVariant.white,
               size: DuoIconButtonSize.md,
-              onTap: () => Get.toNamed('/news'),
+              onTap: () => Get.toNamed('/notifications'),
             ),
           ),
         ],

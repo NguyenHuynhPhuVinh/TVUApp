@@ -182,12 +182,17 @@ class DuoCurrencyRow extends StatelessWidget {
           ),
         ),
         SizedBox(width: _spacing),
-        Text(
-          _formattedValue,
-          style: valueStyle ?? TextStyle(
-            fontSize: _fontSize,
-            fontWeight: AppStyles.fontBold,
-            color: AppColors.textPrimary,
+        Flexible(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              _formattedValue,
+              style: valueStyle ?? TextStyle(
+                fontSize: _fontSize,
+                fontWeight: AppStyles.fontBold,
+                color: AppColors.textPrimary,
+              ),
+            ),
           ),
         ),
       ],

@@ -6,6 +6,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_styles.dart';
 import '../../../core/components/widgets.dart';
 import '../controllers/notifications_controller.dart';
+import '../models/notification_model.dart';
 
 class NotificationsView extends GetView<NotificationsController> {
   const NotificationsView({super.key});
@@ -45,7 +46,7 @@ class NotificationsView extends GetView<NotificationsController> {
 
 /// Item thông báo
 class _NotificationItem extends StatelessWidget {
-  final Map<String, dynamic> item;
+  final NotificationItem item;
   final int index;
   final NotificationsController controller;
 
@@ -57,22 +58,19 @@ class _NotificationItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isRead = item['is_da_doc'] == true;
-    final isPriority = item['is_phai_xem'] == true;
-
     return Container(
       margin: EdgeInsets.only(bottom: AppStyles.space3),
       child: DuoNotificationCard(
-        title: item['tieu_de'] ?? 'N/A',
-        target: item['doi_tuong_search'],
-        date: controller.formatDate(item['ngay_gui']),
-        isRead: isRead,
-        isPriority: isPriority,
+        title: item.tieuDe.isNotEmpty ? item.tieuDe : 'N/A',
+        target: item.doiTuongSearch,
+        date: controller.formatDate(item.ngayGui),
+        isRead: item.isRead,
+        isPriority: item.isPriority,
         onTap: () => DuoNotificationDetail.show(
-          title: item['tieu_de'] ?? 'N/A',
-          date: controller.formatDate(item['ngay_gui']),
-          content: item['noi_dung'] ?? '',
-          isPriority: isPriority,
+          title: item.tieuDe.isNotEmpty ? item.tieuDe : 'N/A',
+          date: controller.formatDate(item.ngayGui),
+          content: item.noiDung,
+          isPriority: item.isPriority,
         ),
       ),
     ).animateFadeSlideRight(delay: (index * 30).toDouble(), slideBegin: 0.05);
