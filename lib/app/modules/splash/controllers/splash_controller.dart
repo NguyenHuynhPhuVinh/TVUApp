@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:get/get.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../../data/services/api_service.dart';
@@ -24,11 +25,22 @@ class SplashController extends GetxController {
   final syncProgress = 0.0.obs;
   final syncStatus = ''.obs;
   final isFirstTimeSync = false.obs;
+  final appVersion = ''.obs;
 
   @override
   void onInit() {
     super.onInit();
+    _loadAppVersion();
     _checkUpdateAndLoad();
+  }
+
+  Future<void> _loadAppVersion() async {
+    try {
+      final packageInfo = await PackageInfo.fromPlatform();
+      appVersion.value = 'v${packageInfo.version}';
+    } catch (e) {
+      appVersion.value = '';
+    }
   }
 
   /// Kiểm tra cập nhật trước, sau đó load app

@@ -14,14 +14,24 @@ class AuthController extends GetxController {
   final isLoading = false.obs;
   final isPasswordVisible = false.obs;
   final errorMessage = ''.obs;
+  final acceptedTerms = false.obs;
 
   void togglePasswordVisibility() {
     isPasswordVisible.value = !isPasswordVisible.value;
   }
 
+  void toggleAcceptedTerms() {
+    acceptedTerms.value = !acceptedTerms.value;
+  }
+
   Future<void> login() async {
     if (usernameController.text.isEmpty || passwordController.text.isEmpty) {
       errorMessage.value = 'Vui lòng nhập đầy đủ thông tin';
+      return;
+    }
+
+    if (!acceptedTerms.value) {
+      errorMessage.value = 'Vui lòng đồng ý với điều khoản sử dụng';
       return;
     }
 

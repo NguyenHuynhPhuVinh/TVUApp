@@ -34,12 +34,15 @@ class LoginView extends GetView<AuthController> {
                 _buildWelcomeText(),
                 SizedBox(height: AppStyles.space8),
                 _buildLoginForm(),
-                SizedBox(height: AppStyles.space6),
+                SizedBox(height: AppStyles.space4),
+                _buildTermsCheckbox(),
+                SizedBox(height: AppStyles.space4),
                 _buildLoginButton(),
                 SizedBox(height: AppStyles.space4),
                 _buildErrorMessage(),
                 SizedBox(height: AppStyles.space8),
                 _buildFooterDecoration(),
+                SizedBox(height: AppStyles.space10),
               ],
             ),
           ),
@@ -105,6 +108,34 @@ class LoginView extends GetView<AuthController> {
             )).animate().fadeIn(duration: 500.ms, delay: 600.ms).slideX(begin: 0.2, end: 0),
       ],
     );
+  }
+
+  Widget _buildTermsCheckbox() {
+    return Obx(() => DuoCheckbox(
+          value: controller.acceptedTerms.value,
+          onChanged: (_) => controller.toggleAcceptedTerms(),
+          label: Row(
+            children: [
+              Text(
+                'Tôi đồng ý với ',
+                style: TextStyle(fontSize: AppStyles.textSm, color: AppColors.textSecondary),
+              ),
+              GestureDetector(
+                onTap: () => DuoTermsDialog.show(),
+                child: Text(
+                  'điều khoản sử dụng',
+                  style: TextStyle(
+                    fontSize: AppStyles.textSm,
+                    color: AppColors.primary,
+                    fontWeight: AppStyles.fontSemibold,
+                    decoration: TextDecoration.underline,
+                    decorationColor: AppColors.primary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        )).animate().fadeIn(duration: 500.ms, delay: 700.ms);
   }
 
   Widget _buildLoginButton() {

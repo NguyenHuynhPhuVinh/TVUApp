@@ -157,7 +157,7 @@ class SplashView extends GetView<SplashController> {
       padding: EdgeInsets.only(bottom: AppStyles.space6),
       child: Column(
         children: [
-          const DuoVersionBadge(version: 'v1.0'),
+          Obx(() => DuoVersionBadge(version: controller.appVersion.value)),
           SizedBox(height: AppStyles.space3),
           Text(
             'Tạo bởi TomiSakae',

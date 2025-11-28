@@ -16,6 +16,7 @@ export 'feedback/duo_feedback_message.dart';
 export 'feedback/duo_tag.dart';
 export 'feedback/duo_update_dialog.dart';
 export 'feedback/duo_security_dialog.dart';
+export 'feedback/duo_terms_dialog.dart';
 
 // Navigation widgets
 export 'navigation/duo_app_bar.dart';
@@ -27,6 +28,7 @@ export 'form/duo_input.dart';
 export 'form/duo_dropdown.dart';
 export 'form/duo_chip_selector.dart';
 export 'form/duo_number_input.dart';
+export 'form/duo_checkbox.dart';
 
 // Display widgets
 export 'display/duo_list_tile.dart';
