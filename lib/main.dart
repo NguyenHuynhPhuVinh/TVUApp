@@ -5,19 +5,28 @@ import 'package:get/get.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
-import 'app/data/services/auth_service.dart';
-import 'app/data/services/api_service.dart';
-import 'app/data/services/firebase_service.dart';
-import 'app/data/services/game_service.dart';
-import 'app/data/services/game_security_guard.dart';
-import 'app/data/services/game_sync_service.dart';
-import 'app/data/services/shop_service.dart';
-import 'app/data/services/data_sync_manager.dart';
-import 'app/data/services/storage_service.dart';
-import 'app/data/services/update_service.dart';
-import 'app/data/services/security_service.dart';
-import 'app/routes/app_pages.dart';
-import 'app/core/theme/app_theme.dart';
+// Infrastructure
+import 'infrastructure/network/api_service.dart';
+import 'infrastructure/firebase/firebase_service.dart';
+import 'infrastructure/storage/storage_service.dart';
+import 'infrastructure/security/security_service.dart';
+import 'infrastructure/update/update_service.dart';
+import 'infrastructure/data_sync_manager.dart';
+
+// Features - Auth
+import 'features/auth/data/auth_service.dart';
+
+// Features - Gamification
+import 'features/gamification/core/game_service.dart';
+import 'features/gamification/core/game_security_guard.dart';
+import 'features/gamification/core/game_sync_service.dart';
+import 'features/gamification/shop/shop_service.dart';
+
+// Features - App
+import 'features/app/routes/app_pages.dart';
+
+// Core
+import 'core/theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
