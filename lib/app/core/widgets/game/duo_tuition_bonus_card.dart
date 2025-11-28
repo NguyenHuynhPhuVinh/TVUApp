@@ -1,23 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../constants/app_assets.dart';
+import '../../enums/reward_claim_status.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_styles.dart';
 import '../../utils/number_formatter.dart';
 import '../base/duo_button.dart';
 import '../base/duo_card.dart';
-import '../feedback/duo_tag.dart';
-
-/// Trạng thái của card thưởng học phí
-enum DuoTuitionBonusState {
-  canClaim,    // Có thể nhận
-  claimed,     // Đã nhận
-  loading,     // Đang xử lý
-}
+import '../feedback/duo_badge.dart';
+import 'duo_currency_row.dart';
 
 /// Card hiển thị thưởng học phí - có đủ trạng thái theo UI guidelines
 class DuoTuitionBonusCard extends StatelessWidget {
-  final DuoTuitionBonusState state;
+  final RewardClaimStatus state;
   final int tuitionPaid;
   final int virtualBalance;
   final VoidCallback? onClaim;
@@ -38,7 +32,7 @@ class DuoTuitionBonusCard extends StatelessWidget {
     bool isLoading = false,
   }) {
     return DuoTuitionBonusCard(
-      state: isLoading ? DuoTuitionBonusState.loading : DuoTuitionBonusState.canClaim,
+      state: isLoading ? RewardClaimStatus.claiming : RewardClaimStatus.canClaim,
       tuitionPaid: tuitionPaid,
       virtualBalance: virtualBalance,
       onClaim: onClaim,
@@ -50,7 +44,7 @@ class DuoTuitionBonusCard extends StatelessWidget {
     required int virtualBalance,
   }) {
     return DuoTuitionBonusCard(
-      state: DuoTuitionBonusState.claimed,
+      state: RewardClaimStatus.claimed,
       tuitionPaid: 0,
       virtualBalance: virtualBalance,
     );
@@ -60,14 +54,14 @@ class DuoTuitionBonusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (state == DuoTuitionBonusState.claimed) {
+    if (state.isCompleted) {
       return _buildClaimedCard();
     }
     return _buildCanClaimCard();
   }
 
   Widget _buildCanClaimCard() {
-    final isLoading = state == DuoTuitionBonusState.loading;
+    final isLoading = state.isLoading;
     
     return DuoCard(
       backgroundColor: AppColors.greenSoft,
@@ -76,23 +70,13 @@ class DuoTuitionBonusCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Image.asset(
-                AppAssets.tvuCash,
-                width: 32.w,
-                height: 32.w,
+              DuoCurrencyRow.tvuCash(
+                value: virtualBalance,
+                size: DuoCurrencySize.lg,
+                compact: false,
               ),
-              SizedBox(width: AppStyles.space2),
-              Expanded(
-                child: Text(
-                  'Thưởng học phí',
-                  style: TextStyle(
-                    fontSize: AppStyles.textLg,
-                    fontWeight: AppStyles.fontBold,
-                    color: AppColors.green,
-                  ),
-                ),
-              ),
-              const DuoTag(text: 'Mới', color: AppColors.green),
+              const Spacer(),
+              DuoBadge.tag(text: 'Mới', color: AppColors.green),
             ],
           ),
           SizedBox(height: AppStyles.space3),
@@ -105,7 +89,7 @@ class DuoTuitionBonusCard extends StatelessWidget {
           ),
           SizedBox(height: AppStyles.space1),
           Text(
-            'Nhận ngay ${NumberFormatter.withCommas(virtualBalance)} TVUCash!',
+            'Nhận ngay thưởng TVUCash!',
             style: TextStyle(
               fontSize: AppStyles.textBase,
               fontWeight: AppStyles.fontSemibold,
@@ -129,34 +113,25 @@ class DuoTuitionBonusCard extends StatelessWidget {
       backgroundColor: AppColors.background,
       child: Row(
         children: [
-          Image.asset(
-            AppAssets.tvuCash,
-            width: 32.w,
-            height: 32.w,
-          ),
-          SizedBox(width: AppStyles.space3),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Thưởng học phí',
-                  style: TextStyle(
-                    fontSize: AppStyles.textBase,
-                    fontWeight: AppStyles.fontSemibold,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                Text(
-                  'Đã nhận ${NumberFormatter.withCommas(virtualBalance)} TVUCash',
-                  style: TextStyle(
-                    fontSize: AppStyles.textSm,
-                    color: AppColors.textTertiary,
-                  ),
-                ),
-              ],
+          DuoCurrencyRow.tvuCash(
+            value: virtualBalance,
+            size: DuoCurrencySize.md,
+            showPlus: true,
+            valueStyle: TextStyle(
+              fontSize: AppStyles.textBase,
+              fontWeight: AppStyles.fontSemibold,
+              color: AppColors.textTertiary,
             ),
           ),
+          const Spacer(),
+          Text(
+            'Đã nhận',
+            style: TextStyle(
+              fontSize: AppStyles.textSm,
+              color: AppColors.textTertiary,
+            ),
+          ),
+          SizedBox(width: AppStyles.space2),
           Icon(
             Icons.check_circle_rounded,
             color: AppColors.green,

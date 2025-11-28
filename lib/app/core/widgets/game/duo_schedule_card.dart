@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iconsax/iconsax.dart';
 import '../../../data/services/game_service.dart';
-import '../../constants/app_assets.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_styles.dart';
 import '../base/duo_card.dart';
 import '../feedback/duo_badge.dart';
 import '../display/duo_info_row.dart';
+import 'duo_currency_row.dart';
 import 'duo_lesson_checkin.dart';
 
 /// Widget hiển thị card lịch học với check-in
@@ -175,11 +175,35 @@ class DuoScheduleCard extends StatelessWidget {
                   alignment: Alignment.centerLeft,
                   child: Row(
                     children: [
-                      _buildRewardItem(AppAssets.coin, coins, textColor),
+                      DuoCurrencyRow.coin(
+                        value: coins,
+                        size: DuoCurrencySize.xs,
+                        valueStyle: TextStyle(
+                          fontSize: AppStyles.textXs,
+                          fontWeight: AppStyles.fontBold,
+                          color: textColor,
+                        ),
+                      ),
                       SizedBox(width: AppStyles.space2),
-                      _buildRewardItem(AppAssets.diamond, diamonds, textColor),
+                      DuoCurrencyRow.diamond(
+                        value: diamonds,
+                        size: DuoCurrencySize.xs,
+                        valueStyle: TextStyle(
+                          fontSize: AppStyles.textXs,
+                          fontWeight: AppStyles.fontBold,
+                          color: textColor,
+                        ),
+                      ),
                       SizedBox(width: AppStyles.space2),
-                      _buildRewardItem(AppAssets.xpStar, xp, textColor),
+                      DuoCurrencyRow.xp(
+                        value: xp,
+                        size: DuoCurrencySize.xs,
+                        valueStyle: TextStyle(
+                          fontSize: AppStyles.textXs,
+                          fontWeight: AppStyles.fontBold,
+                          color: textColor,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -202,35 +226,4 @@ class DuoScheduleCard extends StatelessWidget {
     );
   }
 
-  Widget _buildRewardItem(String assetPath, int value, Color textColor) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Image.asset(
-          assetPath,
-          width: 14.w,
-          height: 14.w,
-          errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-        ),
-        SizedBox(width: 2.w),
-        Text(
-          _formatNumber(value),
-          style: TextStyle(
-            fontSize: AppStyles.textXs,
-            fontWeight: AppStyles.fontBold,
-            color: textColor,
-          ),
-        ),
-      ],
-    );
-  }
-
-  String _formatNumber(int number) {
-    if (number >= 1000000) {
-      return '${(number / 1000000).toStringAsFixed(1)}M';
-    } else if (number >= 1000) {
-      return '${(number / 1000).toStringAsFixed(0)}K';
-    }
-    return number.toString();
-  }
 }

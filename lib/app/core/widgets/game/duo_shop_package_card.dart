@@ -5,7 +5,8 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_styles.dart';
 import '../../utils/number_formatter.dart';
 import '../base/duo_card.dart';
-import '../feedback/duo_tag.dart';
+import '../feedback/duo_badge.dart';
+import 'duo_currency_row.dart';
 
 /// Loại gói shop
 enum DuoShopPackageType { diamond, coin }
@@ -154,7 +155,7 @@ class DuoShopPackageCard extends StatelessWidget {
                       ),
                       if (tag != null) ...[
                         SizedBox(width: AppStyles.space2),
-                        DuoTag(
+                        DuoBadge.tag(
                           text: tag!,
                           color: tagColor ?? AppColors.orange,
                         ),
@@ -170,21 +171,17 @@ class DuoShopPackageCard extends StatelessWidget {
                       ),
                     ),
                   SizedBox(height: AppStyles.space2),
-                  Row(
-                    children: [
-                      Image.asset(_costIconPath, width: 16.w, height: 16.w),
-                      SizedBox(width: AppStyles.space1),
-                      Text(
-                        type == DuoShopPackageType.diamond
-                            ? NumberFormatter.withCommas(cost)
-                            : NumberFormatter.compact(cost),
-                        style: TextStyle(
-                          fontSize: AppStyles.textSm,
-                          fontWeight: AppStyles.fontSemibold,
-                          color: canBuy ? _costColor : AppColors.textDisabled,
-                        ),
-                      ),
-                    ],
+                  // Sử dụng DuoCurrencyRow cho cost
+                  DuoCurrencyRow(
+                    assetPath: _costIconPath,
+                    value: cost,
+                    size: DuoCurrencySize.sm,
+                    compact: type != DuoShopPackageType.diamond,
+                    valueStyle: TextStyle(
+                      fontSize: AppStyles.textSm,
+                      fontWeight: AppStyles.fontSemibold,
+                      color: canBuy ? _costColor : AppColors.textDisabled,
+                    ),
                   ),
                 ],
               ),

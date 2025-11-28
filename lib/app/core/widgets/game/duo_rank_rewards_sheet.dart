@@ -4,8 +4,8 @@ import '../../../data/services/game_service.dart';
 import '../../constants/app_assets.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_styles.dart';
-import '../../utils/number_formatter.dart';
 import '../../utils/rank_helper.dart';
+import 'duo_currency_row.dart';
 import 'duo_rank_reward_item.dart';
 
 /// Bottom sheet hiển thị danh sách rank rewards
@@ -203,45 +203,30 @@ class DuoRankRewardsSheet extends StatelessWidget {
                     alignment: Alignment.centerLeft,
                     child: Row(
                       children: [
-                        Image.asset(
-                          AppAssets.coin,
-                          width: 16.w,
-                          height: 16.w,
-                        ),
-                        SizedBox(width: 4.w),
-                        Text(
-                          _formatNumber(rewards['coins']!),
-                          style: TextStyle(
+                        DuoCurrencyRow.coin(
+                          value: rewards['coins']!,
+                          size: DuoCurrencySize.sm,
+                          valueStyle: TextStyle(
                             fontSize: AppStyles.textSm,
                             fontWeight: AppStyles.fontSemibold,
                             color: AppColors.yellowLight,
                           ),
                         ),
                         SizedBox(width: AppStyles.space2),
-                        Image.asset(
-                          AppAssets.xpStar,
-                          width: 16.w,
-                          height: 16.w,
-                        ),
-                        SizedBox(width: 4.w),
-                        Text(
-                          _formatNumber(rewards['xp']!),
-                          style: TextStyle(
+                        DuoCurrencyRow.xp(
+                          value: rewards['xp']!,
+                          size: DuoCurrencySize.sm,
+                          valueStyle: TextStyle(
                             fontSize: AppStyles.textSm,
                             fontWeight: AppStyles.fontSemibold,
                             color: Colors.white,
                           ),
                         ),
                         SizedBox(width: AppStyles.space2),
-                        Image.asset(
-                          AppAssets.diamond,
-                          width: 16.w,
-                          height: 16.w,
-                        ),
-                        SizedBox(width: 4.w),
-                        Text(
-                          _formatNumber(rewards['diamonds']!),
-                          style: TextStyle(
+                        DuoCurrencyRow.diamond(
+                          value: rewards['diamonds']!,
+                          size: DuoCurrencySize.sm,
+                          valueStyle: TextStyle(
                             fontSize: AppStyles.textSm,
                             fontWeight: AppStyles.fontSemibold,
                             color: AppColors.primaryLight,
@@ -270,7 +255,4 @@ class DuoRankRewardsSheet extends StatelessWidget {
     );
   }
 
-  String _formatNumber(int number) {
-    return NumberFormatter.compact(number);
-  }
 }

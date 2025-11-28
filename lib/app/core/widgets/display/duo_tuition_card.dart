@@ -1,20 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iconsax/iconsax.dart';
-import '../../constants/app_assets.dart';
+import '../../enums/reward_claim_status.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_styles.dart';
-import '../../utils/number_formatter.dart';
 import '../base/duo_button.dart';
 import '../base/duo_card.dart';
-
-/// Trạng thái claim bonus học phí
-enum TuitionBonusState {
-  canClaim,   // Có thể claim (đã đóng tiền, chưa claim)
-  claimed,    // Đã claim
-  noPaid,     // Chưa đóng tiền
-  loading,    // Đang xử lý
-}
+import '../game/duo_currency_row.dart';
 
 /// Card hiển thị học phí theo học kỳ
 class DuoTuitionCard extends StatelessWidget {
@@ -27,7 +19,7 @@ class DuoTuitionCard extends StatelessWidget {
   final String conNo;
   final String? donGia;
   final bool hasDebt;
-  final TuitionBonusState bonusState;
+  final RewardClaimStatus bonusState;
   final int daThuAmount; // Số tiền đã đóng (để hiển thị bonus)
   final VoidCallback? onClaimBonus;
 
@@ -42,7 +34,7 @@ class DuoTuitionCard extends StatelessWidget {
     required this.conNo,
     this.donGia,
     required this.hasDebt,
-    this.bonusState = TuitionBonusState.noPaid,
+    this.bonusState = RewardClaimStatus.locked,
     this.daThuAmount = 0,
     this.onClaimBonus,
   });
@@ -81,7 +73,7 @@ class DuoTuitionCard extends StatelessWidget {
             ),
           ],
           // Bonus section
-          if (bonusState != TuitionBonusState.noPaid) ...[
+          if (!bonusState.isLocked) ...[
             SizedBox(height: AppStyles.space3),
             _buildBonusSection(),
           ],
@@ -94,9 +86,7 @@ class DuoTuitionCard extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(AppStyles.space3),
       decoration: BoxDecoration(
-        color: bonusState == TuitionBonusState.claimed 
-            ? AppColors.backgroundDark 
-            : AppColors.greenSoft,
+        color: bonusState.isCompleted ? AppColors.backgroundDark : AppColors.greenSoft,
         borderRadius: AppStyles.roundedLg,
       ),
       child: Column(
@@ -104,64 +94,39 @@ class DuoTuitionCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Image.asset(
-                AppAssets.tvuCash,
-                width: 20.w,
-                height: 20.w,
-              ),
-              SizedBox(width: AppStyles.space2),
-              Expanded(
-                child: Text(
-                  bonusState == TuitionBonusState.claimed 
-                      ? 'Đã nhận thưởng' 
-                      : 'Thưởng học phí',
-                  style: TextStyle(
-                    fontSize: AppStyles.textSm,
-                    fontWeight: AppStyles.fontSemibold,
-                    color: bonusState == TuitionBonusState.claimed 
-                        ? AppColors.textTertiary 
-                        : AppColors.green,
-                  ),
+              DuoCurrencyRow.tvuCash(
+                value: daThuAmount,
+                size: DuoCurrencySize.sm,
+                showPlus: true,
+                valueStyle: TextStyle(
+                  fontSize: AppStyles.textSm,
+                  fontWeight: AppStyles.fontSemibold,
+                  color: bonusState.isCompleted ? AppColors.textTertiary : AppColors.green,
                 ),
               ),
-              if (bonusState == TuitionBonusState.claimed)
-                Icon(
-                  Icons.check_circle_rounded,
-                  size: 16.sp,
-                  color: AppColors.green,
+              const Spacer(),
+              Text(
+                bonusState.isCompleted ? 'Đã nhận thưởng' : 'Thưởng học phí',
+                style: TextStyle(
+                  fontSize: AppStyles.textSm,
+                  fontWeight: AppStyles.fontSemibold,
+                  color: bonusState.isCompleted ? AppColors.textTertiary : AppColors.green,
                 ),
+              ),
+              if (bonusState.isCompleted) ...[
+                SizedBox(width: AppStyles.space1),
+                Icon(Icons.check_circle_rounded, size: 16.sp, color: AppColors.green),
+              ],
             ],
           ),
-          if (bonusState != TuitionBonusState.claimed) ...[
-            SizedBox(height: AppStyles.space2),
-            Text(
-              '+${NumberFormatter.withCommas(daThuAmount)} TVUCash',
-              style: TextStyle(
-                fontSize: AppStyles.textBase,
-                fontWeight: AppStyles.fontBold,
-                color: AppColors.green,
-              ),
-            ),
+          if (!bonusState.isCompleted) ...[
             SizedBox(height: AppStyles.space3),
             DuoButton(
-              text: bonusState == TuitionBonusState.loading 
-                  ? 'Đang xử lý...' 
-                  : 'Nhận thưởng',
+              text: bonusState.isLoading ? 'Đang xử lý...' : 'Nhận thưởng',
               variant: DuoButtonVariant.success,
               size: DuoButtonSize.sm,
-              isLoading: bonusState == TuitionBonusState.loading,
-              onPressed: bonusState == TuitionBonusState.loading 
-                  ? null 
-                  : onClaimBonus,
-            ),
-          ] else ...[
-            SizedBox(height: AppStyles.space1),
-            Text(
-              '+${NumberFormatter.withCommas(daThuAmount)} TVUCash',
-              style: TextStyle(
-                fontSize: AppStyles.textSm,
-                color: AppColors.textTertiary,
-              ),
+              isLoading: bonusState.isLoading,
+              onPressed: bonusState.isLoading ? null : onClaimBonus,
             ),
           ],
         ],

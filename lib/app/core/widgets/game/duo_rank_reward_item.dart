@@ -3,8 +3,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../constants/app_assets.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_styles.dart';
-import '../../utils/number_formatter.dart';
 import '../../utils/rank_helper.dart';
+import 'duo_currency_row.dart';
 
 /// Item hiển thị rank reward với trạng thái claim
 class DuoRankRewardItem extends StatelessWidget {
@@ -93,51 +93,36 @@ class DuoRankRewardItem extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: AppStyles.space1),
-                // Rewards preview
+                // Rewards preview - sử dụng DuoCurrencyRow
                 FittedBox(
                   fit: BoxFit.scaleDown,
                   alignment: Alignment.centerLeft,
                   child: Row(
                     children: [
-                      Image.asset(
-                        AppAssets.coin,
-                        width: 16.w,
-                        height: 16.w,
-                      ),
-                      SizedBox(width: 4.w),
-                      Text(
-                        _formatNumber(coinsReward),
-                        style: TextStyle(
+                      DuoCurrencyRow.coin(
+                        value: coinsReward,
+                        size: DuoCurrencySize.sm,
+                        valueStyle: TextStyle(
                           fontSize: AppStyles.textSm,
                           fontWeight: AppStyles.fontMedium,
                           color: isUnlocked ? AppColors.yellow : AppColors.textTertiary,
                         ),
                       ),
                       SizedBox(width: AppStyles.space2),
-                      Image.asset(
-                        AppAssets.xpStar,
-                        width: 16.w,
-                        height: 16.w,
-                      ),
-                      SizedBox(width: 4.w),
-                      Text(
-                        _formatNumber(xpReward),
-                        style: TextStyle(
+                      DuoCurrencyRow.xp(
+                        value: xpReward,
+                        size: DuoCurrencySize.sm,
+                        valueStyle: TextStyle(
                           fontSize: AppStyles.textSm,
                           fontWeight: AppStyles.fontMedium,
                           color: isUnlocked ? AppColors.purple : AppColors.textTertiary,
                         ),
                       ),
                       SizedBox(width: AppStyles.space2),
-                      Image.asset(
-                        AppAssets.diamond,
-                        width: 16.w,
-                        height: 16.w,
-                      ),
-                      SizedBox(width: 4.w),
-                      Text(
-                        _formatNumber(diamondsReward),
-                        style: TextStyle(
+                      DuoCurrencyRow.diamond(
+                        value: diamondsReward,
+                        size: DuoCurrencySize.sm,
+                        valueStyle: TextStyle(
                           fontSize: AppStyles.textSm,
                           fontWeight: AppStyles.fontMedium,
                           color: isUnlocked ? AppColors.primary : AppColors.textTertiary,
@@ -260,7 +245,4 @@ class DuoRankRewardItem extends StatelessWidget {
     );
   }
 
-  String _formatNumber(int number) {
-    return NumberFormatter.compact(number);
-  }
 }

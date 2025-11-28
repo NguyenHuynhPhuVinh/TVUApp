@@ -2,6 +2,9 @@
 /// Import file này để sử dụng tất cả widgets
 library;
 
+// Enums
+export '../enums/reward_claim_status.dart';
+
 // Base widgets
 export 'base/duo_button.dart';
 export 'base/duo_card.dart'; // Includes DuoPressableCard (deprecated alias)
@@ -10,11 +13,10 @@ export 'base/duo_accent_card.dart'; // Base card với thanh màu dọc
 
 // Feedback widgets
 export 'feedback/duo_alert.dart';
-export 'feedback/duo_badge.dart';
+export 'feedback/duo_badge.dart'; // Includes DuoBadge.tag() thay thế DuoTag
 export 'feedback/duo_progress.dart';
 export 'feedback/duo_empty_state.dart';
 export 'feedback/duo_feedback_card.dart';
-export 'feedback/duo_tag.dart';
 export 'feedback/duo_update_dialog.dart';
 export 'feedback/duo_security_dialog.dart';
 export 'feedback/duo_terms_dialog.dart';
