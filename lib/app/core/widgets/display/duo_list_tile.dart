@@ -2,6 +2,26 @@ import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_styles.dart';
 
+/// Shared card decoration cho các Duo widgets
+/// Đảm bảo tính đồng nhất UI giữa DuoListTile, DuoScheduleItem, etc.
+class DuoCardDecoration {
+  DuoCardDecoration._();
+
+  /// Standard card decoration với 3D effect
+  static BoxDecoration get standard => BoxDecoration(
+        color: AppColors.backgroundWhite,
+        borderRadius: AppStyles.roundedXl,
+        border: Border.all(color: AppColors.border, width: AppStyles.border2),
+        boxShadow: AppColors.cardBoxShadow(),
+      );
+
+  /// Accent bar decoration
+  static BoxDecoration accentBar(Color color) => BoxDecoration(
+        color: color,
+        borderRadius: AppStyles.roundedFull,
+      );
+}
+
 /// Duolingo-style List Tile với 3D card effect
 class DuoListTile extends StatelessWidget {
   final Widget? leading;
@@ -31,22 +51,14 @@ class DuoListTile extends StatelessWidget {
       onTap: onTap,
       child: Container(
         padding: EdgeInsets.all(AppStyles.space4),
-        decoration: BoxDecoration(
-          color: AppColors.backgroundWhite,
-          borderRadius: AppStyles.roundedXl,
-          border: Border.all(color: AppColors.border, width: AppStyles.border2),
-          boxShadow: AppColors.cardBoxShadow(),
-        ),
+        decoration: DuoCardDecoration.standard,
         child: Row(
           children: [
             if (showAccentBar) ...[
               Container(
                 width: 4,
                 height: 50,
-                decoration: BoxDecoration(
-                  color: color,
-                  borderRadius: AppStyles.roundedFull,
-                ),
+                decoration: DuoCardDecoration.accentBar(color),
               ),
               SizedBox(width: AppStyles.space3),
             ],
@@ -124,17 +136,14 @@ class DuoScheduleItem extends StatelessWidget {
       onTap: onTap,
       child: Container(
         padding: EdgeInsets.all(AppStyles.space4),
-        decoration: _cardDecoration,
+        decoration: DuoCardDecoration.standard,
         child: Row(
           children: [
             // Accent bar
             Container(
               width: 4,
               height: 80,
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: AppStyles.roundedFull,
-              ),
+              decoration: DuoCardDecoration.accentBar(color),
             ),
             SizedBox(width: AppStyles.space3),
             // Content
@@ -171,14 +180,6 @@ class DuoScheduleItem extends StatelessWidget {
       ),
     );
   }
-
-  /// Shared card decoration - tái sử dụng style từ DuoListTile
-  static BoxDecoration get _cardDecoration => BoxDecoration(
-        color: AppColors.backgroundWhite,
-        borderRadius: AppStyles.roundedXl,
-        border: Border.all(color: AppColors.border, width: AppStyles.border2),
-        boxShadow: AppColors.cardBoxShadow(),
-      );
 }
 
 /// Info row widget - dùng chung cho schedule items
