@@ -10,6 +10,7 @@ class DuoQuickAction extends StatelessWidget {
   final String label;
   final Color color;
   final VoidCallback onTap;
+  final bool showBadge;
 
   const DuoQuickAction({
     super.key,
@@ -17,6 +18,7 @@ class DuoQuickAction extends StatelessWidget {
     required this.label,
     required this.color,
     required this.onTap,
+    this.showBadge = false,
   });
 
   @override
@@ -28,13 +30,32 @@ class DuoQuickAction extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            padding: EdgeInsets.all(AppStyles.space2),
-            decoration: BoxDecoration(
-              color: AppColors.withAlpha(color, 0.1),
-              borderRadius: AppStyles.roundedLg,
-            ),
-            child: Icon(icon, size: AppStyles.iconMd, color: color),
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                padding: EdgeInsets.all(AppStyles.space2),
+                decoration: BoxDecoration(
+                  color: AppColors.withAlpha(color, 0.1),
+                  borderRadius: AppStyles.roundedLg,
+                ),
+                child: Icon(icon, size: AppStyles.iconMd, color: color),
+              ),
+              if (showBadge)
+                Positioned(
+                  top: -2,
+                  right: -2,
+                  child: Container(
+                    width: 10.w,
+                    height: 10.w,
+                    decoration: BoxDecoration(
+                      color: AppColors.red,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: AppColors.backgroundWhite, width: 1.5),
+                    ),
+                  ),
+                ),
+            ],
           ),
           SizedBox(height: AppStyles.space1),
           Flexible(

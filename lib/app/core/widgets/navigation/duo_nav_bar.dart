@@ -64,11 +64,13 @@ class DuoNavItem {
   final IconData icon;
   final IconData? activeIcon;
   final String label;
+  final bool showBadge;
 
   const DuoNavItem({
     required this.icon,
     this.activeIcon,
     required this.label,
+    this.showBadge = false,
   });
 }
 
@@ -134,14 +136,33 @@ class _DuoNavItemState extends State<_DuoNavItem> with SingleTickerProviderState
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Icon
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              child: Icon(
-                widget.isActive ? (widget.item.activeIcon ?? widget.item.icon) : widget.item.icon,
-                color: widget.isActive ? widget.activeColor : widget.inactiveColor,
-                size: 28.sp,
-              ),
+            // Icon with badge
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  child: Icon(
+                    widget.isActive ? (widget.item.activeIcon ?? widget.item.icon) : widget.item.icon,
+                    color: widget.isActive ? widget.activeColor : widget.inactiveColor,
+                    size: 28.sp,
+                  ),
+                ),
+                if (widget.item.showBadge)
+                  Positioned(
+                    top: -2,
+                    right: -4,
+                    child: Container(
+                      width: 8.w,
+                      height: 8.w,
+                      decoration: BoxDecoration(
+                        color: AppColors.red,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.backgroundWhite, width: 1),
+                      ),
+                    ),
+                  ),
+              ],
             ),
             SizedBox(height: 4.h),
             // Label

@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import '../../../core/utils/date_formatter.dart';
+import '../../../core/utils/number_formatter.dart';
 import '../../../data/models/player_stats.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../data/services/game_service.dart';
@@ -14,6 +15,10 @@ class HomeController extends GetxController {
   final studentId = ''.obs;
   final className = ''.obs;
   final todaySchedule = <Map<String, dynamic>>[].obs;
+  
+  // Badge indicators
+  final hasPendingCheckIn = false.obs;
+  final hasUnclaimedTuitionBonus = false.obs;
 
   // Game stats - expose reactive stats directly
   PlayerStats get gameStats => _gameService.stats.value;
@@ -32,6 +37,8 @@ class HomeController extends GetxController {
   void loadData() {
     loadStudentInfo();
     loadTodaySchedule();
+    checkPendingCheckIn();
+    checkUnclaimedTuitionBonus();
   }
 
   void loadStudentInfo() {
@@ -78,5 +85,89 @@ class HomeController extends GetxController {
       todayItems.sort((a, b) => (a['tiet_bat_dau'] ?? 0).compareTo(b['tiet_bat_dau'] ?? 0));
       todaySchedule.value = todayItems;
     }
+  }
+
+  /// Kiểm tra có buổi học nào có thể điểm danh hôm nay không
+  void checkPendingCheckIn() {
+    final now = DateTime.now();
+    
+    for (var lesson in todaySchedule) {
+      final tietBatDau = lesson['tiet_bat_dau'] as int? ?? 1;
+      final soTiet = lesson['so_tiet'] as int? ?? 1;
+      
+      // Tính thời gian có thể check-in (30p trước giờ học)
+      final checkInStart = GameService.calculateCheckInStartTime(now, tietBatDau);
+      final checkInDeadline = GameService.calculateCheckInDeadline(now);
+      final endTime = GameService.calculateLessonEndTime(now, tietBatDau, soTiet);
+      
+      // Kiểm tra buổi học có sau thời điểm init game không
+      final initializedAt = _gameService.stats.value.initializedAt;
+      if (initializedAt != null && endTime.isBefore(initializedAt)) {
+        continue; // Buổi học trước khi init game
+      }
+      
+      // Kiểm tra có trong khoảng thời gian điểm danh không
+      if (now.isAfter(checkInStart) && now.isBefore(checkInDeadline)) {
+        // Kiểm tra đã điểm danh chưa
+        final checkInKey = _createCheckInKey(lesson, now);
+        if (!_localStorage.hasCheckedIn(checkInKey)) {
+          hasPendingCheckIn.value = true;
+          return;
+        }
+      }
+    }
+    hasPendingCheckIn.value = false;
+  }
+
+  /// Tạo key check-in cho buổi học
+  String _createCheckInKey(Map<String, dynamic> lesson, DateTime date) {
+    final semestersData = _localStorage.getSemesters();
+    final currentSemester = semestersData?['data']?['hoc_ky_theo_ngay_hien_tai'] as int? ?? 0;
+    
+    // Tìm tuần hiện tại
+    final scheduleData = _localStorage.getSchedule(currentSemester);
+    int week = 0;
+    if (scheduleData != null) {
+      final weeks = scheduleData['ds_tuan_tkb'] as List? ?? [];
+      for (var w in weeks) {
+        final startStr = w['ngay_bat_dau'] as String?;
+        final endStr = w['ngay_ket_thuc'] as String?;
+        if (DateFormatter.isDateInRange(date, startStr, endStr)) {
+          week = w['tuan_hoc_ky'] ?? 0;
+          break;
+        }
+      }
+    }
+    
+    final day = lesson['thu_kieu_so'] ?? 0;
+    final tietBatDau = lesson['tiet_bat_dau'] ?? 0;
+    final maMon = lesson['ma_mon'] ?? '';
+    return '${currentSemester}_${week}_${day}_${tietBatDau}_$maMon';
+  }
+
+  /// Kiểm tra có học phí nào chưa claim bonus không
+  void checkUnclaimedTuitionBonus() {
+    final tuitionData = _localStorage.getTuition();
+    if (tuitionData == null || tuitionData['data'] == null) {
+      hasUnclaimedTuitionBonus.value = false;
+      return;
+    }
+
+    final tuitionList = tuitionData['data']['ds_hoc_phi_hoc_ky'] as List? ?? [];
+    
+    for (var item in tuitionList) {
+      // Dùng NumberFormatter để parse vì data có thể là String hoặc int
+      final daThu = NumberFormatter.parseInt(item['da_thu']);
+      final semesterId = item['ten_hoc_ky']?.toString() ?? '';
+      
+      // Nếu đã đóng tiền và chưa claim bonus
+      if (daThu > 0 && semesterId.isNotEmpty) {
+        if (!_gameService.stats.value.isSemesterClaimed(semesterId)) {
+          hasUnclaimedTuitionBonus.value = true;
+          return;
+        }
+      }
+    }
+    hasUnclaimedTuitionBonus.value = false;
   }
 }

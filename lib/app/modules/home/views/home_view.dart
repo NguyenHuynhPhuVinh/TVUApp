@@ -71,14 +71,25 @@ class _WelcomeSection extends StatelessWidget {
 
 /// Section chức năng nhanh
 class _QuickActionsSection extends StatelessWidget {
+  final HomeController controller = Get.find<HomeController>();
+  
   static const _actions = [
-    {'icon': Iconsax.calendar, 'label': 'Thời khóa biểu', 'route': '/schedule', 'color': AppColors.primary},
-    {'icon': Iconsax.chart, 'label': 'Điểm học tập', 'route': '/grades', 'color': AppColors.green},
-    {'icon': Iconsax.wallet, 'label': 'Học phí', 'route': '/tuition', 'color': AppColors.orange},
-    {'icon': Iconsax.book_1, 'label': 'CTĐT', 'route': '/curriculum', 'color': AppColors.purple},
-    {'icon': Iconsax.shop, 'label': 'Cửa hàng', 'route': '/shop', 'color': AppColors.yellow},
-    {'icon': Iconsax.user, 'label': 'Hồ sơ', 'route': '/profile', 'color': AppColors.purple},
+    {'icon': Iconsax.calendar, 'label': 'Thời khóa biểu', 'route': '/schedule', 'color': AppColors.primary, 'badgeKey': 'schedule'},
+    {'icon': Iconsax.chart, 'label': 'Điểm học tập', 'route': '/grades', 'color': AppColors.green, 'badgeKey': null},
+    {'icon': Iconsax.wallet, 'label': 'Học phí', 'route': '/tuition', 'color': AppColors.orange, 'badgeKey': 'tuition'},
+    {'icon': Iconsax.book_1, 'label': 'CTĐT', 'route': '/curriculum', 'color': AppColors.purple, 'badgeKey': null},
+    {'icon': Iconsax.shop, 'label': 'Cửa hàng', 'route': '/shop', 'color': AppColors.yellow, 'badgeKey': null},
+    {'icon': Iconsax.user, 'label': 'Hồ sơ', 'route': '/profile', 'color': AppColors.purple, 'badgeKey': null},
   ];
+
+  bool _getBadgeState(String? badgeKey) {
+    if (badgeKey == 'schedule') {
+      return controller.hasPendingCheckIn.value;
+    } else if (badgeKey == 'tuition') {
+      return controller.hasUnclaimedTuitionBonus.value;
+    }
+    return false;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -106,6 +117,21 @@ class _QuickActionsSection extends StatelessWidget {
           itemCount: _actions.length,
           itemBuilder: (context, index) {
             final action = _actions[index];
+            final badgeKey = action['badgeKey'] as String?;
+            
+            // Wrap từng item có badge trong Obx riêng
+            if (badgeKey != null) {
+              return Obx(() => DuoQuickAction(
+                icon: action['icon'] as IconData,
+                label: action['label'] as String,
+                color: action['color'] as Color,
+                showBadge: _getBadgeState(badgeKey),
+                onTap: () => Get.toNamed(action['route'] as String),
+              )).animate()
+                  .fadeIn(duration: 300.ms, delay: (index * 50).ms)
+                  .scale(begin: const Offset(0.8, 0.8), end: const Offset(1, 1));
+            }
+            
             return DuoQuickAction(
               icon: action['icon'] as IconData,
               label: action['label'] as String,
