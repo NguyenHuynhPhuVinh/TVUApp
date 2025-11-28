@@ -3,6 +3,7 @@ import '../../../core/utils/date_formatter.dart';
 import '../../../data/services/local_storage_service.dart';
 import '../../../data/services/game_service.dart';
 import '../../../data/services/auth_service.dart';
+import '../../home/controllers/home_controller.dart';
 
 class ScheduleController extends GetxController {
   late final LocalStorageService _localStorage;
@@ -269,10 +270,24 @@ class ScheduleController extends GetxController {
       // Cập nhật state UI
       checkInStates[key] = true;
       
+      // Notify HomeController để cập nhật badge
+      _notifyHomeController();
+      
       return rewards;
     } finally {
       // Bỏ loading
       checkingInKeys.remove(key);
+    }
+  }
+  
+  /// Notify HomeController để cập nhật badge điểm danh
+  void _notifyHomeController() {
+    try {
+      if (Get.isRegistered<HomeController>()) {
+        Get.find<HomeController>().checkPendingCheckIn();
+      }
+    } catch (e) {
+      // Ignore if HomeController not found
     }
   }
 
