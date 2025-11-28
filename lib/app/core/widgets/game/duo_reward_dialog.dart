@@ -227,17 +227,17 @@ class DuoRewardDialog extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               _DuoRewardItem(
-                assetPath: 'assets/game/currency/coin_golden_coin_1st_64px.png',
+                assetPath: 'assets/game/currency/coin_golden_coin_1st_256px.png',
                 value: '+${_formatNumber(earnedCoins)}',
                 label: 'Coins',
               ),
               _DuoRewardItem(
-                assetPath: 'assets/game/currency/diamond_blue_diamond_1st_64px.png',
+                assetPath: 'assets/game/currency/diamond_blue_diamond_1st_256px.png',
                 value: '+${_formatNumber(earnedDiamonds)}',
                 label: 'Diamonds',
               ),
               _DuoRewardItem(
-                assetPath: 'assets/game/main/star_golden_star_1st_64px.png',
+                assetPath: 'assets/game/main/golden_star_1st_256px.png',
                 value: '+${_formatNumber(earnedXp)}',
                 label: 'XP',
               ),

@@ -26,7 +26,7 @@ class DuoCurrencyCard extends StatelessWidget {
   /// Factory cho Coins
   factory DuoCurrencyCard.coins(int value) {
     return DuoCurrencyCard(
-      iconPath: 'assets/game/currency/coin_golden_coin_1st_64px.png',
+      iconPath: 'assets/game/currency/coin_golden_coin_1st_256px.png',
       fallbackIcon: Icons.monetization_on_rounded,
       label: 'Coins',
       value: value,
@@ -38,7 +38,7 @@ class DuoCurrencyCard extends StatelessWidget {
   /// Factory cho Diamonds
   factory DuoCurrencyCard.diamonds(int value) {
     return DuoCurrencyCard(
-      iconPath: 'assets/game/currency/diamond_blue_diamond_1st_64px.png',
+      iconPath: 'assets/game/currency/diamond_blue_diamond_1st_256px.png',
       fallbackIcon: Icons.diamond_rounded,
       label: 'Diamonds',
       value: value,

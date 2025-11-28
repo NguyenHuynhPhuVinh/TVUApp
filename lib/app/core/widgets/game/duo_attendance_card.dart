@@ -277,7 +277,7 @@ class DuoStreakCard extends StatelessWidget {
           children: [
             // Fire icon
             Image.asset(
-              'assets/game/main/fire_fire_1st_outline_64px.png',
+              'assets/game/main/fire_1st_outline_256px.png',
               width: 40.w,
               height: 40.w,
               errorBuilder: (_, __, ___) => Icon(

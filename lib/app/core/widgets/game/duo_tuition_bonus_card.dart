@@ -76,7 +76,7 @@ class DuoTuitionBonusCard extends StatelessWidget {
           Row(
             children: [
               Image.asset(
-                'assets/game/currency/cash_green_cash_1st_64px.png',
+                'assets/game/currency/cash_green_cash_1st_256px.png',
                 width: 32.w,
                 height: 32.w,
               ),
@@ -129,7 +129,7 @@ class DuoTuitionBonusCard extends StatelessWidget {
       child: Row(
         children: [
           Image.asset(
-            'assets/game/currency/cash_green_cash_1st_64px.png',
+            'assets/game/currency/cash_green_cash_1st_256px.png',
             width: 32.w,
             height: 32.w,
           ),

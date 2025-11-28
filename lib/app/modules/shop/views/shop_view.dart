@@ -42,7 +42,7 @@ class ShopView extends GetView<ShopController> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Image.asset(
-                      'assets/game/currency/diamond_blue_diamond_1st_64px.png',
+                      'assets/game/currency/diamond_blue_diamond_1st_256px.png',
                       width: 24.w,
                       height: 24.w,
                     ),
@@ -56,7 +56,7 @@ class ShopView extends GetView<ShopController> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Image.asset(
-                      'assets/game/currency/coin_golden_coin_1st_64px.png',
+                      'assets/game/currency/coin_golden_coin_1st_256px.png',
                       width: 24.w,
                       height: 24.w,
                     ),
@@ -133,7 +133,7 @@ class _DiamondShopTab extends StatelessWidget {
           title: 'Mua thành công!',
           rewards: [
             RewardItem(
-              icon: 'assets/game/currency/diamond_blue_diamond_1st_64px.png',
+              icon: 'assets/game/currency/diamond_blue_diamond_1st_256px.png',
               label: 'Diamond',
               value: result['diamondAmount'],
               color: AppColors.primary,
@@ -193,7 +193,7 @@ class _CoinShopTab extends StatelessWidget {
           title: 'Mua thành công!',
           rewards: [
             RewardItem(
-              icon: 'assets/game/currency/coin_golden_coin_1st_64px.png',
+              icon: 'assets/game/currency/coin_golden_coin_1st_256px.png',
               label: 'Coin',
               value: result['totalCoins'] ?? result['coinAmount'],
               color: AppColors.yellow,

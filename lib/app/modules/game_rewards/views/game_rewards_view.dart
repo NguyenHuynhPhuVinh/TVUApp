@@ -76,7 +76,7 @@ class GameRewardsView extends GetView<GameRewardsController> {
                   // Coins Card
                   Obx(() => controller.showCoins.value
                       ? DuoRewardRow(
-                          iconPath: 'assets/game/currency/coin_golden_coin_1st_64px.png',
+                          iconPath: 'assets/game/currency/coin_golden_coin_1st_256px.png',
                           fallbackIcon: Icons.monetization_on_rounded,
                           label: 'Coins',
                           value: controller.animatedCoins.value,
@@ -93,7 +93,7 @@ class GameRewardsView extends GetView<GameRewardsController> {
                   // Diamonds Card
                   Obx(() => controller.showDiamonds.value
                       ? DuoRewardRow(
-                          iconPath: 'assets/game/currency/diamond_blue_diamond_1st_64px.png',
+                          iconPath: 'assets/game/currency/diamond_blue_diamond_1st_256px.png',
                           fallbackIcon: Icons.diamond_rounded,
                           label: 'Diamonds',
                           value: controller.animatedDiamonds.value,

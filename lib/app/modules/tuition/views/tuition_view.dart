@@ -153,7 +153,7 @@ class _TuitionItem extends StatelessWidget {
         title: 'Nhận thưởng thành công!',
         rewards: [
           RewardItem(
-            icon: 'assets/game/currency/cash_green_cash_1st_64px.png',
+            icon: 'assets/game/currency/cash_green_cash_1st_256px.png',
             label: 'TVUCash',
             value: result['virtualBalance'],
             color: AppColors.green,

@@ -96,7 +96,7 @@ class DuoRankRewardsSheet extends StatelessWidget {
             child: Row(
               children: [
                 Image.asset(
-                  'assets/game/item/gift_purple_gift_1st_64px.png',
+                  'assets/game/item/purple_gift_1st_256px.png',
                   width: 32.w,
                   height: 32.w,
                 ),
@@ -189,7 +189,7 @@ class DuoRankRewardsSheet extends StatelessWidget {
                 borderRadius: AppStyles.roundedMd,
               ),
               child: Image.asset(
-                'assets/game/item/chest_chest_1st_64px.png',
+                'assets/game/item/chest_1st_256px.png',
                 width: 32.w,
                 height: 32.w,
               ),
@@ -211,7 +211,7 @@ class DuoRankRewardsSheet extends StatelessWidget {
                   Row(
                     children: [
                       Image.asset(
-                        'assets/game/currency/coin_golden_coin_1st_64px.png',
+                        'assets/game/currency/coin_golden_coin_1st_256px.png',
                         width: 16.w,
                         height: 16.w,
                       ),
@@ -226,7 +226,7 @@ class DuoRankRewardsSheet extends StatelessWidget {
                       ),
                       SizedBox(width: AppStyles.space3),
                       Image.asset(
-                        'assets/game/currency/diamond_blue_diamond_1st_64px.png',
+                        'assets/game/currency/diamond_blue_diamond_1st_256px.png',
                         width: 16.w,
                         height: 16.w,
                       ),

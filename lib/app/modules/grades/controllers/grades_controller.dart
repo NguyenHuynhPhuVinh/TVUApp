@@ -244,13 +244,13 @@ class GradesController extends GetxController {
           subtitle: RankHelper.getRankNameFromIndex(rankIdx),
           rewards: [
             RewardItem(
-              icon: 'assets/game/currency/coin_golden_coin_1st_64px.png',
+              icon: 'assets/game/currency/coin_golden_coin_1st_256px.png',
               label: 'Coins',
               value: result['earnedCoins'],
               color: AppColors.yellow,
             ),
             RewardItem(
-              icon: 'assets/game/currency/diamond_blue_diamond_1st_64px.png',
+              icon: 'assets/game/currency/diamond_blue_diamond_1st_256px.png',
               label: 'Diamonds',
               value: result['earnedDiamonds'],
               color: AppColors.primary,
@@ -284,13 +284,13 @@ class GradesController extends GetxController {
           subtitle: '${result['claimedCount']} rank',
           rewards: [
             RewardItem(
-              icon: 'assets/game/currency/coin_golden_coin_1st_64px.png',
+              icon: 'assets/game/currency/coin_golden_coin_1st_256px.png',
               label: 'Coins',
               value: result['earnedCoins'],
               color: AppColors.yellow,
             ),
             RewardItem(
-              icon: 'assets/game/currency/diamond_blue_diamond_1st_64px.png',
+              icon: 'assets/game/currency/diamond_blue_diamond_1st_256px.png',
               label: 'Diamonds',
               value: result['earnedDiamonds'],
               color: AppColors.primary,

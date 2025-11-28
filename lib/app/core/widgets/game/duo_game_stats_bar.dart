@@ -38,14 +38,14 @@ class DuoGameStatsBar extends StatelessWidget {
           ),
           _buildDivider(),
           _DuoStatItem(
-            iconPath: 'assets/game/currency/coin_golden_coin_1st_64px.png',
+            iconPath: 'assets/game/currency/coin_golden_coin_1st_256px.png',
             fallbackIcon: Icons.monetization_on_rounded,
             value: NumberFormatter.compact(coins),
             color: AppColors.yellow,
           ),
           _buildDivider(),
           _DuoStatItem(
-            iconPath: 'assets/game/currency/diamond_blue_diamond_1st_64px.png',
+            iconPath: 'assets/game/currency/diamond_blue_diamond_1st_256px.png',
             fallbackIcon: Icons.diamond_rounded,
             value: NumberFormatter.compact(diamonds),
             color: Colors.cyan,

@@ -289,7 +289,7 @@ class GradesView extends GetView<GradesController> {
           IconButton(
             onPressed: controller.openRankRewardsSheet,
             icon: Image.asset(
-              'assets/game/item/gift_purple_gift_1st_64px.png',
+              'assets/game/item/purple_gift_1st_256px.png',
               width: 28,
               height: 28,
             ),

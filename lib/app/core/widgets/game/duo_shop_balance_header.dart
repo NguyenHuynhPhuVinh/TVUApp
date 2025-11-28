@@ -33,11 +33,11 @@ class DuoShopBalanceHeader extends StatelessWidget {
     required int diamonds,
   }) {
     return DuoShopBalanceHeader(
-      leftIcon: 'assets/game/currency/cash_green_cash_1st_64px.png',
+      leftIcon: 'assets/game/currency/cash_green_cash_1st_256px.png',
       leftLabel: 'TVUCash',
       leftValue: virtualBalance,
       leftColor: AppColors.green,
-      rightIcon: 'assets/game/currency/diamond_blue_diamond_1st_64px.png',
+      rightIcon: 'assets/game/currency/diamond_blue_diamond_1st_256px.png',
       rightLabel: 'Diamond',
       rightValue: diamonds,
       rightColor: AppColors.primary,
@@ -50,11 +50,11 @@ class DuoShopBalanceHeader extends StatelessWidget {
     required int coins,
   }) {
     return DuoShopBalanceHeader(
-      leftIcon: 'assets/game/currency/diamond_blue_diamond_1st_64px.png',
+      leftIcon: 'assets/game/currency/diamond_blue_diamond_1st_256px.png',
       leftLabel: 'Diamond',
       leftValue: diamonds,
       leftColor: AppColors.primary,
-      rightIcon: 'assets/game/currency/coin_golden_coin_1st_64px.png',
+      rightIcon: 'assets/game/currency/coin_golden_coin_1st_256px.png',
       rightLabel: 'Coin',
       rightValue: coins,
       rightColor: AppColors.yellow,

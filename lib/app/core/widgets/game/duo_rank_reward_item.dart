@@ -93,7 +93,7 @@ class DuoRankRewardItem extends StatelessWidget {
                 Row(
                   children: [
                     Image.asset(
-                      'assets/game/currency/coin_golden_coin_1st_64px.png',
+                      'assets/game/currency/coin_golden_coin_1st_256px.png',
                       width: 16.w,
                       height: 16.w,
                     ),
@@ -108,7 +108,7 @@ class DuoRankRewardItem extends StatelessWidget {
                     ),
                     SizedBox(width: AppStyles.space3),
                     Image.asset(
-                      'assets/game/currency/diamond_blue_diamond_1st_64px.png',
+                      'assets/game/currency/diamond_blue_diamond_1st_256px.png',
                       width: 16.w,
                       height: 16.w,
                     ),
@@ -146,7 +146,7 @@ class DuoRankRewardItem extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Image.asset(
-              'assets/game/ui/checkmark_checkmark_1st_64px.png',
+              'assets/game/ui/checkmark_1st_256px.png',
               width: 16.w,
               height: 16.w,
             ),
@@ -177,7 +177,7 @@ class DuoRankRewardItem extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Image.asset(
-              'assets/game/item/lock_lock_1st_64px.png',
+              'assets/game/item/lock_1st_256px.png',
               width: 16.w,
               height: 16.w,
             ),
@@ -218,7 +218,7 @@ class DuoRankRewardItem extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Image.asset(
-                    'assets/game/item/gift_purple_gift_1st_64px.png',
+                    'assets/game/item/purple_gift_1st_256px.png',
                     width: 16.w,
                     height: 16.w,
                   ),

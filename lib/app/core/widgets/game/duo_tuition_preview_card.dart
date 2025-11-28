@@ -28,7 +28,7 @@ class DuoTuitionPreviewCard extends StatelessWidget {
           Row(
             children: [
               Image.asset(
-                'assets/game/currency/cash_green_cash_1st_64px.png',
+                'assets/game/currency/cash_green_cash_1st_256px.png',
                 width: 40.w,
                 height: 40.w,
               ),
@@ -82,7 +82,7 @@ class DuoTuitionPreviewCard extends StatelessWidget {
                   ),
                 ),
                 Image.asset(
-                  'assets/game/currency/cash_green_cash_1st_64px.png',
+                  'assets/game/currency/cash_green_cash_1st_256px.png',
                   width: 20.w,
                   height: 20.w,
                 ),

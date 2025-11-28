@@ -173,11 +173,11 @@ class DuoScheduleCard extends StatelessWidget {
                   alignment: Alignment.centerLeft,
                   child: Row(
                     children: [
-                      _buildRewardItem('assets/game/currency/coin_golden_coin_1st_64px.png', coins, textColor),
+                      _buildRewardItem('assets/game/currency/coin_golden_coin_1st_256px.png', coins, textColor),
                       SizedBox(width: AppStyles.space2),
-                      _buildRewardItem('assets/game/currency/diamond_blue_diamond_1st_64px.png', diamonds, textColor),
+                      _buildRewardItem('assets/game/currency/diamond_blue_diamond_1st_256px.png', diamonds, textColor),
                       SizedBox(width: AppStyles.space2),
-                      _buildRewardItem('assets/game/main/star_golden_star_1st_64px.png', xp, textColor),
+                      _buildRewardItem('assets/game/main/golden_star_1st_256px.png', xp, textColor),
                     ],
                   ),
                 ),

@@ -49,12 +49,12 @@ class DuoPurchaseBottomSheet extends StatelessWidget {
 
     return Get.bottomSheet<bool>(
       DuoPurchaseBottomSheet(
-        itemIcon: 'assets/game/currency/diamond_blue_diamond_1st_64px.png',
+        itemIcon: 'assets/game/currency/diamond_blue_diamond_1st_256px.png',
         itemName: 'Diamond',
         itemAmount: total,
         bonusAmount: bonus,
         cost: cost,
-        costIcon: 'assets/game/currency/cash_green_cash_1st_64px.png',
+        costIcon: 'assets/game/currency/cash_green_cash_1st_256px.png',
         costLabel: 'TVUCash',
         costColor: AppColors.green,
         currentBalance: tvuCashBalance,
@@ -78,12 +78,12 @@ class DuoPurchaseBottomSheet extends StatelessWidget {
 
     return Get.bottomSheet<bool>(
       DuoPurchaseBottomSheet(
-        itemIcon: 'assets/game/currency/coin_golden_coin_1st_64px.png',
+        itemIcon: 'assets/game/currency/coin_golden_coin_1st_256px.png',
         itemName: 'Coin',
         itemAmount: total,
         bonusAmount: bonus,
         cost: diamondCost,
-        costIcon: 'assets/game/currency/diamond_blue_diamond_1st_64px.png',
+        costIcon: 'assets/game/currency/diamond_blue_diamond_1st_256px.png',
         costLabel: 'Diamond',
         costColor: AppColors.primary,
         currentBalance: diamondBalance,

@@ -38,7 +38,7 @@ class DuoRewardCard extends StatelessWidget {
     VoidCallback? onTap,
   }) {
     return DuoRewardCard(
-      iconAsset: 'assets/game/currency/coin_golden_coin_1st_64px.png',
+      iconAsset: 'assets/game/currency/coin_golden_coin_1st_256px.png',
       fallbackIcon: Icons.monetization_on_rounded,
       iconColor: AppColors.yellow,
       backgroundColor: AppColors.yellowSoft,
@@ -57,7 +57,7 @@ class DuoRewardCard extends StatelessWidget {
     bool animated = true,
   }) {
     return DuoRewardCard(
-      iconAsset: 'assets/game/currency/coin_golden_coin_1st_64px.png',
+      iconAsset: 'assets/game/currency/coin_golden_coin_1st_256px.png',
       fallbackIcon: Icons.monetization_on_rounded,
       iconColor: AppColors.yellow,
       backgroundColor: AppColors.yellowSoft,
@@ -76,7 +76,7 @@ class DuoRewardCard extends StatelessWidget {
     VoidCallback? onTap,
   }) {
     return DuoRewardCard(
-      iconAsset: 'assets/game/currency/diamond_blue_diamond_1st_64px.png',
+      iconAsset: 'assets/game/currency/diamond_blue_diamond_1st_256px.png',
       fallbackIcon: Icons.diamond_rounded,
       iconColor: AppColors.primary,
       backgroundColor: AppColors.primarySoft,
@@ -96,7 +96,7 @@ class DuoRewardCard extends StatelessWidget {
     VoidCallback? onTap,
   }) {
     return DuoRewardCard(
-      iconAsset: 'assets/game/main/star_golden_star_1st_64px.png',
+      iconAsset: 'assets/game/main/golden_star_1st_256px.png',
       fallbackIcon: Icons.star_rounded,
       iconColor: AppColors.green,
       backgroundColor: AppColors.greenSoft,
@@ -309,7 +309,7 @@ class DuoBigRewardRow extends StatelessWidget {
   /// Factory cho Coin row lớn
   factory DuoBigRewardRow.coin({required int value, bool animated = true}) {
     return DuoBigRewardRow(
-      iconAsset: 'assets/game/currency/coin_golden_coin_1st_64px.png',
+      iconAsset: 'assets/game/currency/coin_golden_coin_1st_256px.png',
       fallbackIcon: Icons.monetization_on_rounded,
       color: AppColors.yellow,
       backgroundColor: AppColors.yellowSoft,
@@ -322,7 +322,7 @@ class DuoBigRewardRow extends StatelessWidget {
   /// Factory cho Diamond row
   factory DuoBigRewardRow.diamond({required int value, bool animated = true}) {
     return DuoBigRewardRow(
-      iconAsset: 'assets/game/currency/diamond_blue_diamond_1st_64px.png',
+      iconAsset: 'assets/game/currency/diamond_blue_diamond_1st_256px.png',
       fallbackIcon: Icons.diamond_rounded,
       color: AppColors.primary,
       backgroundColor: AppColors.primarySoft,
@@ -471,7 +471,7 @@ class DuoMediumRewardRow extends StatelessWidget {
   /// Factory cho Diamond row
   factory DuoMediumRewardRow.diamond({required int value, bool animated = true}) {
     return DuoMediumRewardRow(
-      iconAsset: 'assets/game/currency/diamond_blue_diamond_1st_64px.png',
+      iconAsset: 'assets/game/currency/diamond_blue_diamond_1st_256px.png',
       fallbackIcon: Icons.diamond_rounded,
       color: AppColors.primary,
       backgroundColor: AppColors.primarySoft,

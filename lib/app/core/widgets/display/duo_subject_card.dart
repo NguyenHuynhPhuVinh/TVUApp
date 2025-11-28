@@ -121,19 +121,19 @@ class DuoSubjectCard extends StatelessWidget {
                 Row(
                   children: [
                     _RewardPreviewItem(
-                      assetPath: 'assets/game/currency/coin_golden_coin_1st_64px.png',
+                      assetPath: 'assets/game/currency/coin_golden_coin_1st_256px.png',
                       value: reward['coins']!,
                       isClaimed: rewardStatus == SubjectRewardStatus.claimed,
                     ),
                     SizedBox(width: AppStyles.space2),
                     _RewardPreviewItem(
-                      assetPath: 'assets/game/currency/diamond_blue_diamond_1st_64px.png',
+                      assetPath: 'assets/game/currency/diamond_blue_diamond_1st_256px.png',
                       value: reward['diamonds']!,
                       isClaimed: rewardStatus == SubjectRewardStatus.claimed,
                     ),
                     SizedBox(width: AppStyles.space2),
                     _RewardPreviewItem(
-                      assetPath: 'assets/game/main/star_golden_star_1st_64px.png',
+                      assetPath: 'assets/game/main/golden_star_1st_256px.png',
                       value: reward['xp']!,
                       isClaimed: rewardStatus == SubjectRewardStatus.claimed,
                     ),
@@ -228,7 +228,7 @@ class DuoSubjectCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Image.asset(
-                  'assets/game/main/gift_box_1st_64px.png',
+                  'assets/game/item/purple_gift_1st_256px.png',
                   width: 16.w,
                   height: 16.w,
                   errorBuilder: (_, __, ___) => Icon(

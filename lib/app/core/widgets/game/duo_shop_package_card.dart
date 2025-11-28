@@ -79,12 +79,12 @@ class DuoShopPackageCard extends StatelessWidget {
   int get total => amount + bonus;
 
   String get _iconPath => type == DuoShopPackageType.diamond
-      ? 'assets/game/currency/diamond_blue_diamond_1st_64px.png'
-      : 'assets/game/currency/coin_golden_coin_1st_64px.png';
+      ? 'assets/game/currency/diamond_blue_diamond_1st_256px.png'
+      : 'assets/game/currency/coin_golden_coin_1st_256px.png';
 
   String get _costIconPath => type == DuoShopPackageType.diamond
-      ? 'assets/game/currency/cash_green_cash_1st_64px.png'
-      : 'assets/game/currency/diamond_blue_diamond_1st_64px.png';
+      ? 'assets/game/currency/cash_green_cash_1st_256px.png'
+      : 'assets/game/currency/diamond_blue_diamond_1st_256px.png';
 
   Color get _primaryColor =>
       type == DuoShopPackageType.diamond ? AppColors.primary : AppColors.yellow;

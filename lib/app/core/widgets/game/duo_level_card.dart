@@ -170,7 +170,7 @@ class DuoLevelCard extends StatelessWidget {
       ),
       child: Center(
         child: Image.asset(
-          'assets/game/main/star_golden_star_1st_64px.png',
+          'assets/game/main/golden_star_1st_256px.png',
           width: 32.w,
           height: 32.w,
           errorBuilder: (_, __, ___) => Icon(

@@ -201,7 +201,7 @@ class _BonusAmountCard extends StatelessWidget {
             children: [
               // Icon
               Image.asset(
-                'assets/game/currency/cash_green_cash_1st_64px.png',
+                'assets/game/currency/cash_green_cash_1st_256px.png',
                 width: 40.w,
                 height: 40.w,
               ).animate(
