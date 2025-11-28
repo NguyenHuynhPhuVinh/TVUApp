@@ -18,6 +18,7 @@ class LocalStorageService extends GetxService {
   static const String _schedulesKey = 'schedules_data';
   static const String _studentInfoKey = 'student_info_data';
   static const String _notificationsKey = 'notifications_data';
+  static const String _lessonCheckInsKey = 'lesson_checkins_data';
 
   // Lưu điểm
   Future<void> saveGrades(Map<String, dynamic> data) async {
@@ -131,6 +132,37 @@ class LocalStorageService extends GetxService {
     return null;
   }
 
+  // ============ LESSON CHECK-IN ============
+  
+  /// Lưu check-in buổi học
+  /// Key format: "semester_week_day_lessonId"
+  Future<void> saveLessonCheckIn(String checkInKey, Map<String, dynamic> data) async {
+    final allCheckIns = getLessonCheckIns();
+    allCheckIns[checkInKey] = data;
+    await _prefs.setString(_lessonCheckInsKey, jsonEncode(allCheckIns));
+  }
+
+  /// Lấy tất cả check-ins
+  Map<String, dynamic> getLessonCheckIns() {
+    final str = _prefs.getString(_lessonCheckInsKey);
+    if (str != null) {
+      return jsonDecode(str) as Map<String, dynamic>;
+    }
+    return {};
+  }
+
+  /// Kiểm tra đã check-in buổi học chưa
+  bool hasCheckedIn(String checkInKey) {
+    final allCheckIns = getLessonCheckIns();
+    return allCheckIns.containsKey(checkInKey);
+  }
+
+  /// Lấy thông tin check-in của buổi học
+  Map<String, dynamic>? getCheckIn(String checkInKey) {
+    final allCheckIns = getLessonCheckIns();
+    return allCheckIns[checkInKey] as Map<String, dynamic>?;
+  }
+
   // Xóa tất cả data
   Future<void> clearAll() async {
     await _prefs.remove(_gradesKey);
@@ -140,5 +172,6 @@ class LocalStorageService extends GetxService {
     await _prefs.remove(_schedulesKey);
     await _prefs.remove(_studentInfoKey);
     await _prefs.remove(_notificationsKey);
+    await _prefs.remove(_lessonCheckInsKey);
   }
 }

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -10,6 +9,17 @@ import '../controllers/schedule_controller.dart';
 
 class ScheduleView extends GetView<ScheduleController> {
   const ScheduleView({super.key});
+
+  static const _days = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'CN'];
+  static const _dayColors = [
+    AppColors.primary,
+    AppColors.green,
+    AppColors.orange,
+    AppColors.purple,
+    AppColors.red,
+    AppColors.primary,
+    AppColors.green,
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -26,194 +36,53 @@ class ScheduleView extends GetView<ScheduleController> {
         }
         return Column(
           children: [
-            _buildSemesterSelector(),
-            _buildWeekSelector(),
-            Expanded(child: _buildScheduleList()),
+            _SemesterSection(controller: controller),
+            _WeekSection(controller: controller),
+            Expanded(child: _ScheduleListSection(controller: controller)),
           ],
         );
       }),
     );
   }
+}
 
-  Widget _buildSemesterSelector() {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(AppStyles.space4, AppStyles.space4, AppStyles.space4, AppStyles.space2),
-      child: Obx(() {
-        final selected = controller.semesters.firstWhereOrNull(
-          (s) => s['hoc_ky'] == controller.selectedSemester.value,
-        );
-        final tenHocKy = selected?['ten_hoc_ky'] as String? ?? 'Chọn học kỳ';
-        final isCurrent = controller.selectedSemester.value == controller.currentSemester.value;
+/// Section chọn học kỳ
+class _SemesterSection extends StatelessWidget {
+  final ScheduleController controller;
 
-        return GestureDetector(
-          onTap: () => _showSemesterPicker(),
-          child: DuoCard(
-            padding: EdgeInsets.symmetric(horizontal: AppStyles.space4, vertical: AppStyles.space3),
-            child: Row(
-              children: [
-                Container(
-                  padding: EdgeInsets.all(AppStyles.space2),
-                  decoration: BoxDecoration(
-                    color: AppColors.withAlpha(AppColors.primary, 0.1),
-                    borderRadius: AppStyles.roundedLg,
-                  ),
-                  child: Icon(Iconsax.calendar_1, color: AppColors.primary, size: AppStyles.iconSm),
-                ),
-                SizedBox(width: AppStyles.space3),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Học kỳ',
-                        style: TextStyle(
-                          fontSize: AppStyles.textXs,
-                          color: AppColors.textTertiary,
-                        ),
-                      ),
-                      Text(
-                        tenHocKy,
-                        style: TextStyle(
-                          fontSize: AppStyles.textBase,
-                          fontWeight: AppStyles.fontSemibold,
-                          color: isCurrent ? AppColors.primary : AppColors.textPrimary,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-                if (isCurrent)
-                  Container(
-                    margin: EdgeInsets.only(right: AppStyles.space2),
-                    padding: EdgeInsets.symmetric(horizontal: AppStyles.space2, vertical: AppStyles.space1),
-                    decoration: BoxDecoration(
-                      color: AppColors.greenSoft,
-                      borderRadius: AppStyles.roundedFull,
-                    ),
-                    child: Text(
-                      'Hiện tại',
-                      style: TextStyle(
-                        fontSize: 10.sp,
-                        fontWeight: AppStyles.fontBold,
-                        color: AppColors.green,
-                      ),
-                    ),
-                  ),
-                Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.textTertiary),
-              ],
-            ),
-          ),
-        );
-      }),
-    );
-  }
+  const _SemesterSection({required this.controller});
 
-  void _showSemesterPicker() {
-    Get.bottomSheet(
-      Container(
-        decoration: BoxDecoration(
-          color: AppColors.backgroundWhite,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(AppStyles.radius3xl)),
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final selected = controller.semesters.firstWhereOrNull(
+        (s) => s['hoc_ky'] == controller.selectedSemester.value,
+      );
+      final tenHocKy = selected?['ten_hoc_ky'] as String? ?? 'Chọn học kỳ';
+      final isCurrent = controller.selectedSemester.value == controller.currentSemester.value;
+
+      return DuoSemesterSelector(
+        tenHocKy: tenHocKy,
+        isCurrent: isCurrent,
+        onTap: () => DuoSemesterPicker.show(
+          semesters: controller.semesters,
+          selectedSemester: controller.selectedSemester.value,
+          currentSemester: controller.currentSemester.value,
+          onSelected: controller.changeSemester,
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              margin: EdgeInsets.only(top: AppStyles.space3),
-              width: 40.w,
-              height: 4.h,
-              decoration: BoxDecoration(
-                color: AppColors.border,
-                borderRadius: AppStyles.roundedFull,
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.all(AppStyles.space4),
-              child: Text(
-                'Chọn học kỳ',
-                style: TextStyle(
-                  fontSize: AppStyles.textLg,
-                  fontWeight: AppStyles.fontBold,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-            ),
-            Flexible(
-              child: ListView.builder(
-                shrinkWrap: true,
-                padding: EdgeInsets.symmetric(horizontal: AppStyles.space4),
-                itemCount: controller.semesters.length,
-                itemBuilder: (context, index) {
-                  final semester = controller.semesters[index];
-                  final hocKy = semester['hoc_ky'] as int;
-                  final tenHocKy = semester['ten_hoc_ky'] as String? ?? '';
-                  final isCurrent = hocKy == controller.currentSemester.value;
-                  final isSelected = hocKy == controller.selectedSemester.value;
-
-                  return GestureDetector(
-                    onTap: () {
-                      controller.changeSemester(hocKy);
-                      Get.back();
-                    },
-                    child: Container(
-                      margin: EdgeInsets.only(bottom: AppStyles.space2),
-                      padding: EdgeInsets.all(AppStyles.space4),
-                      decoration: BoxDecoration(
-                        color: isSelected ? AppColors.primarySoft : AppColors.background,
-                        borderRadius: AppStyles.roundedXl,
-                        border: isSelected
-                            ? Border.all(color: AppColors.primary, width: 2)
-                            : null,
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              tenHocKy,
-                              style: TextStyle(
-                                fontSize: AppStyles.textBase,
-                                fontWeight: isSelected ? AppStyles.fontBold : AppStyles.fontMedium,
-                                color: isSelected ? AppColors.primary : AppColors.textPrimary,
-                              ),
-                            ),
-                          ),
-                          if (isCurrent)
-                            Container(
-                              padding: EdgeInsets.symmetric(horizontal: AppStyles.space2, vertical: AppStyles.space1),
-                              decoration: BoxDecoration(
-                                color: AppColors.greenSoft,
-                                borderRadius: AppStyles.roundedFull,
-                              ),
-                              child: Text(
-                                'Hiện tại',
-                                style: TextStyle(
-                                  fontSize: 10.sp,
-                                  fontWeight: AppStyles.fontBold,
-                                  color: AppColors.green,
-                                ),
-                              ),
-                            ),
-                          if (isSelected) ...[
-                            SizedBox(width: AppStyles.space2),
-                            Icon(Icons.check_circle_rounded, color: AppColors.primary, size: AppStyles.iconMd),
-                          ],
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-            SizedBox(height: AppStyles.space4),
-          ],
-        ),
-      ),
-    );
+      );
+    });
   }
+}
 
-  Widget _buildWeekSelector() {
+/// Section chọn tuần
+class _WeekSection extends StatelessWidget {
+  final ScheduleController controller;
+
+  const _WeekSection({required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
     return Obx(() {
       if (controller.weeks.isEmpty) return const SizedBox.shrink();
 
@@ -238,19 +107,16 @@ class ScheduleView extends GetView<ScheduleController> {
       );
     });
   }
+}
 
-  Widget _buildScheduleList() {
-    final days = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'CN'];
-    final dayColors = [
-      AppColors.primary,
-      AppColors.green,
-      AppColors.orange,
-      AppColors.purple,
-      AppColors.red,
-      AppColors.primary,
-      AppColors.green,
-    ];
+/// Section danh sách lịch học
+class _ScheduleListSection extends StatelessWidget {
+  final ScheduleController controller;
 
+  const _ScheduleListSection({required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
     return Obx(() {
       if (controller.currentWeekSchedule.isEmpty) {
         final week = controller.weeks.isNotEmpty &&
@@ -275,87 +141,126 @@ class ScheduleView extends GetView<ScheduleController> {
           final daySchedule = controller.getScheduleByDay(index + 2);
           if (daySchedule.isEmpty) return const SizedBox.shrink();
 
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              DuoDayBadge(day: days[index], color: dayColors[index]),
-              SizedBox(height: AppStyles.space3),
-              ...daySchedule.asMap().entries.map((entry) {
-                return _buildScheduleCard(entry.value, dayColors[index], entry.key)
-                    .animate()
-                    .fadeIn(duration: 300.ms, delay: (entry.key * 50).ms)
-                    .slideX(begin: 0.1, end: 0);
-              }),
-              SizedBox(height: AppStyles.space4),
-            ],
+          return _DayScheduleGroup(
+            day: ScheduleView._days[index],
+            color: ScheduleView._dayColors[index],
+            schedules: daySchedule,
+            controller: controller,
           );
         },
       );
     });
   }
+}
 
-  Widget _buildScheduleCard(Map<String, dynamic> item, Color accentColor, int index) {
-    final tietBatDau = item['tiet_bat_dau'] ?? 0;
-    final soTiet = item['so_tiet'] ?? 0;
-    final tietKetThuc = tietBatDau + soTiet - 1;
+/// Group lịch học theo ngày
+class _DayScheduleGroup extends StatelessWidget {
+  final String day;
+  final Color color;
+  final List<Map<String, dynamic>> schedules;
+  final ScheduleController controller;
 
-    return Container(
-      margin: EdgeInsets.only(bottom: AppStyles.space3),
-      child: DuoCard(
-        padding: EdgeInsets.all(AppStyles.space4),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 4.w,
-                  height: 50.h,
-                  decoration: BoxDecoration(
-                    color: accentColor,
-                    borderRadius: AppStyles.roundedFull,
-                  ),
-                ),
-                SizedBox(width: AppStyles.space3),
-                Expanded(
-                  child: Text(
-                    item['ten_mon'] ?? 'N/A',
-                    style: TextStyle(
-                      fontSize: AppStyles.textBase,
-                      fontWeight: AppStyles.fontBold,
-                      color: accentColor,
-                    ),
-                  ),
-                ),
-                DuoBadge(
-                  text: '${item['so_tin_chi'] ?? 0} TC',
-                  variant: _getVariantFromColor(accentColor),
-                  size: DuoBadgeSize.sm,
-                ),
-              ],
-            ),
-            SizedBox(height: AppStyles.space3),
-            DuoInfoRow(icon: Iconsax.clock, text: 'Tiết $tietBatDau - $tietKetThuc'),
-            SizedBox(height: AppStyles.space2),
-            DuoInfoRow(icon: Iconsax.location, text: item['ma_phong'] ?? 'N/A'),
-            SizedBox(height: AppStyles.space2),
-            DuoInfoRow(icon: Iconsax.teacher, text: item['ten_giang_vien'] ?? 'N/A'),
-            if (item['ma_nhom'] != null && item['ma_nhom'].toString().isNotEmpty) ...[
-              SizedBox(height: AppStyles.space2),
-              DuoInfoRow(icon: Iconsax.people, text: 'Nhóm ${item['ma_nhom']}'),
-            ],
-          ],
-        ),
-      ),
+  const _DayScheduleGroup({
+    required this.day,
+    required this.color,
+    required this.schedules,
+    required this.controller,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        DuoDayBadge(day: day, color: color),
+        SizedBox(height: AppStyles.space3),
+        ...schedules.asMap().entries.map((entry) {
+          return _ScheduleCardItem(
+            item: entry.value,
+            accentColor: color,
+            index: entry.key,
+            controller: controller,
+          );
+        }),
+        SizedBox(height: AppStyles.space4),
+      ],
     );
   }
+}
 
-  DuoBadgeVariant _getVariantFromColor(Color color) {
-    if (color == AppColors.green) return DuoBadgeVariant.success;
-    if (color == AppColors.orange) return DuoBadgeVariant.warning;
-    if (color == AppColors.purple) return DuoBadgeVariant.purple;
-    if (color == AppColors.red) return DuoBadgeVariant.danger;
-    return DuoBadgeVariant.primary;
+/// Item card lịch học
+class _ScheduleCardItem extends StatelessWidget {
+  final Map<String, dynamic> item;
+  final Color accentColor;
+  final int index;
+  final ScheduleController controller;
+
+  const _ScheduleCardItem({
+    required this.item,
+    required this.accentColor,
+    required this.index,
+    required this.controller,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      bool hasCheckedIn = false;
+      bool canCheckIn = false;
+      Duration? timeRemaining;
+
+      try {
+        hasCheckedIn = controller.hasCheckedInLesson(item);
+        canCheckIn = controller.canCheckInLesson(item);
+        timeRemaining = controller.getTimeUntilCheckIn(item);
+      } catch (e) {
+        // Ignore errors
+      }
+
+      return DuoScheduleCard(
+        tenMon: item['ten_mon']?.toString() ?? 'N/A',
+        soTinChi: _parseInt(item['so_tin_chi']),
+        tietBatDau: _parseInt(item['tiet_bat_dau']),
+        soTiet: _parseInt(item['so_tiet']),
+        maPhong: item['ma_phong']?.toString() ?? 'N/A',
+        tenGiangVien: item['ten_giang_vien']?.toString() ?? 'N/A',
+        maNhom: item['ma_nhom']?.toString(),
+        accentColor: accentColor,
+        canCheckIn: canCheckIn,
+        hasCheckedIn: hasCheckedIn,
+        timeRemaining: timeRemaining,
+        onCheckIn: () => _handleCheckIn(context),
+      ).animate()
+          .fadeIn(duration: 300.ms, delay: (index * 50).ms)
+          .slideX(begin: 0.1, end: 0);
+    });
   }
 
+  void _handleCheckIn(BuildContext context) async {
+    final rewards = await controller.checkInLesson(item);
+    if (rewards != null) {
+      DuoRewardDialog.show(
+        tenMon: item['ten_mon']?.toString() ?? '',
+        rewards: rewards,
+      );
+    } else {
+      Get.snackbar(
+        'Không thể điểm danh',
+        'Vui lòng thử lại sau hoặc kiểm tra thiết bị của bạn',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: AppColors.redSoft,
+        colorText: AppColors.red,
+        margin: EdgeInsets.all(AppStyles.space4),
+        borderRadius: AppStyles.radiusLg,
+        duration: const Duration(seconds: 3),
+      );
+    }
+  }
+
+  int _parseInt(dynamic value) {
+    if (value == null) return 0;
+    if (value is int) return value;
+    if (value is String) return int.tryParse(value) ?? 0;
+    return 0;
+  }
 }

@@ -156,6 +156,41 @@ class _DuoButtonState extends State<DuoButton> {
           );
   }
 
+  Widget _buildStackButton(double shadowHeight) {
+    return Stack(
+      children: [
+        // Shadow layer (bottom)
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: Container(
+            height: _height,
+            decoration: BoxDecoration(
+              color: _shadowColor,
+              borderRadius: AppStyles.roundedXl,
+            ),
+          ),
+        ),
+        // Button layer (top) - moves down when pressed
+        Positioned(
+          left: 0,
+          right: 0,
+          top: _isPressed ? shadowHeight : 0,
+          child: Container(
+            height: _height,
+            padding: EdgeInsets.symmetric(horizontal: AppStyles.space6),
+            decoration: BoxDecoration(
+              color: _bgColor,
+              borderRadius: AppStyles.roundedXl,
+            ),
+            child: Center(child: _buildButtonContent()),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isGhost = widget.variant == DuoButtonVariant.ghost;
@@ -187,43 +222,18 @@ class _DuoButtonState extends State<DuoButton> {
               child: Center(child: _buildButtonContent()),
             )
           // Normal button - có shadow, lún khi bấm
-          : SizedBox(
-              width: widget.fullWidth ? double.infinity : null,
-              height: _height + shadowHeight,
-              child: Stack(
-                children: [
-                  // Shadow layer (bottom)
-                  Positioned(
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    child: Container(
-                      height: _height,
-                      decoration: BoxDecoration(
-                        color: _shadowColor,
-                        borderRadius: AppStyles.roundedXl,
-                      ),
-                    ),
+          : widget.fullWidth
+              ? SizedBox(
+                  width: double.infinity,
+                  height: _height + shadowHeight,
+                  child: _buildStackButton(shadowHeight),
+                )
+              : IntrinsicWidth(
+                  child: SizedBox(
+                    height: _height + shadowHeight,
+                    child: _buildStackButton(shadowHeight),
                   ),
-                  // Button layer (top) - moves down when pressed
-                  Positioned(
-                    left: 0,
-                    right: 0,
-                    top: _isPressed ? shadowHeight : 0,
-                    child: Container(
-                      height: _height,
-                      padding:
-                          EdgeInsets.symmetric(horizontal: AppStyles.space6),
-                      decoration: BoxDecoration(
-                        color: _bgColor,
-                        borderRadius: AppStyles.roundedXl,
-                      ),
-                      child: Center(child: _buildButtonContent()),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+                ),
     );
   }
 }

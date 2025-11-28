@@ -7,6 +7,7 @@ class PlayerStats {
   final int totalLessonsAttended; // Tổng số tiết đã học
   final int totalLessonsMissed; // Tổng số tiết nghỉ
   final bool isInitialized; // Đã setup lần đầu chưa
+  final DateTime? initializedAt; // Thời điểm khởi tạo game
 
   const PlayerStats({
     this.coins = 0,
@@ -16,6 +17,7 @@ class PlayerStats {
     this.totalLessonsAttended = 0,
     this.totalLessonsMissed = 0,
     this.isInitialized = false,
+    this.initializedAt,
   });
 
   /// XP cần để lên level tiếp theo
@@ -39,6 +41,7 @@ class PlayerStats {
     int? totalLessonsAttended,
     int? totalLessonsMissed,
     bool? isInitialized,
+    DateTime? initializedAt,
   }) {
     return PlayerStats(
       coins: coins ?? this.coins,
@@ -48,6 +51,7 @@ class PlayerStats {
       totalLessonsAttended: totalLessonsAttended ?? this.totalLessonsAttended,
       totalLessonsMissed: totalLessonsMissed ?? this.totalLessonsMissed,
       isInitialized: isInitialized ?? this.isInitialized,
+      initializedAt: initializedAt ?? this.initializedAt,
     );
   }
 
@@ -59,6 +63,7 @@ class PlayerStats {
     'totalLessonsAttended': totalLessonsAttended,
     'totalLessonsMissed': totalLessonsMissed,
     'isInitialized': isInitialized,
+    'initializedAt': initializedAt?.toIso8601String(),
   };
 
   factory PlayerStats.fromJson(Map<String, dynamic> json) => PlayerStats(
@@ -69,5 +74,8 @@ class PlayerStats {
     totalLessonsAttended: json['totalLessonsAttended'] ?? 0,
     totalLessonsMissed: json['totalLessonsMissed'] ?? 0,
     isInitialized: json['isInitialized'] ?? false,
+    initializedAt: json['initializedAt'] != null 
+        ? DateTime.tryParse(json['initializedAt']) 
+        : null,
   );
 }

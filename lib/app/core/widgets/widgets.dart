@@ -29,6 +29,8 @@ export 'form/duo_dropdown.dart';
 export 'form/duo_chip_selector.dart';
 export 'form/duo_number_input.dart';
 export 'form/duo_checkbox.dart';
+export 'form/duo_semester_selector.dart';
+export 'form/duo_semester_picker.dart';
 
 // Display widgets
 export 'display/duo_list_tile.dart';
@@ -50,3 +52,6 @@ export 'game/duo_xp_progress.dart';
 export 'game/duo_game_stats_bar.dart';
 export 'game/duo_attendance_card.dart';
 export 'game/duo_attendance_rate_card.dart';
+export 'game/duo_lesson_checkin.dart';
+export 'game/duo_schedule_card.dart';
+export 'game/duo_reward_dialog.dart';

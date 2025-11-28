@@ -90,10 +90,37 @@ DuoCustomCard(...)
 - Màu: `AppColors.[name]` hoặc `AppColors.[name]Soft/Dark/Light`
 - Style: `AppStyles.[category][Size/Weight]`
 
-### 7. CHECKLIST TRƯỚC KHI COMMIT
+### 7. SỬ DỤNG ASSETS GAME
+
+**LUÔN LUÔN** sử dụng ảnh từ `assets/game/` cho các icon game:
+
+```dart
+// Coins
+Image.asset('assets/game/currency/coin_golden_coin_1st_64px.png', width: 24.w)
+
+// Diamonds  
+Image.asset('assets/game/currency/diamond_blue_diamond_1st_64px.png', width: 24.w)
+
+// XP/Star
+Image.asset('assets/game/main/star_golden_star_1st_64px.png', width: 24.w)
+
+// Gift
+Image.asset('assets/game/item/gift_red_gift_1st_64px.png', width: 24.w)
+
+// Check/Verify
+Image.asset('assets/game/main/verify_verify_1st_64px.png', width: 24.w)
+
+// Calendar
+Image.asset('assets/game/item/calendar_calendar_1st_64px.png', width: 24.w)
+```
+
+**KHÔNG** dùng emoji hoặc Icon cho các element game (coins, diamonds, XP, rewards...)
+
+### 8. CHECKLIST TRƯỚC KHI COMMIT
 
 - [ ] Tất cả màu sắc dùng `AppColors`
 - [ ] Tất cả spacing dùng `AppStyles.space*`
 - [ ] Không có widget inline trong view
 - [ ] Không có utility function trùng lặp
 - [ ] Widget mới đã export trong `widgets.dart`
+- [ ] Sử dụng ảnh từ `assets/game/` cho icon game

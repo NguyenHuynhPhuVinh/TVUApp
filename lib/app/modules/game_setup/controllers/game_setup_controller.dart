@@ -76,6 +76,18 @@ class GameSetupController extends GetxController {
         missedSessions: missedSessions,
       );
 
+      // Kiểm tra security fail
+      if (result == null) {
+        Get.snackbar(
+          'Lỗi bảo mật',
+          'Không thể khởi tạo game. Vui lòng kiểm tra thiết bị của bạn.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red.withValues(alpha: 0.9),
+          colorText: Colors.white,
+        );
+        return;
+      }
+
       // Chuyển sang trang hiển thị kết quả với animation
       Get.offNamed(Routes.gameStats, arguments: result);
     } catch (e) {

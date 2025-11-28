@@ -1,0 +1,246 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_styles.dart';
+import '../base/duo_button.dart';
+
+/// Dialog hiển thị phần thưởng sau khi điểm danh
+class DuoRewardDialog extends StatelessWidget {
+  final String tenMon;
+  final int earnedCoins;
+  final int earnedDiamonds;
+  final int earnedXp;
+  final bool leveledUp;
+  final int? newLevel;
+
+  const DuoRewardDialog({
+    super.key,
+    required this.tenMon,
+    required this.earnedCoins,
+    required this.earnedDiamonds,
+    required this.earnedXp,
+    this.leveledUp = false,
+    this.newLevel,
+  });
+
+  static void show({
+    required String tenMon,
+    required Map<String, dynamic> rewards,
+  }) {
+    Get.dialog(
+      DuoRewardDialog(
+        tenMon: tenMon,
+        earnedCoins: rewards['earnedCoins'] ?? 0,
+        earnedDiamonds: rewards['earnedDiamonds'] ?? 0,
+        earnedXp: rewards['earnedXp'] ?? 0,
+        leveledUp: rewards['leveledUp'] == true,
+        newLevel: rewards['newLevel'],
+      ),
+      barrierDismissible: true,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: Container(
+        padding: EdgeInsets.all(AppStyles.space5),
+        decoration: BoxDecoration(
+          color: AppColors.backgroundWhite,
+          borderRadius: AppStyles.rounded2xl,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildSuccessIcon(),
+            SizedBox(height: AppStyles.space4),
+            _buildTitle(),
+            SizedBox(height: AppStyles.space2),
+            _buildSubjectName(),
+            SizedBox(height: AppStyles.space4),
+            _buildRewardsSection(),
+            if (leveledUp) ...[
+              SizedBox(height: AppStyles.space3),
+              _buildLevelUpBadge(),
+            ],
+            SizedBox(height: AppStyles.space5),
+            _buildCloseButton(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSuccessIcon() {
+    return Container(
+      padding: EdgeInsets.all(AppStyles.space4),
+      decoration: BoxDecoration(
+        color: AppColors.greenSoft,
+        shape: BoxShape.circle,
+      ),
+      child: Icon(
+        Icons.check_circle_rounded,
+        color: AppColors.green,
+        size: 48.w,
+      ),
+    ).animate().scale(duration: 400.ms, curve: Curves.elasticOut);
+  }
+
+  Widget _buildTitle() {
+    return Text(
+      'Điểm danh thành công!',
+      style: TextStyle(
+        fontSize: AppStyles.textXl,
+        fontWeight: AppStyles.fontBold,
+        color: AppColors.green,
+      ),
+    );
+  }
+
+  Widget _buildSubjectName() {
+    return Text(
+      tenMon,
+      style: TextStyle(
+        fontSize: AppStyles.textBase,
+        color: AppColors.textSecondary,
+      ),
+      textAlign: TextAlign.center,
+    );
+  }
+
+  Widget _buildRewardsSection() {
+    return Container(
+      padding: EdgeInsets.all(AppStyles.space4),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: AppStyles.roundedXl,
+      ),
+      child: Column(
+        children: [
+          Text(
+            'Phần thưởng',
+            style: TextStyle(
+              fontSize: AppStyles.textSm,
+              fontWeight: AppStyles.fontBold,
+              color: AppColors.textSecondary,
+            ),
+          ),
+          SizedBox(height: AppStyles.space3),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _DuoRewardItem(
+                assetPath: 'assets/game/currency/coin_golden_coin_1st_64px.png',
+                value: '+${_formatNumber(earnedCoins)}',
+                label: 'Coins',
+              ),
+              _DuoRewardItem(
+                assetPath: 'assets/game/currency/diamond_blue_diamond_1st_64px.png',
+                value: '+${_formatNumber(earnedDiamonds)}',
+                label: 'Diamonds',
+              ),
+              _DuoRewardItem(
+                assetPath: 'assets/game/main/star_golden_star_1st_64px.png',
+                value: '+${_formatNumber(earnedXp)}',
+                label: 'XP',
+              ),
+            ],
+          ),
+        ],
+      ),
+    ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.2);
+  }
+
+  Widget _buildLevelUpBadge() {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: AppStyles.space4, vertical: AppStyles.space2),
+      decoration: BoxDecoration(
+        gradient: AppColors.purpleGradient,
+        borderRadius: AppStyles.roundedFull,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.arrow_upward_rounded, color: Colors.white, size: 16.w),
+          SizedBox(width: AppStyles.space1),
+          Text(
+            'Level Up! Lv.$newLevel',
+            style: TextStyle(
+              fontSize: AppStyles.textSm,
+              fontWeight: AppStyles.fontBold,
+              color: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    ).animate().scale(delay: 400.ms, duration: 400.ms, curve: Curves.elasticOut);
+  }
+
+  Widget _buildCloseButton() {
+    return DuoButton(
+      text: 'Tuyệt vời!',
+      variant: DuoButtonVariant.success,
+      onPressed: () => Get.back(),
+      fullWidth: true,
+    );
+  }
+
+  String _formatNumber(int number) {
+    if (number >= 1000000) {
+      return '${(number / 1000000).toStringAsFixed(1)}M';
+    } else if (number >= 1000) {
+      return '${(number / 1000).toStringAsFixed(0)}K';
+    }
+    return number.toString();
+  }
+}
+
+/// Widget hiển thị một item reward
+class _DuoRewardItem extends StatelessWidget {
+  final String assetPath;
+  final String value;
+  final String label;
+
+  const _DuoRewardItem({
+    required this.assetPath,
+    required this.value,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Image.asset(
+          assetPath,
+          width: 32.w,
+          height: 32.w,
+          errorBuilder: (_, __, ___) => Icon(
+            Icons.card_giftcard,
+            size: 32.w,
+            color: AppColors.yellow,
+          ),
+        ),
+        SizedBox(height: AppStyles.space1),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: AppStyles.textLg,
+            fontWeight: AppStyles.fontBold,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: AppStyles.textXs,
+            color: AppColors.textTertiary,
+          ),
+        ),
+      ],
+    );
+  }
+}
