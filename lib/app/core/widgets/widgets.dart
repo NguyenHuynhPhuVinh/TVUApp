@@ -29,3 +29,7 @@ export 'duo_level_badge.dart';
 export 'duo_attendance_rate_card.dart';
 export 'duo_feedback_message.dart';
 export 'duo_xp_progress.dart';
+export 'duo_mini_stat.dart';
+export 'duo_currency_card.dart';
+export 'duo_game_stats_bar.dart';
+export 'duo_level_progress_card.dart';

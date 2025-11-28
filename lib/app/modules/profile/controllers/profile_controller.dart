@@ -1,14 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../data/services/auth_service.dart';
+import '../../../data/services/game_service.dart';
 import '../../../data/services/local_storage_service.dart';
 import '../../../routes/app_routes.dart';
 
 class ProfileController extends GetxController {
   final AuthService _authService = Get.find<AuthService>();
   final LocalStorageService _localStorage = Get.find<LocalStorageService>();
+  final GameService _gameService = Get.find<GameService>();
 
   final studentInfo = <String, dynamic>{}.obs;
+
+  // Game stats getters
+  int get coins => _gameService.stats.value.coins;
+  int get diamonds => _gameService.stats.value.diamonds;
+  int get level => _gameService.stats.value.level;
+  int get currentXp => _gameService.stats.value.currentXp;
+  int get xpForNextLevel => level * 100;
+  double get xpProgress => currentXp / xpForNextLevel;
+  int get totalLessonsAttended => _gameService.stats.value.totalLessonsAttended;
+  int get totalLessonsMissed => _gameService.stats.value.totalLessonsMissed;
+  double get attendanceRate => _gameService.stats.value.attendanceRate;
 
   @override
   void onInit() {

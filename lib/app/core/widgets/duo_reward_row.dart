@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_styles.dart';
+import '../utils/number_formatter.dart';
 
 class DuoRewardRow extends StatelessWidget {
   final String? iconPath;
@@ -78,7 +79,7 @@ class DuoRewardRow extends StatelessWidget {
           ),
           // Value
           Text(
-            '$prefix${_formatNumber(value)}',
+            '$prefix${NumberFormatter.compact(value)}',
             style: TextStyle(
               fontSize: 24.sp,
               fontWeight: AppStyles.fontBold,
@@ -88,22 +89,5 @@ class DuoRewardRow extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _formatNumber(int number) {
-    if (number >= 1000000000) {
-      // Tỷ
-      final billions = number / 1000000000;
-      return '${billions.toStringAsFixed(billions >= 10 ? 1 : 2)}B';
-    } else if (number >= 1000000) {
-      // Triệu
-      final millions = number / 1000000;
-      return '${millions.toStringAsFixed(millions >= 10 ? 1 : 2)}M';
-    } else if (number >= 1000) {
-      // Nghìn
-      final thousands = number / 1000;
-      return '${thousands.toStringAsFixed(thousands >= 10 ? 1 : 2)}K';
-    }
-    return number.toString();
   }
 }

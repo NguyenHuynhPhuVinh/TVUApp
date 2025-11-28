@@ -5,6 +5,7 @@ import 'package:iconsax/iconsax.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_styles.dart';
+
 import '../../../core/widgets/widgets.dart';
 import '../controllers/home_controller.dart';
 
@@ -104,29 +105,11 @@ class HomeView extends GetView<HomeController> {
             ],
           ),
           SizedBox(height: AppStyles.space4),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: AppStyles.space3, vertical: AppStyles.space2),
-            decoration: BoxDecoration(
-              color: AppColors.withAlpha(Colors.white, 0.2),
-              borderRadius: AppStyles.roundedLg,
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Iconsax.book, size: AppStyles.iconXs, color: Colors.white),
-                SizedBox(width: AppStyles.space2),
-                Text(
-                  controller.className.value.isEmpty
-                      ? 'Đang tải...'
-                      : controller.className.value,
-                  style: TextStyle(
-                    fontSize: AppStyles.textSm,
-                    fontWeight: AppStyles.fontMedium,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
-            ),
+          // Game stats bar
+          DuoGameStatsBar(
+            level: controller.level,
+            coins: controller.coins,
+            diamonds: controller.diamonds,
           ),
         ],
       ),
@@ -374,4 +357,5 @@ class HomeView extends GetView<HomeController> {
       ],
     );
   }
+
 }

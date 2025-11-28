@@ -1,15 +1,24 @@
 import 'package:get/get.dart';
 import '../../../data/services/auth_service.dart';
+import '../../../data/services/game_service.dart';
 import '../../../data/services/local_storage_service.dart';
 
 class HomeController extends GetxController {
   final LocalStorageService _localStorage = Get.find<LocalStorageService>();
   final AuthService _authService = Get.find<AuthService>();
+  final GameService _gameService = Get.find<GameService>();
 
   final studentName = ''.obs;
   final studentId = ''.obs;
   final className = ''.obs;
   final todaySchedule = <Map<String, dynamic>>[].obs;
+
+  // Game stats
+  int get coins => _gameService.stats.value.coins;
+  int get diamonds => _gameService.stats.value.diamonds;
+  int get level => _gameService.stats.value.level;
+  int get currentXp => _gameService.stats.value.currentXp;
+  int get xpForNextLevel => level * 100;
 
   @override
   void onInit() {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -20,6 +21,8 @@ class ProfileView extends GetView<ProfileController> {
         child: Column(
           children: [
             _buildProfileHeader(),
+            SizedBox(height: AppStyles.space4),
+            _buildGameStats(),
             SizedBox(height: AppStyles.space4),
             _buildPersonalInfo(),
             SizedBox(height: AppStyles.space4),
@@ -111,6 +114,84 @@ class ProfileView extends GetView<ProfileController> {
             ),
           ],
         )).animate().fadeIn(duration: 400.ms, delay: 200.ms).slideY(begin: 0.1, end: 0);
+  }
+
+  Widget _buildGameStats() {
+    return DuoCard(
+      padding: EdgeInsets.all(AppStyles.space4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Row(
+            children: [
+              Icon(Icons.videogame_asset_rounded,
+                  color: AppColors.purple, size: AppStyles.iconMd),
+              SizedBox(width: AppStyles.space2),
+              Text(
+                'Thành tích',
+                style: TextStyle(
+                  fontSize: AppStyles.textLg,
+                  fontWeight: AppStyles.fontBold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: AppStyles.space4),
+
+          // Level & XP Progress - dùng widget
+          DuoLevelProgressCard(
+            level: controller.level,
+            currentXp: controller.currentXp,
+            xpForNextLevel: controller.xpForNextLevel,
+          ),
+
+          SizedBox(height: AppStyles.space4),
+
+          // Coins & Diamonds - dùng widget
+          Row(
+            children: [
+              Expanded(child: DuoCurrencyCard.coins(controller.coins)),
+              SizedBox(width: AppStyles.space3),
+              Expanded(child: DuoCurrencyCard.diamonds(controller.diamonds)),
+            ],
+          ),
+
+          SizedBox(height: AppStyles.space4),
+
+          // Attendance stats - dùng widget
+          Row(
+            children: [
+              Expanded(
+                child: DuoMiniStat(
+                  icon: Iconsax.tick_circle,
+                  label: 'Đã học',
+                  value: '${controller.totalLessonsAttended} tiết',
+                  color: AppColors.green,
+                ),
+              ),
+              Expanded(
+                child: DuoMiniStat(
+                  icon: Iconsax.close_circle,
+                  label: 'Nghỉ',
+                  value: '${controller.totalLessonsMissed} tiết',
+                  color: AppColors.red,
+                ),
+              ),
+              Expanded(
+                child: DuoMiniStat(
+                  icon: Iconsax.chart,
+                  label: 'Chuyên cần',
+                  value: '${controller.attendanceRate.toStringAsFixed(1)}%',
+                  color: AppColors.primary,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    ).animate().fadeIn(duration: 400.ms, delay: 50.ms).slideY(begin: 0.1, end: 0);
   }
 
   Widget _buildMenuSection() {
