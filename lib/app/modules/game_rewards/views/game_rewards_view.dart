@@ -107,36 +107,19 @@ class GameRewardsView extends GetView<GameRewardsController> {
 
                   SizedBox(height: 12.h),
 
-                  // XP Card
+                  SizedBox(height: 24.h),
+
+                  // XP Progress Animation - chạy vèo vèo qua các level
                   Obx(() => controller.showLevel.value
-                      ? DuoRewardRow(
-                          iconPath: 'assets/game/main/star_golden_star_1st_64px.png',
-                          fallbackIcon: Icons.star_rounded,
-                          label: 'XP',
-                          value: controller.animatedXp.value,
-                          color: AppColors.green,
-                          bgColor: AppColors.greenSoft,
+                      ? DuoXpProgress(
+                          totalXp: controller.earnedXp,
+                          finalLevel: controller.level,
+                          onComplete: () => controller.showButton.value = true,
                         )
                           .animate()
                           .fadeIn(duration: 400.ms)
-                          .slideX(begin: -0.1, end: 0)
-                      : SizedBox(height: 72.h)),
-
-                  SizedBox(height: 24.h),
-
-                  // Level Card
-                  Obx(() => controller.showLevel.value
-                      ? DuoLevelBadge(
-                          level: controller.animatedLevel.value,
-                          iconPath: 'assets/game/main/star_golden_star_1st_64px.png',
-                        )
-                          .animate()
-                          .fadeIn(delay: 200.ms, duration: 400.ms)
-                          .scale(
-                            begin: const Offset(0.95, 0.95),
-                            end: const Offset(1, 1),
-                          )
-                      : SizedBox(height: 100.h)),
+                          .slideY(begin: 0.1, end: 0)
+                      : SizedBox(height: 120.h)),
 
                   SizedBox(height: 40.h),
 

@@ -28,3 +28,4 @@ export 'duo_reward_row.dart';
 export 'duo_level_badge.dart';
 export 'duo_attendance_rate_card.dart';
 export 'duo_feedback_message.dart';
+export 'duo_xp_progress.dart';

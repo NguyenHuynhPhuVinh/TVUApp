@@ -57,16 +57,10 @@ class GameRewardsController extends GetxController {
     await Future.delayed(const Duration(milliseconds: 300));
     _countUp(animatedDiamonds, earnedDiamonds, duration: 1000);
 
-    // Level animation
+    // XP Progress animation - widget tự handle, chỉ cần show
     await Future.delayed(const Duration(milliseconds: 600));
     showLevel.value = true;
-    await Future.delayed(const Duration(milliseconds: 300));
-    _countUpLevel();
-    _countUp(animatedXp, earnedXp, duration: 1500);
-
-    // Button
-    await Future.delayed(const Duration(milliseconds: 1200));
-    showButton.value = true;
+    // Button sẽ được show khi XP animation complete (từ widget callback)
   }
 
   /// Đếm số từ 0 lên endValue
@@ -88,14 +82,6 @@ class GameRewardsController extends GetxController {
       target.value = (endValue * easedProgress).round();
     }
     target.value = endValue;
-  }
-
-  /// Đếm level từ 1 lên
-  Future<void> _countUpLevel() async {
-    for (int i = 1; i <= level; i++) {
-      await Future.delayed(const Duration(milliseconds: 200));
-      animatedLevel.value = i;
-    }
   }
 
   void continueToMain() {
