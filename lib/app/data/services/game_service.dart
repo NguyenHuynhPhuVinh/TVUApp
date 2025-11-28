@@ -698,6 +698,93 @@ class GameService extends GetxService {
     }
   }
 
+  /// Kiểm tra học kỳ đã claim trên Firebase chưa
+  Future<bool> _checkSemesterClaimedOnFirebase(String mssv, String semesterId) async {
+    if (mssv.isEmpty) return true;
+    
+    try {
+      final doc = await _firestore.collection('students').doc(mssv).get();
+      if (doc.exists && doc.data()?['gameStats'] != null) {
+        final gameStats = doc.data()!['gameStats'] as Map<String, dynamic>;
+        // Nếu đã claim full thì tất cả học kỳ đều đã claim
+        if (gameStats['tuitionBonusClaimed'] == true) return true;
+        final claimed = gameStats['claimedTuitionSemesters'] as List? ?? [];
+        return claimed.contains(semesterId);
+      }
+      return false;
+    } catch (e) {
+      debugPrint('Error checking semester claimed on Firebase: $e');
+      return true; // Block nếu lỗi
+    }
+  }
+
+  /// Nhận bonus từ học phí theo từng học kỳ
+  /// Flow: Check Firebase → Validate → Update local → Sync Firebase
+  Future<Map<String, dynamic>?> claimTuitionBonusBySemester({
+    required String mssv,
+    required String semesterId, // ID học kỳ (ten_hoc_ky)
+    required int tuitionPaid, // Số tiền đã đóng học kỳ này (VND)
+  }) async {
+    isLoading.value = true;
+    
+    try {
+      // 1. Check đã claim học kỳ này chưa (Firebase là source of truth)
+      final alreadyClaimed = await _checkSemesterClaimedOnFirebase(mssv, semesterId);
+      if (alreadyClaimed || stats.value.isSemesterClaimed(semesterId)) {
+        debugPrint('⚠️ claimTuitionBonusBySemester blocked: Semester $semesterId already claimed');
+        return null;
+      }
+      
+      // 2. Security check
+      if (!isSecure.value) {
+        await _checkSecurity();
+        if (!isSecure.value) {
+          debugPrint('⚠️ claimTuitionBonusBySemester blocked: Security issues');
+          return null;
+        }
+      }
+      
+      // 3. Validate amount
+      if (tuitionPaid <= 0) {
+        debugPrint('⚠️ claimTuitionBonusBySemester blocked: Invalid amount');
+        return null;
+      }
+      
+      // 4. Tính tiền ảo (1:1)
+      final bonusAmount = calculateVirtualBalanceFromTuition(tuitionPaid);
+      
+      // 5. Update stats
+      final newClaimedSemesters = [...stats.value.claimedTuitionSemesters, semesterId];
+      stats.value = stats.value.copyWith(
+        virtualBalance: stats.value.virtualBalance + bonusAmount,
+        totalTuitionPaid: stats.value.totalTuitionPaid + tuitionPaid,
+        claimedTuitionSemesters: newClaimedSemesters,
+      );
+      
+      // 6. Lưu local
+      await _saveLocalStats();
+      
+      // 7. Thêm transaction
+      await _addTransaction(
+        type: TransactionType.tuitionBonus,
+        amount: bonusAmount,
+        description: 'Nhận thưởng học phí $semesterId',
+        metadata: {'semesterId': semesterId, 'tuitionPaid': tuitionPaid},
+      );
+      
+      // 8. Sync Firebase
+      await syncToFirebase(mssv);
+      
+      return {
+        'semesterId': semesterId,
+        'tuitionPaid': tuitionPaid,
+        'virtualBalance': bonusAmount,
+      };
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   // ============ DIAMOND SHOP ============
 
   bool _isBuyingDiamonds = false; // Lock ngăn race condition

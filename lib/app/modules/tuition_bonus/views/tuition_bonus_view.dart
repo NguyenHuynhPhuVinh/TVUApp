@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_styles.dart';
+import '../../../core/utils/number_formatter.dart';
 import '../../../core/widgets/widgets.dart';
 import '../controllers/tuition_bonus_controller.dart';
 
@@ -14,7 +15,7 @@ class TuitionBonusView extends GetView<TuitionBonusController> {
   Widget build(BuildContext context) {
     // Bắt đầu animation khi view được build
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Future.delayed(const Duration(milliseconds: 500), () {
+      Future.delayed(const Duration(milliseconds: 800), () {
         controller.startCountAnimation();
       });
     });
@@ -22,112 +23,103 @@ class TuitionBonusView extends GetView<TuitionBonusController> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.all(AppStyles.space6),
+        child: SingleChildScrollView(
+          padding: EdgeInsets.all(AppStyles.space4),
           child: Column(
             children: [
-              const Spacer(),
+              SizedBox(height: AppStyles.space2),
               
-              // Icon tiền
-              Image.asset(
-                'assets/game/currency/cash_green_cash_1st_64px.png',
-                width: 100.w,
-                height: 100.w,
-              ).animate()
-                .scale(duration: 600.ms, curve: Curves.elasticOut)
-                .fadeIn(),
-              
-              SizedBox(height: AppStyles.space6),
-              
-              // Title
-              Text(
-                'Thưởng học phí!',
-                style: TextStyle(
-                  fontSize: AppStyles.text2xl,
-                  fontWeight: AppStyles.fontBold,
-                  color: AppColors.green,
-                ),
-              ).animate()
-                .fadeIn(delay: 200.ms)
-                .slideY(begin: 0.2),
+              // Title với confetti effect
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('🎉', style: TextStyle(fontSize: 24.sp))
+                      .animate(onPlay: (c) => c.repeat())
+                      .shake(duration: 1000.ms, delay: 2000.ms),
+                  SizedBox(width: AppStyles.space2),
+                  Flexible(
+                    child: Text(
+                      'Thưởng học phí!',
+                      style: TextStyle(
+                        fontSize: AppStyles.textXl,
+                        fontWeight: AppStyles.fontBold,
+                        color: AppColors.green,
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: AppStyles.space2),
+                  Text('🎉', style: TextStyle(fontSize: 24.sp))
+                      .animate(onPlay: (c) => c.repeat())
+                      .shake(duration: 1000.ms, delay: 2500.ms),
+                ],
+              ).animate().fadeIn(duration: 400.ms).slideY(begin: -0.2),
               
               SizedBox(height: AppStyles.space2),
               
               // Subtitle
               Obx(() => Text(
-                'Từ ${controller.formatCurrency(controller.tuitionPaid.value)} học phí đã đóng',
+                'Bạn đã đóng ${controller.formatCurrency(controller.tuitionPaid.value)} học phí',
                 style: TextStyle(
-                  fontSize: AppStyles.textBase,
+                  fontSize: AppStyles.textSm,
                   color: AppColors.textSecondary,
                 ),
                 textAlign: TextAlign.center,
+              )).animate().fadeIn(delay: 200.ms),
+              
+              SizedBox(height: AppStyles.space4),
+              
+              // Thẻ ví - dùng widget chung
+              Obx(() => DuoWalletBalanceCard(
+                virtualBalance: controller.displayedBalance.value,
+                cardHolder: controller.fullName,
+                cardNumber: controller.mssv,
               )).animate()
-                .fadeIn(delay: 400.ms),
+                .fadeIn(delay: 400.ms, duration: 600.ms)
+                .slideY(begin: 0.1)
+                .then()
+                .shimmer(duration: 1500.ms, color: AppColors.green.withValues(alpha: 0.3)),
               
-              SizedBox(height: AppStyles.space8),
+              SizedBox(height: AppStyles.space4),
               
-              // Animated balance
-              DuoCard(
-                backgroundColor: AppColors.greenSoft,
-                child: Column(
+              // Animated amount display - chuyên nghiệp hơn
+              Obx(() => _BonusAmountCard(
+                amount: controller.displayedBalance.value,
+                isAnimating: controller.isAnimating.value,
+              )).animate()
+                .fadeIn(delay: 600.ms)
+                .scale(begin: const Offset(0.9, 0.9)),
+              
+              SizedBox(height: AppStyles.space3),
+              
+              // Info text
+              Container(
+                padding: EdgeInsets.all(AppStyles.space3),
+                decoration: BoxDecoration(
+                  color: AppColors.primarySoft,
+                  borderRadius: AppStyles.roundedLg,
+                ),
+                child: Row(
                   children: [
-                    Text(
-                      'Bạn nhận được',
-                      style: TextStyle(
-                        fontSize: AppStyles.textSm,
-                        color: AppColors.textSecondary,
-                      ),
+                    Icon(
+                      Icons.info_outline_rounded,
+                      size: 18.sp,
+                      color: AppColors.primary,
                     ),
-                    SizedBox(height: AppStyles.space2),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Image.asset(
-                          'assets/game/currency/cash_green_cash_1st_64px.png',
-                          width: 32.w,
-                          height: 32.w,
+                    SizedBox(width: AppStyles.space2),
+                    Expanded(
+                      child: Text(
+                        'Dùng TVUCash để mua Diamond và nhiều vật phẩm hấp dẫn!',
+                        style: TextStyle(
+                          fontSize: AppStyles.textXs,
+                          color: AppColors.primary,
                         ),
-                        SizedBox(width: AppStyles.space2),
-                        Obx(() => Text(
-                          controller.formatBalance(controller.displayedBalance.value),
-                          style: TextStyle(
-                            fontSize: AppStyles.text4xl,
-                            fontWeight: AppStyles.fontBold,
-                            color: AppColors.green,
-                          ),
-                        )),
-                      ],
-                    ),
-                    SizedBox(height: AppStyles.space1),
-                    Text(
-                      'TVUCash',
-                      style: TextStyle(
-                        fontSize: AppStyles.textBase,
-                        color: AppColors.green,
-                        fontWeight: AppStyles.fontSemibold,
                       ),
                     ),
                   ],
                 ),
-              ).animate()
-                .fadeIn(delay: 600.ms)
-                .scale(begin: const Offset(0.8, 0.8)),
+              ).animate().fadeIn(delay: 800.ms),
               
-              SizedBox(height: AppStyles.space4),
-              
-              // Info text
-              Text(
-                'Dùng TVUCash để mua Diamond\nvà nhiều vật phẩm hấp dẫn khác!',
-                style: TextStyle(
-                  fontSize: AppStyles.textSm,
-                  color: AppColors.textTertiary,
-                  height: 1.5,
-                ),
-                textAlign: TextAlign.center,
-              ).animate()
-                .fadeIn(delay: 800.ms),
-              
-              const Spacer(),
+              SizedBox(height: AppStyles.space6),
               
               // Buttons
               Obx(() => DuoButton(
@@ -144,11 +136,11 @@ class TuitionBonusView extends GetView<TuitionBonusController> {
                 .fadeIn(delay: 1000.ms)
                 .slideY(begin: 0.2),
               
-              SizedBox(height: AppStyles.space3),
+              SizedBox(height: AppStyles.space2),
               
               // Skip button
               Obx(() => controller.isAnimating.value || controller.isClaiming.value
-                  ? const SizedBox.shrink()
+                  ? SizedBox(height: 40.h)
                   : TextButton(
                       onPressed: controller.skip,
                       child: Text(
@@ -158,14 +150,116 @@ class TuitionBonusView extends GetView<TuitionBonusController> {
                           fontSize: AppStyles.textSm,
                         ),
                       ),
-                    ).animate()
-                      .fadeIn(delay: 1200.ms),
+                    ).animate().fadeIn(delay: 1200.ms),
               ),
               
-              SizedBox(height: AppStyles.space4),
+              SizedBox(height: AppStyles.space2),
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Card hiển thị số tiền bonus - thiết kế tinh tế
+class _BonusAmountCard extends StatelessWidget {
+  final int amount;
+  final bool isAnimating;
+
+  const _BonusAmountCard({
+    required this.amount,
+    required this.isAnimating,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(
+        horizontal: AppStyles.space4,
+        vertical: AppStyles.space5,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.backgroundWhite,
+        borderRadius: AppStyles.roundedXl,
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.green.withValues(alpha: 0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Label nhỏ phía trên
+          Text(
+            'Bạn nhận được',
+            style: TextStyle(
+              fontSize: AppStyles.textSm,
+              color: AppColors.textTertiary,
+            ),
+          ),
+          
+          SizedBox(height: AppStyles.space3),
+          
+          // Amount với icon
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Icon
+              Image.asset(
+                'assets/game/currency/cash_green_cash_1st_64px.png',
+                width: 40.w,
+                height: 40.w,
+              ).animate(
+                onPlay: isAnimating ? (c) => c.repeat() : null,
+              ).scale(
+                begin: const Offset(1, 1),
+                end: const Offset(1.1, 1.1),
+                duration: 500.ms,
+                curve: Curves.easeInOut,
+              ),
+              
+              SizedBox(width: AppStyles.space3),
+              
+              // Số tiền
+              Text(
+                '+${NumberFormatter.withCommas(amount)}',
+                style: TextStyle(
+                  fontSize: 36.sp,
+                  fontWeight: AppStyles.fontBold,
+                  color: AppColors.green,
+                  letterSpacing: -0.5,
+                ),
+              ),
+            ],
+          ),
+          
+          SizedBox(height: AppStyles.space2),
+          
+          // Currency label
+          Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: AppStyles.space3,
+              vertical: AppStyles.space1,
+            ),
+            decoration: BoxDecoration(
+              color: AppColors.greenSoft,
+              borderRadius: AppStyles.roundedFull,
+            ),
+            child: Text(
+              'TVUCash',
+              style: TextStyle(
+                fontSize: AppStyles.textSm,
+                color: AppColors.green,
+                fontWeight: AppStyles.fontSemibold,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

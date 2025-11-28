@@ -3,7 +3,17 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iconsax/iconsax.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_styles.dart';
+import '../../utils/number_formatter.dart';
+import '../base/duo_button.dart';
 import '../base/duo_card.dart';
+
+/// Trạng thái claim bonus học phí
+enum TuitionBonusState {
+  canClaim,   // Có thể claim (đã đóng tiền, chưa claim)
+  claimed,    // Đã claim
+  noPaid,     // Chưa đóng tiền
+  loading,    // Đang xử lý
+}
 
 /// Card hiển thị học phí theo học kỳ
 class DuoTuitionCard extends StatelessWidget {
@@ -16,6 +26,9 @@ class DuoTuitionCard extends StatelessWidget {
   final String conNo;
   final String? donGia;
   final bool hasDebt;
+  final TuitionBonusState bonusState;
+  final int daThuAmount; // Số tiền đã đóng (để hiển thị bonus)
+  final VoidCallback? onClaimBonus;
 
   const DuoTuitionCard({
     super.key,
@@ -28,6 +41,9 @@ class DuoTuitionCard extends StatelessWidget {
     required this.conNo,
     this.donGia,
     required this.hasDebt,
+    this.bonusState = TuitionBonusState.noPaid,
+    this.daThuAmount = 0,
+    this.onClaimBonus,
   });
 
   @override
@@ -60,6 +76,90 @@ class DuoTuitionCard extends StatelessWidget {
                 fontSize: AppStyles.textXs,
                 color: AppColors.textTertiary,
                 fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
+          // Bonus section
+          if (bonusState != TuitionBonusState.noPaid) ...[
+            SizedBox(height: AppStyles.space3),
+            _buildBonusSection(),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBonusSection() {
+    return Container(
+      padding: EdgeInsets.all(AppStyles.space3),
+      decoration: BoxDecoration(
+        color: bonusState == TuitionBonusState.claimed 
+            ? AppColors.backgroundDark 
+            : AppColors.greenSoft,
+        borderRadius: AppStyles.roundedLg,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Image.asset(
+                'assets/game/currency/cash_green_cash_1st_64px.png',
+                width: 20.w,
+                height: 20.w,
+              ),
+              SizedBox(width: AppStyles.space2),
+              Expanded(
+                child: Text(
+                  bonusState == TuitionBonusState.claimed 
+                      ? 'Đã nhận thưởng' 
+                      : 'Thưởng học phí',
+                  style: TextStyle(
+                    fontSize: AppStyles.textSm,
+                    fontWeight: AppStyles.fontSemibold,
+                    color: bonusState == TuitionBonusState.claimed 
+                        ? AppColors.textTertiary 
+                        : AppColors.green,
+                  ),
+                ),
+              ),
+              if (bonusState == TuitionBonusState.claimed)
+                Icon(
+                  Icons.check_circle_rounded,
+                  size: 16.sp,
+                  color: AppColors.green,
+                ),
+            ],
+          ),
+          if (bonusState != TuitionBonusState.claimed) ...[
+            SizedBox(height: AppStyles.space2),
+            Text(
+              '+${NumberFormatter.withCommas(daThuAmount)} TVUCash',
+              style: TextStyle(
+                fontSize: AppStyles.textBase,
+                fontWeight: AppStyles.fontBold,
+                color: AppColors.green,
+              ),
+            ),
+            SizedBox(height: AppStyles.space3),
+            DuoButton(
+              text: bonusState == TuitionBonusState.loading 
+                  ? 'Đang xử lý...' 
+                  : 'Nhận thưởng',
+              variant: DuoButtonVariant.success,
+              size: DuoButtonSize.sm,
+              isLoading: bonusState == TuitionBonusState.loading,
+              onPressed: bonusState == TuitionBonusState.loading 
+                  ? null 
+                  : onClaimBonus,
+            ),
+          ] else ...[
+            SizedBox(height: AppStyles.space1),
+            Text(
+              '+${NumberFormatter.withCommas(daThuAmount)} TVUCash',
+              style: TextStyle(
+                fontSize: AppStyles.textSm,
+                color: AppColors.textTertiary,
               ),
             ),
           ],

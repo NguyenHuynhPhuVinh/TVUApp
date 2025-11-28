@@ -10,7 +10,8 @@ class PlayerStats {
   final DateTime? initializedAt; // Thời điểm khởi tạo game
   final int virtualBalance; // Tiền ảo (từ học phí đã đóng)
   final int totalTuitionPaid; // Tổng học phí đã đóng (VND)
-  final bool tuitionBonusClaimed; // Đã nhận bonus từ học phí chưa
+  final bool tuitionBonusClaimed; // Đã nhận bonus từ học phí chưa (full claim từ setup)
+  final List<String> claimedTuitionSemesters; // Danh sách học kỳ đã claim
 
   const PlayerStats({
     this.coins = 0,
@@ -24,6 +25,7 @@ class PlayerStats {
     this.virtualBalance = 0,
     this.totalTuitionPaid = 0,
     this.tuitionBonusClaimed = false,
+    this.claimedTuitionSemesters = const [],
   });
 
   /// XP cần để lên level tiếp theo
@@ -39,6 +41,11 @@ class PlayerStats {
     return (totalLessonsAttended / total) * 100;
   }
 
+  /// Kiểm tra học kỳ đã claim chưa
+  bool isSemesterClaimed(String semesterId) {
+    return tuitionBonusClaimed || claimedTuitionSemesters.contains(semesterId);
+  }
+
   PlayerStats copyWith({
     int? coins,
     int? diamonds,
@@ -51,6 +58,7 @@ class PlayerStats {
     int? virtualBalance,
     int? totalTuitionPaid,
     bool? tuitionBonusClaimed,
+    List<String>? claimedTuitionSemesters,
   }) {
     return PlayerStats(
       coins: coins ?? this.coins,
@@ -64,6 +72,7 @@ class PlayerStats {
       virtualBalance: virtualBalance ?? this.virtualBalance,
       totalTuitionPaid: totalTuitionPaid ?? this.totalTuitionPaid,
       tuitionBonusClaimed: tuitionBonusClaimed ?? this.tuitionBonusClaimed,
+      claimedTuitionSemesters: claimedTuitionSemesters ?? this.claimedTuitionSemesters,
     );
   }
 
@@ -79,6 +88,7 @@ class PlayerStats {
     'virtualBalance': virtualBalance,
     'totalTuitionPaid': totalTuitionPaid,
     'tuitionBonusClaimed': tuitionBonusClaimed,
+    'claimedTuitionSemesters': claimedTuitionSemesters,
   };
 
   factory PlayerStats.fromJson(Map<String, dynamic> json) => PlayerStats(
@@ -95,5 +105,7 @@ class PlayerStats {
     virtualBalance: json['virtualBalance'] ?? 0,
     totalTuitionPaid: json['totalTuitionPaid'] ?? 0,
     tuitionBonusClaimed: json['tuitionBonusClaimed'] ?? false,
+    claimedTuitionSemesters: (json['claimedTuitionSemesters'] as List?)
+        ?.map((e) => e.toString()).toList() ?? [],
   );
 }

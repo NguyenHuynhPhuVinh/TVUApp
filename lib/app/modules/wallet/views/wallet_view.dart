@@ -28,22 +28,6 @@ class WalletView extends GetView<WalletController> {
           ),
           SizedBox(height: AppStyles.space4),
           
-          // Tuition bonus card
-          if (controller.canClaimTuitionBonus.value)
-            Obx(() => DuoTuitionBonusCard.canClaim(
-              tuitionPaid: controller.tuitionPaid.value,
-              virtualBalance: controller.tuitionPaid.value, // 1:1
-              onClaim: _claimBonus,
-              isLoading: controller.isLoading.value,
-            ))
-          else if (controller.tuitionBonusClaimed)
-            DuoTuitionBonusCard.claimed(
-              virtualBalance: controller.virtualBalance,
-            ),
-          
-          if (controller.canClaimTuitionBonus.value || controller.tuitionBonusClaimed)
-            SizedBox(height: AppStyles.space4),
-          
           // Lịch sử giao dịch
           Text(
             'Lịch sử giao dịch',
@@ -72,22 +56,5 @@ class WalletView extends GetView<WalletController> {
         ],
       )),
     );
-  }
-
-  Future<void> _claimBonus() async {
-    final result = await controller.claimTuitionBonus();
-    if (result != null) {
-      await DuoRewardDialog.showCustom(
-        title: 'Nhận thưởng thành công!',
-        rewards: [
-          RewardItem(
-            icon: 'assets/game/currency/cash_green_cash_1st_64px.png',
-            label: 'TVUCash',
-            value: result['virtualBalance'],
-            color: AppColors.green,
-          ),
-        ],
-      );
-    }
   }
 }

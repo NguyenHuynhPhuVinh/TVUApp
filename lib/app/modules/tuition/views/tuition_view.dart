@@ -106,22 +106,60 @@ class _TuitionItem extends StatelessWidget {
     final conNo = NumberFormatter.parseDouble(item['con_no']);
     final donGia = NumberFormatter.parseDouble(item['don_gia']);
     final hasDebt = conNo > 0;
+    final daThuInt = NumberFormatter.parseInt(item['da_thu']);
+    final semesterId = item['ten_hoc_ky'] ?? '';
 
     return Container(
       margin: EdgeInsets.only(bottom: AppStyles.space3),
-      child: DuoTuitionCard(
-        tenHocKy: item['ten_hoc_ky'] ?? 'N/A',
-        hocPhi: controller.formatCurrency(hocPhi),
-        mienGiam: mienGiam > 0 ? controller.formatCurrency(mienGiam) : null,
-        duocHoTro: duocHoTro > 0 ? controller.formatCurrency(duocHoTro) : null,
-        phaiThu: controller.formatCurrency(phaiThu),
-        daThu: controller.formatCurrency(daThu),
-        conNo: controller.formatCurrency(conNo),
-        donGia: donGia > 0 ? controller.formatCurrency(donGia) : null,
-        hasDebt: hasDebt,
-      ),
+      child: Obx(() {
+        // Xác định trạng thái bonus
+        TuitionBonusState bonusState;
+        if (daThuInt <= 0) {
+          bonusState = TuitionBonusState.noPaid;
+        } else if (controller.isSemesterClaimed(semesterId)) {
+          bonusState = TuitionBonusState.claimed;
+        } else if (controller.claimingId.value == semesterId) {
+          bonusState = TuitionBonusState.loading;
+        } else {
+          bonusState = TuitionBonusState.canClaim;
+        }
+
+        return DuoTuitionCard(
+          tenHocKy: semesterId.isNotEmpty ? semesterId : 'N/A',
+          hocPhi: controller.formatCurrency(hocPhi),
+          mienGiam: mienGiam > 0 ? controller.formatCurrency(mienGiam) : null,
+          duocHoTro: duocHoTro > 0 ? controller.formatCurrency(duocHoTro) : null,
+          phaiThu: controller.formatCurrency(phaiThu),
+          daThu: controller.formatCurrency(daThu),
+          conNo: controller.formatCurrency(conNo),
+          donGia: donGia > 0 ? controller.formatCurrency(donGia) : null,
+          hasDebt: hasDebt,
+          bonusState: bonusState,
+          daThuAmount: daThuInt,
+          onClaimBonus: bonusState == TuitionBonusState.canClaim
+              ? () => _claimBonus(context)
+              : null,
+        );
+      }),
     ).animate()
         .fadeIn(duration: 300.ms, delay: (index * 50).ms)
         .slideX(begin: 0.05, end: 0);
+  }
+
+  Future<void> _claimBonus(BuildContext context) async {
+    final result = await controller.claimSemesterBonus(item);
+    if (result != null) {
+      await DuoRewardDialog.showCustom(
+        title: 'Nhận thưởng thành công!',
+        rewards: [
+          RewardItem(
+            icon: 'assets/game/currency/cash_green_cash_1st_64px.png',
+            label: 'TVUCash',
+            value: result['virtualBalance'],
+            color: AppColors.green,
+          ),
+        ],
+      );
+    }
   }
 }

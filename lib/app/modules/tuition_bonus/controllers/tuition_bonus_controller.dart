@@ -18,6 +18,7 @@ class TuitionBonusController extends GetxController {
   final isClaimed = false.obs;
 
   String get mssv => _authService.username.value;
+  String get fullName => _localStorage.getStudentName() ?? mssv;
 
   @override
   void onInit() {
