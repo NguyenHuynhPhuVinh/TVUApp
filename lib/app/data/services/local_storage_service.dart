@@ -118,6 +118,15 @@ class LocalStorageService extends GetxService {
     return null;
   }
 
+  // Lấy tên sinh viên
+  String? getStudentName() {
+    final info = getStudentInfo();
+    if (info != null && info['data'] != null) {
+      return info['data']['ho_ten'] as String?;
+    }
+    return null;
+  }
+
   // Lưu thông báo (chỉ local, không đẩy Firebase)
   Future<void> saveNotifications(Map<String, dynamic> data) async {
     await _prefs.setString(_notificationsKey, jsonEncode(data));

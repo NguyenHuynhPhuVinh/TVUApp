@@ -100,7 +100,7 @@ class TuitionBonusView extends GetView<TuitionBonusController> {
                     ),
                     SizedBox(height: AppStyles.space1),
                     Text(
-                      'tiền ảo',
+                      'TVUCash',
                       style: TextStyle(
                         fontSize: AppStyles.textBase,
                         color: AppColors.green,
@@ -117,7 +117,7 @@ class TuitionBonusView extends GetView<TuitionBonusController> {
               
               // Info text
               Text(
-                'Dùng tiền ảo để mua Diamond\nvà nhiều vật phẩm hấp dẫn khác!',
+                'Dùng TVUCash để mua Diamond\nvà nhiều vật phẩm hấp dẫn khác!',
                 style: TextStyle(
                   fontSize: AppStyles.textSm,
                   color: AppColors.textTertiary,

@@ -21,11 +21,12 @@ class WalletView extends GetView<WalletController> {
       body: Obx(() => ListView(
         padding: EdgeInsets.all(AppStyles.space4),
         children: [
-          // Số dư ví
+          // Thẻ ví
           DuoWalletBalanceCard(
             virtualBalance: controller.virtualBalance,
             diamonds: controller.diamonds,
             coins: controller.coins,
+            cardHolder: controller.fullName,
           ),
           SizedBox(height: AppStyles.space4),
           
@@ -105,7 +106,7 @@ class WalletView extends GetView<WalletController> {
         rewards: [
           RewardItem(
             icon: 'assets/game/currency/cash_green_cash_1st_64px.png',
-            label: 'Tiền ảo',
+            label: 'TVUCash',
             value: result['virtualBalance'],
             color: AppColors.green,
           ),

@@ -34,7 +34,7 @@ class DuoShopBalanceHeader extends StatelessWidget {
   }) {
     return DuoShopBalanceHeader(
       leftIcon: 'assets/game/currency/cash_green_cash_1st_64px.png',
-      leftLabel: 'Số dư',
+      leftLabel: 'TVUCash',
       leftValue: virtualBalance,
       leftColor: AppColors.green,
       rightIcon: 'assets/game/currency/diamond_blue_diamond_1st_64px.png',

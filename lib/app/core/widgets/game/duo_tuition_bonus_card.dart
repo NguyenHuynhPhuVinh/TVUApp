@@ -104,7 +104,7 @@ class DuoTuitionBonusCard extends StatelessWidget {
           ),
           SizedBox(height: AppStyles.space1),
           Text(
-            'Nhận ngay ${NumberFormatter.withCommas(virtualBalance)} tiền ảo!',
+            'Nhận ngay ${NumberFormatter.withCommas(virtualBalance)} TVUCash!',
             style: TextStyle(
               fontSize: AppStyles.textBase,
               fontWeight: AppStyles.fontSemibold,
@@ -147,7 +147,7 @@ class DuoTuitionBonusCard extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  'Đã nhận ${NumberFormatter.withCommas(virtualBalance)} tiền ảo',
+                  'Đã nhận ${NumberFormatter.withCommas(virtualBalance)} TVUCash',
                   style: TextStyle(
                     fontSize: AppStyles.textSm,
                     color: AppColors.textTertiary,

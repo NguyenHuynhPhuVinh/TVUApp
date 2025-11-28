@@ -28,6 +28,7 @@ class WalletController extends GetxController {
   List<WalletTransaction> get transactions => _gameService.transactions;
 
   String get mssv => _authService.username.value;
+  String get fullName => _localStorage.getStudentName() ?? mssv;
 
   /// Kiểm tra có thể nhận bonus học phí không
   void _checkTuitionBonus() {
