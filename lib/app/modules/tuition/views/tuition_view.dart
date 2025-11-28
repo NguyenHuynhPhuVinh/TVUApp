@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import '../../../core/constants/app_assets.dart';
+import '../../../core/enums/reward_claim_status.dart';
 import '../../../core/extensions/animation_extensions.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_styles.dart';
@@ -103,15 +104,15 @@ class _TuitionItem extends StatelessWidget {
       margin: EdgeInsets.only(bottom: AppStyles.space3),
       child: Obx(() {
         // Xác định trạng thái bonus
-        TuitionBonusState bonusState;
+        RewardClaimStatus bonusState;
         if (item.paidAmount <= 0) {
-          bonusState = TuitionBonusState.noPaid;
+          bonusState = RewardClaimStatus.locked;
         } else if (controller.isSemesterClaimed(item.tenHocKy)) {
-          bonusState = TuitionBonusState.claimed;
+          bonusState = RewardClaimStatus.claimed;
         } else if (controller.claimingId.value == item.tenHocKy) {
-          bonusState = TuitionBonusState.loading;
+          bonusState = RewardClaimStatus.claiming;
         } else {
-          bonusState = TuitionBonusState.canClaim;
+          bonusState = RewardClaimStatus.canClaim;
         }
 
         return DuoTuitionCard(
@@ -123,7 +124,7 @@ class _TuitionItem extends StatelessWidget {
           hasDebt: item.conNo > 0,
           bonusState: bonusState,
           daThuAmount: item.paidAmount,
-          onClaimBonus: bonusState == TuitionBonusState.canClaim
+          onClaimBonus: bonusState.canPerformAction
               ? () => _claimBonus(context)
               : null,
         );

@@ -5,6 +5,7 @@ import '../../../core/constants/app_assets.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_styles.dart';
 import '../../../core/widgets/widgets.dart';
+import '../../../data/config/shop_config.dart';
 import '../controllers/shop_controller.dart';
 
 class ShopView extends GetView<ShopController> {

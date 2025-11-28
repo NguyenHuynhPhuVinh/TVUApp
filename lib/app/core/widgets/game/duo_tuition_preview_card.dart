@@ -5,7 +5,7 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_styles.dart';
 import '../../utils/number_formatter.dart';
 import '../base/duo_card.dart';
-import '../feedback/duo_tag.dart';
+import '../feedback/duo_badge.dart';
 
 /// Card preview tiền ảo từ học phí trong game setup
 class DuoTuitionPreviewCard extends StatelessWidget {
@@ -49,7 +49,7 @@ class DuoTuitionPreviewCard extends StatelessWidget {
                           ),
                         ),
                         SizedBox(width: AppStyles.space2),
-                        const DuoTag(text: 'BONUS', color: AppColors.green),
+                        DuoBadge.tag(text: 'BONUS', color: AppColors.green),
                       ],
                     ),
                     SizedBox(height: AppStyles.space1),

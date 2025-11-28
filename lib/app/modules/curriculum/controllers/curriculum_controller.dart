@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import '../../../core/enums/reward_claim_status.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../data/services/game_service.dart';
@@ -141,14 +142,14 @@ class CurriculumController extends GetxController {
   }
 
   /// Lấy trạng thái reward của môn học
-  SubjectRewardStatus getSubjectRewardStatus(Map<String, dynamic> subject) {
+  RewardClaimStatus getSubjectRewardStatus(Map<String, dynamic> subject) {
     final isCompleted = subject['mon_da_dat'] == 'x';
     final maMon = subject['ma_mon'] as String? ?? '';
     
-    if (!isCompleted) return SubjectRewardStatus.notCompleted;
-    if (claimingSubject.value == maMon) return SubjectRewardStatus.claiming;
-    if (isSubjectClaimed(maMon)) return SubjectRewardStatus.claimed;
-    return SubjectRewardStatus.canClaim;
+    if (!isCompleted) return RewardClaimStatus.locked;
+    if (claimingSubject.value == maMon) return RewardClaimStatus.claiming;
+    if (isSubjectClaimed(maMon)) return RewardClaimStatus.claimed;
+    return RewardClaimStatus.canClaim;
   }
 
   /// Nhận thưởng cho môn học đạt
