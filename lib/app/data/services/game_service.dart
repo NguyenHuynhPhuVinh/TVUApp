@@ -130,6 +130,56 @@ class GameService extends GetxService {
     ) ?? false;
   }
 
+  /// Wrapper thực thi action với security check + loading state
+  /// Dùng cho các hàm claim/buy cần hiển thị loading
+  Future<T?> _secureExecuteWithLoading<T>({
+    required Future<T?> Function() action,
+    required String actionName,
+  }) async {
+    isLoading.value = true;
+    try {
+      if (!isSecure.value) {
+        await _checkSecurity();
+        if (!isSecure.value) {
+          debugPrint('⚠️ $actionName blocked: Security issues detected');
+          return null;
+        }
+      }
+      return await action();
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  /// Wrapper thực thi action với security check + loading + lock
+  /// Dùng cho các hàm buy cần ngăn double click
+  Future<T?> _secureExecuteWithLock<T>({
+    required Future<T?> Function() action,
+    required String actionName,
+    required bool Function() isLocked,
+    required void Function(bool) setLock,
+  }) async {
+    if (isLocked()) {
+      debugPrint('⚠️ $actionName blocked: Already processing');
+      return null;
+    }
+    setLock(true);
+    isLoading.value = true;
+    try {
+      if (!isSecure.value) {
+        await _checkSecurity();
+        if (!isSecure.value) {
+          debugPrint('⚠️ $actionName blocked: Security issues detected');
+          return null;
+        }
+      }
+      return await action();
+    } finally {
+      setLock(false);
+      isLoading.value = false;
+    }
+  }
+
   /// Load stats từ local storage
   Future<void> _loadLocalStats() async {
     final str = _prefs.getString(_statsKey);
@@ -631,67 +681,57 @@ class GameService extends GetxService {
   }
 
   /// Nhận bonus từ học phí đã đóng
-  /// Flow: Check Firebase → Validate → Update local → Sync Firebase
+  /// Flow: Check Firebase → Security → Validate → Update local → Sync Firebase
   Future<Map<String, dynamic>?> claimTuitionBonus({
     required String mssv,
     required int tuitionPaid, // Số tiền đã đóng (VND)
   }) async {
-    isLoading.value = true;
-    
-    try {
-      // 1. Check đã claim trên Firebase chưa
-      final alreadyClaimed = await _checkTuitionBonusClaimedOnFirebase(mssv);
-      if (alreadyClaimed || stats.value.tuitionBonusClaimed) {
-        debugPrint('⚠️ claimTuitionBonus blocked: Already claimed');
-        return null;
-      }
-      
-      // 2. Security check
-      if (!isSecure.value) {
-        await _checkSecurity();
-        if (!isSecure.value) {
-          debugPrint('⚠️ claimTuitionBonus blocked: Security issues');
-          return null;
-        }
-      }
-      
-      // 3. Validate amount
-      if (tuitionPaid <= 0) {
-        debugPrint('⚠️ claimTuitionBonus blocked: Invalid amount');
-        return null;
-      }
-      
-      // 4. Tính tiền ảo
-      final virtualBalance = calculateVirtualBalanceFromTuition(tuitionPaid);
-      
-      // 5. Update stats
-      stats.value = stats.value.copyWith(
-        virtualBalance: virtualBalance,
-        totalTuitionPaid: tuitionPaid,
-        tuitionBonusClaimed: true,
-      );
-      
-      // 6. Lưu local
-      await _saveLocalStats();
-      
-      // 7. Thêm transaction
-      await _addTransaction(
-        type: TransactionType.tuitionBonus,
-        amount: virtualBalance,
-        description: 'Nhận thưởng từ học phí đã đóng',
-        metadata: {'tuitionPaid': tuitionPaid},
-      );
-      
-      // 8. Sync Firebase
-      await syncToFirebase(mssv);
-      
-      return {
-        'tuitionPaid': tuitionPaid,
-        'virtualBalance': virtualBalance,
-      };
-    } finally {
-      isLoading.value = false;
+    // 1. Check đã claim trên Firebase chưa (trước khi vào wrapper)
+    final alreadyClaimed = await _checkTuitionBonusClaimedOnFirebase(mssv);
+    if (alreadyClaimed || stats.value.tuitionBonusClaimed) {
+      debugPrint('⚠️ claimTuitionBonus blocked: Already claimed');
+      return null;
     }
+    
+    // 2. Validate amount
+    if (tuitionPaid <= 0) {
+      debugPrint('⚠️ claimTuitionBonus blocked: Invalid amount');
+      return null;
+    }
+    
+    return _secureExecuteWithLoading(
+      actionName: 'claimTuitionBonus',
+      action: () async {
+        // 3. Tính tiền ảo
+        final virtualBalance = calculateVirtualBalanceFromTuition(tuitionPaid);
+        
+        // 4. Update stats
+        stats.value = stats.value.copyWith(
+          virtualBalance: virtualBalance,
+          totalTuitionPaid: tuitionPaid,
+          tuitionBonusClaimed: true,
+        );
+        
+        // 5. Lưu local
+        await _saveLocalStats();
+        
+        // 6. Thêm transaction
+        await _addTransaction(
+          type: TransactionType.tuitionBonus,
+          amount: virtualBalance,
+          description: 'Nhận thưởng từ học phí đã đóng',
+          metadata: {'tuitionPaid': tuitionPaid},
+        );
+        
+        // 7. Sync Firebase
+        await syncToFirebase(mssv);
+        
+        return {
+          'tuitionPaid': tuitionPaid,
+          'virtualBalance': virtualBalance,
+        };
+      },
+    );
   }
 
   /// Kiểm tra học kỳ đã claim trên Firebase chưa
@@ -715,70 +755,60 @@ class GameService extends GetxService {
   }
 
   /// Nhận bonus từ học phí theo từng học kỳ
-  /// Flow: Check Firebase → Validate → Update local → Sync Firebase
+  /// Flow: Check Firebase → Security → Validate → Update local → Sync Firebase
   Future<Map<String, dynamic>?> claimTuitionBonusBySemester({
     required String mssv,
     required String semesterId, // ID học kỳ (ten_hoc_ky)
     required int tuitionPaid, // Số tiền đã đóng học kỳ này (VND)
   }) async {
-    isLoading.value = true;
-    
-    try {
-      // 1. Check đã claim học kỳ này chưa (Firebase là source of truth)
-      final alreadyClaimed = await _checkSemesterClaimedOnFirebase(mssv, semesterId);
-      if (alreadyClaimed || stats.value.isSemesterClaimed(semesterId)) {
-        debugPrint('⚠️ claimTuitionBonusBySemester blocked: Semester $semesterId already claimed');
-        return null;
-      }
-      
-      // 2. Security check
-      if (!isSecure.value) {
-        await _checkSecurity();
-        if (!isSecure.value) {
-          debugPrint('⚠️ claimTuitionBonusBySemester blocked: Security issues');
-          return null;
-        }
-      }
-      
-      // 3. Validate amount
-      if (tuitionPaid <= 0) {
-        debugPrint('⚠️ claimTuitionBonusBySemester blocked: Invalid amount');
-        return null;
-      }
-      
-      // 4. Tính tiền ảo (1:1)
-      final bonusAmount = calculateVirtualBalanceFromTuition(tuitionPaid);
-      
-      // 5. Update stats
-      final newClaimedSemesters = [...stats.value.claimedTuitionSemesters, semesterId];
-      stats.value = stats.value.copyWith(
-        virtualBalance: stats.value.virtualBalance + bonusAmount,
-        totalTuitionPaid: stats.value.totalTuitionPaid + tuitionPaid,
-        claimedTuitionSemesters: newClaimedSemesters,
-      );
-      
-      // 6. Lưu local
-      await _saveLocalStats();
-      
-      // 7. Thêm transaction
-      await _addTransaction(
-        type: TransactionType.tuitionBonus,
-        amount: bonusAmount,
-        description: 'Nhận thưởng học phí $semesterId',
-        metadata: {'semesterId': semesterId, 'tuitionPaid': tuitionPaid},
-      );
-      
-      // 8. Sync Firebase
-      await syncToFirebase(mssv);
-      
-      return {
-        'semesterId': semesterId,
-        'tuitionPaid': tuitionPaid,
-        'virtualBalance': bonusAmount,
-      };
-    } finally {
-      isLoading.value = false;
+    // 1. Check đã claim học kỳ này chưa (Firebase là source of truth)
+    final alreadyClaimed = await _checkSemesterClaimedOnFirebase(mssv, semesterId);
+    if (alreadyClaimed || stats.value.isSemesterClaimed(semesterId)) {
+      debugPrint('⚠️ claimTuitionBonusBySemester blocked: Semester $semesterId already claimed');
+      return null;
     }
+    
+    // 2. Validate amount
+    if (tuitionPaid <= 0) {
+      debugPrint('⚠️ claimTuitionBonusBySemester blocked: Invalid amount');
+      return null;
+    }
+    
+    return _secureExecuteWithLoading(
+      actionName: 'claimTuitionBonusBySemester',
+      action: () async {
+        // 3. Tính tiền ảo (1:1)
+        final bonusAmount = calculateVirtualBalanceFromTuition(tuitionPaid);
+        
+        // 4. Update stats
+        final newClaimedSemesters = [...stats.value.claimedTuitionSemesters, semesterId];
+        stats.value = stats.value.copyWith(
+          virtualBalance: stats.value.virtualBalance + bonusAmount,
+          totalTuitionPaid: stats.value.totalTuitionPaid + tuitionPaid,
+          claimedTuitionSemesters: newClaimedSemesters,
+        );
+        
+        // 5. Lưu local
+        await _saveLocalStats();
+        
+        // 6. Thêm transaction
+        await _addTransaction(
+          type: TransactionType.tuitionBonus,
+          amount: bonusAmount,
+          description: 'Nhận thưởng học phí $semesterId',
+          metadata: {'semesterId': semesterId, 'tuitionPaid': tuitionPaid},
+        );
+        
+        // 7. Sync Firebase
+        await syncToFirebase(mssv);
+        
+        return {
+          'semesterId': semesterId,
+          'tuitionPaid': tuitionPaid,
+          'virtualBalance': bonusAmount,
+        };
+      },
+    );
   }
 
   // ============ DIAMOND SHOP ============
@@ -792,59 +822,46 @@ class GameService extends GetxService {
     required int diamondAmount,
     required int cost, // Giá tiền ảo
   }) async {
-    // 0. Check lock - ngăn double click
-    if (_isBuyingDiamonds) {
-      debugPrint('⚠️ buyDiamonds blocked: Already processing');
+    // Validate input trước khi vào wrapper
+    if (diamondAmount <= 0 || cost <= 0) return null;
+    if (stats.value.virtualBalance < cost) {
+      debugPrint('⚠️ buyDiamonds blocked: Insufficient balance');
       return null;
     }
-    _isBuyingDiamonds = true;
-    isLoading.value = true;
     
-    try {
-      // 1. Security check
-      if (!isSecure.value) {
-        await _checkSecurity();
-        if (!isSecure.value) return null;
-      }
-      
-      // 2. Validate input
-      if (diamondAmount <= 0 || cost <= 0) return null;
-      
-      if (stats.value.virtualBalance < cost) {
-        debugPrint('⚠️ buyDiamonds blocked: Insufficient balance');
-        return null;
-      }
-      
-      // 3. Update stats (local cache)
-      stats.value = stats.value.copyWith(
-        virtualBalance: stats.value.virtualBalance - cost,
-        diamonds: stats.value.diamonds + diamondAmount,
-      );
-      
-      // 4. Lưu local
-      await _saveLocalStats();
-      
-      // 5. Thêm transaction
-      await _addTransaction(
-        type: TransactionType.buyDiamond,
-        amount: -cost,
-        description: 'Mua $diamondAmount diamond',
-        metadata: {'diamonds': diamondAmount, 'cost': cost},
-      );
-      
-      // 6. Sync Firebase (source of truth)
-      await syncToFirebase(mssv);
-      
-      return {
-        'diamondAmount': diamondAmount,
-        'cost': cost,
-        'newBalance': stats.value.virtualBalance,
-        'newDiamonds': stats.value.diamonds,
-      };
-    } finally {
-      _isBuyingDiamonds = false; // Release lock
-      isLoading.value = false;
-    }
+    return _secureExecuteWithLock(
+      actionName: 'buyDiamonds',
+      isLocked: () => _isBuyingDiamonds,
+      setLock: (v) => _isBuyingDiamonds = v,
+      action: () async {
+        // 1. Update stats (local cache)
+        stats.value = stats.value.copyWith(
+          virtualBalance: stats.value.virtualBalance - cost,
+          diamonds: stats.value.diamonds + diamondAmount,
+        );
+        
+        // 2. Lưu local
+        await _saveLocalStats();
+        
+        // 3. Thêm transaction
+        await _addTransaction(
+          type: TransactionType.buyDiamond,
+          amount: -cost,
+          description: 'Mua $diamondAmount diamond',
+          metadata: {'diamonds': diamondAmount, 'cost': cost},
+        );
+        
+        // 4. Sync Firebase (source of truth)
+        await syncToFirebase(mssv);
+        
+        return {
+          'diamondAmount': diamondAmount,
+          'cost': cost,
+          'newBalance': stats.value.virtualBalance,
+          'newDiamonds': stats.value.diamonds,
+        };
+      },
+    );
   }
 
   // ============ COIN SHOP ============
@@ -857,60 +874,48 @@ class GameService extends GetxService {
     required String mssv,
     required int diamondAmount,
   }) async {
-    // 0. Check lock - ngăn double click
-    if (_isBuyingCoins) {
-      debugPrint('⚠️ buyCoins blocked: Already processing');
+    // Validate input trước khi vào wrapper
+    if (diamondAmount <= 0) return null;
+    if (stats.value.diamonds < diamondAmount) {
+      debugPrint('⚠️ buyCoins blocked: Insufficient diamonds');
       return null;
     }
-    _isBuyingCoins = true;
-    isLoading.value = true;
     
-    try {
-      // 1. Security check
-      if (!isSecure.value) {
-        await _checkSecurity();
-        if (!isSecure.value) return null;
-      }
-      
-      // 2. Validate input
-      if (diamondAmount <= 0) return null;
-      if (stats.value.diamonds < diamondAmount) {
-        debugPrint('⚠️ buyCoins blocked: Insufficient diamonds');
-        return null;
-      }
-      
-      final coinAmount = diamondAmount * 10000; // 1 diamond = 10,000 coins
-      
-      // 3. Update stats (local cache)
-      stats.value = stats.value.copyWith(
-        diamonds: stats.value.diamonds - diamondAmount,
-        coins: stats.value.coins + coinAmount,
-      );
-      
-      // 4. Lưu local
-      await _saveLocalStats();
-      
-      // 5. Thêm transaction
-      await _addTransaction(
-        type: TransactionType.buyCoin,
-        amount: coinAmount,
-        description: 'Đổi $diamondAmount diamond lấy ${coinAmount ~/ 1000}K coins',
-        metadata: {'diamonds': diamondAmount, 'coins': coinAmount},
-      );
-      
-      // 6. Sync Firebase (source of truth)
-      await syncToFirebase(mssv);
-      
-      return {
-        'diamondAmount': diamondAmount,
-        'coinAmount': coinAmount,
-        'newDiamonds': stats.value.diamonds,
-        'newCoins': stats.value.coins,
-      };
-    } finally {
-      _isBuyingCoins = false; // Release lock
-      isLoading.value = false;
-    }
+    return _secureExecuteWithLock(
+      actionName: 'buyCoins',
+      isLocked: () => _isBuyingCoins,
+      setLock: (v) => _isBuyingCoins = v,
+      action: () async {
+        final coinAmount = diamondAmount * 10000; // 1 diamond = 10,000 coins
+        
+        // 1. Update stats (local cache)
+        stats.value = stats.value.copyWith(
+          diamonds: stats.value.diamonds - diamondAmount,
+          coins: stats.value.coins + coinAmount,
+        );
+        
+        // 2. Lưu local
+        await _saveLocalStats();
+        
+        // 3. Thêm transaction
+        await _addTransaction(
+          type: TransactionType.buyCoin,
+          amount: coinAmount,
+          description: 'Đổi $diamondAmount diamond lấy ${coinAmount ~/ 1000}K coins',
+          metadata: {'diamonds': diamondAmount, 'coins': coinAmount},
+        );
+        
+        // 4. Sync Firebase (source of truth)
+        await syncToFirebase(mssv);
+        
+        return {
+          'diamondAmount': diamondAmount,
+          'coinAmount': coinAmount,
+          'newDiamonds': stats.value.diamonds,
+          'newCoins': stats.value.coins,
+        };
+      },
+    );
   }
 
   // ============ LESSON CHECK-IN SYSTEM ============
@@ -1116,84 +1121,65 @@ class GameService extends GetxService {
     required String tenMon,
     required int soTinChi,
   }) async {
-    // 0. Check lock - ngăn double click
-    if (_isClaimingSubject) {
-      debugPrint('⚠️ claimSubjectReward blocked: Already processing');
+    // Validate input trước khi vào wrapper
+    if (soTinChi <= 0 || soTinChi > 20) {
+      debugPrint('⚠️ claimSubjectReward blocked: Invalid soTinChi $soTinChi');
       return null;
     }
-    _isClaimingSubject = true;
-    isLoading.value = true;
     
-    try {
-      // 1. Check đã claim trên Firebase chưa (source of truth)
-      final alreadyClaimed = await _checkSubjectClaimedOnFirebase(mssv, maMon);
-      if (alreadyClaimed || stats.value.isSubjectClaimed(maMon)) {
-        debugPrint('⚠️ claimSubjectReward blocked: Subject $maMon already claimed');
-        return null;
-      }
-      
-      // 2. Security check
-      if (!isSecure.value) {
-        await _checkSecurity();
-        if (!isSecure.value) {
-          debugPrint('⚠️ claimSubjectReward blocked: Security issues');
-          return null;
-        }
-      }
-      
-      // 3. Validate input
-      if (soTinChi <= 0 || soTinChi > 20) {
-        debugPrint('⚠️ claimSubjectReward blocked: Invalid soTinChi $soTinChi');
-        return null;
-      }
-      
-      // 4. Tính reward
-      final reward = calculateSubjectReward(soTinChi);
-      final earnedCoins = reward['coins']!;
-      final earnedXp = reward['xp']!;
-      final earnedDiamonds = reward['diamonds']!;
-      
-      // 5. Tính XP và level mới
-      int newXp = stats.value.currentXp + earnedXp;
-      int newLevel = stats.value.level;
-      bool leveledUp = false;
-      
-      while (newXp >= newLevel * 100) {
-        newXp -= newLevel * 100;
-        newLevel++;
-        leveledUp = true;
-      }
-      
-      // 6. Update stats
-      final newClaimedSubjects = [...stats.value.claimedSubjects, maMon];
-      stats.value = stats.value.copyWith(
-        coins: stats.value.coins + earnedCoins,
-        diamonds: stats.value.diamonds + earnedDiamonds,
-        currentXp: newXp,
-        level: newLevel,
-        claimedSubjects: newClaimedSubjects,
-      );
-      
-      // 7. Lưu local
-      await _saveLocalStats();
-      
-      // 8. Sync Firebase (không thêm transaction vì không liên quan TVUCash)
-      await syncToFirebase(mssv);
-      
-      return {
-        'maMon': maMon,
-        'tenMon': tenMon,
-        'soTinChi': soTinChi,
-        'earnedCoins': earnedCoins,
-        'earnedDiamonds': earnedDiamonds,
-        'earnedXp': earnedXp,
-        'leveledUp': leveledUp,
-        'newLevel': newLevel,
-      };
-    } finally {
-      _isClaimingSubject = false; // Release lock
-      isLoading.value = false;
+    // Check đã claim chưa (Firebase là source of truth)
+    final alreadyClaimed = await _checkSubjectClaimedOnFirebase(mssv, maMon);
+    if (alreadyClaimed || stats.value.isSubjectClaimed(maMon)) {
+      debugPrint('⚠️ claimSubjectReward blocked: Subject $maMon already claimed');
+      return null;
     }
+    
+    return _secureExecuteWithLock(
+      actionName: 'claimSubjectReward',
+      isLocked: () => _isClaimingSubject,
+      setLock: (v) => _isClaimingSubject = v,
+      action: () async {
+        // 1. Tính reward
+        final reward = calculateSubjectReward(soTinChi);
+        final earnedCoins = reward['coins']!;
+        final earnedXp = reward['xp']!;
+        final earnedDiamonds = reward['diamonds']!;
+        
+        // 2. Tính XP và level mới (delegate to RewardCalculator)
+        final levelResult = RewardCalculator.addXpAndCalculateLevel(
+          currentXp: stats.value.currentXp,
+          currentLevel: stats.value.level,
+          addedXp: earnedXp,
+        );
+        
+        // 3. Update stats
+        final newClaimedSubjects = [...stats.value.claimedSubjects, maMon];
+        stats.value = stats.value.copyWith(
+          coins: stats.value.coins + earnedCoins,
+          diamonds: stats.value.diamonds + earnedDiamonds,
+          currentXp: levelResult['newXp'],
+          level: levelResult['newLevel'],
+          claimedSubjects: newClaimedSubjects,
+        );
+        
+        // 4. Lưu local
+        await _saveLocalStats();
+        
+        // 5. Sync Firebase
+        await syncToFirebase(mssv);
+        
+        return {
+          'maMon': maMon,
+          'tenMon': tenMon,
+          'soTinChi': soTinChi,
+          'earnedCoins': earnedCoins,
+          'earnedDiamonds': earnedDiamonds,
+          'earnedXp': earnedXp,
+          'leveledUp': levelResult['leveledUp'],
+          'newLevel': levelResult['newLevel'],
+        };
+      },
+    );
   }
 
   /// Kiểm tra môn học đã claim chưa (local check)
@@ -1207,97 +1193,85 @@ class GameService extends GetxService {
     required String mssv,
     required List<Map<String, dynamic>> subjects, // [{maMon, tenMon, soTinChi}]
   }) async {
-    if (_isClaimingSubject) return null;
     if (subjects.isEmpty) return null;
     
-    _isClaimingSubject = true;
-    isLoading.value = true;
-    
-    try {
-      // 1. Security check 1 lần
-      if (!isSecure.value) {
-        await _checkSecurity();
-        if (!isSecure.value) return null;
-      }
-      
-      // 2. Lấy danh sách đã claim từ Firebase 1 lần
-      Set<String> claimedOnFirebase = {};
-      try {
-        final doc = await _firestore.collection('students').doc(mssv).get();
-        if (doc.exists && doc.data()?['gameStats'] != null) {
-          final gameStats = doc.data()!['gameStats'] as Map<String, dynamic>;
-          final claimed = gameStats['claimedSubjects'] as List? ?? [];
-          claimedOnFirebase = claimed.map((e) => e.toString()).toSet();
+    return _secureExecuteWithLock(
+      actionName: 'claimAllSubjectRewards',
+      isLocked: () => _isClaimingSubject,
+      setLock: (v) => _isClaimingSubject = v,
+      action: () async {
+        // 1. Lấy danh sách đã claim từ Firebase 1 lần
+        Set<String> claimedOnFirebase = {};
+        try {
+          final doc = await _firestore.collection('students').doc(mssv).get();
+          if (doc.exists && doc.data()?['gameStats'] != null) {
+            final gameStats = doc.data()!['gameStats'] as Map<String, dynamic>;
+            final claimed = gameStats['claimedSubjects'] as List? ?? [];
+            claimedOnFirebase = claimed.map((e) => e.toString()).toSet();
+          }
+        } catch (e) {
+          debugPrint('Error fetching claimed subjects: $e');
         }
-      } catch (e) {
-        debugPrint('Error fetching claimed subjects: $e');
-      }
-      
-      // 3. Tính tổng reward và lọc môn chưa claim
-      int totalCoins = 0;
-      int totalDiamonds = 0;
-      int totalXp = 0;
-      List<String> newClaimedSubjects = [...stats.value.claimedSubjects];
-      int claimedCount = 0;
-      
-      for (var subject in subjects) {
-        final maMon = subject['maMon'] as String? ?? '';
-        final soTinChi = subject['soTinChi'] as int? ?? 0;
         
-        // Skip nếu đã claim
-        if (maMon.isEmpty || soTinChi <= 0) continue;
-        if (claimedOnFirebase.contains(maMon)) continue;
-        if (newClaimedSubjects.contains(maMon)) continue;
+        // 2. Tính tổng reward và lọc môn chưa claim
+        int totalCoins = 0;
+        int totalDiamonds = 0;
+        int totalXp = 0;
+        List<String> newClaimedSubjects = [...stats.value.claimedSubjects];
+        int claimedCount = 0;
         
-        // Tính reward
-        final reward = calculateSubjectReward(soTinChi);
-        totalCoins += reward['coins']!;
-        totalDiamonds += reward['diamonds']!;
-        totalXp += reward['xp']!;
-        newClaimedSubjects.add(maMon);
-        claimedCount++;
-      }
-      
-      if (claimedCount == 0) return null;
-      
-      // 4. Tính level mới
-      int newXp = stats.value.currentXp + totalXp;
-      int newLevel = stats.value.level;
-      bool leveledUp = false;
-      
-      while (newXp >= newLevel * 100) {
-        newXp -= newLevel * 100;
-        newLevel++;
-        leveledUp = true;
-      }
-      
-      // 5. Update stats 1 lần
-      stats.value = stats.value.copyWith(
-        coins: stats.value.coins + totalCoins,
-        diamonds: stats.value.diamonds + totalDiamonds,
-        currentXp: newXp,
-        level: newLevel,
-        claimedSubjects: newClaimedSubjects,
-      );
-      
-      // 6. Lưu local 1 lần
-      await _saveLocalStats();
-      
-      // 7. Sync Firebase 1 lần
-      await syncToFirebase(mssv);
-      
-      return {
-        'claimedCount': claimedCount,
-        'earnedCoins': totalCoins,
-        'earnedDiamonds': totalDiamonds,
-        'earnedXp': totalXp,
-        'leveledUp': leveledUp,
-        'newLevel': newLevel,
-      };
-    } finally {
-      _isClaimingSubject = false;
-      isLoading.value = false;
-    }
+        for (var subject in subjects) {
+          final maMon = subject['maMon'] as String? ?? '';
+          final soTinChi = subject['soTinChi'] as int? ?? 0;
+          
+          // Skip nếu đã claim
+          if (maMon.isEmpty || soTinChi <= 0) continue;
+          if (claimedOnFirebase.contains(maMon)) continue;
+          if (newClaimedSubjects.contains(maMon)) continue;
+          
+          // Tính reward
+          final reward = calculateSubjectReward(soTinChi);
+          totalCoins += reward['coins']!;
+          totalDiamonds += reward['diamonds']!;
+          totalXp += reward['xp']!;
+          newClaimedSubjects.add(maMon);
+          claimedCount++;
+        }
+        
+        if (claimedCount == 0) return null;
+        
+        // 3. Tính level mới (delegate to RewardCalculator)
+        final levelResult = RewardCalculator.addXpAndCalculateLevel(
+          currentXp: stats.value.currentXp,
+          currentLevel: stats.value.level,
+          addedXp: totalXp,
+        );
+        
+        // 4. Update stats 1 lần
+        stats.value = stats.value.copyWith(
+          coins: stats.value.coins + totalCoins,
+          diamonds: stats.value.diamonds + totalDiamonds,
+          currentXp: levelResult['newXp'],
+          level: levelResult['newLevel'],
+          claimedSubjects: newClaimedSubjects,
+        );
+        
+        // 5. Lưu local 1 lần
+        await _saveLocalStats();
+        
+        // 6. Sync Firebase 1 lần
+        await syncToFirebase(mssv);
+        
+        return {
+          'claimedCount': claimedCount,
+          'earnedCoins': totalCoins,
+          'earnedDiamonds': totalDiamonds,
+          'earnedXp': totalXp,
+          'leveledUp': levelResult['leveledUp'],
+          'newLevel': levelResult['newLevel'],
+        };
+      },
+    );
   }
 
   // ============ RANK REWARD SYSTEM ============
@@ -1335,82 +1309,63 @@ class GameService extends GetxService {
     required int rankIndex,
     required int currentRankIndex, // Rank hiện tại của user
   }) async {
-    // 0. Check lock - ngăn double click
-    if (_isClaimingRankReward) {
-      debugPrint('⚠️ claimRankReward blocked: Already processing');
+    // Validate: chỉ claim được rank đã đạt
+    if (rankIndex > currentRankIndex) {
+      debugPrint('⚠️ claimRankReward blocked: Rank $rankIndex not unlocked');
       return null;
     }
-    _isClaimingRankReward = true;
-    isLoading.value = true;
     
-    try {
-      // 1. Validate: chỉ claim được rank đã đạt
-      if (rankIndex > currentRankIndex) {
-        debugPrint('⚠️ claimRankReward blocked: Rank $rankIndex not unlocked');
-        return null;
-      }
-      
-      // 2. Check đã claim trên Firebase chưa (source of truth)
-      final alreadyClaimed = await _checkRankClaimedOnFirebase(mssv, rankIndex);
-      if (alreadyClaimed || stats.value.isRankClaimed(rankIndex)) {
-        debugPrint('⚠️ claimRankReward blocked: Rank $rankIndex already claimed');
-        return null;
-      }
-      
-      // 3. Security check
-      if (!isSecure.value) {
-        await _checkSecurity();
-        if (!isSecure.value) {
-          debugPrint('⚠️ claimRankReward blocked: Security issues');
-          return null;
-        }
-      }
-      
-      // 4. Tính reward
-      final reward = calculateRankReward(rankIndex);
-      final earnedCoins = reward['coins']!;
-      final earnedXp = reward['xp']!;
-      final earnedDiamonds = reward['diamonds']!;
-      
-      // 5. Tính XP và level mới
-      int newXp = stats.value.currentXp + earnedXp;
-      int newLevel = stats.value.level;
-      bool leveledUp = false;
-      
-      while (newXp >= newLevel * 100) {
-        newXp -= newLevel * 100;
-        newLevel++;
-        leveledUp = true;
-      }
-      
-      // 6. Update stats
-      final newClaimedRanks = [...stats.value.claimedRankRewards, rankIndex];
-      stats.value = stats.value.copyWith(
-        coins: stats.value.coins + earnedCoins,
-        diamonds: stats.value.diamonds + earnedDiamonds,
-        currentXp: newXp,
-        level: newLevel,
-        claimedRankRewards: newClaimedRanks,
-      );
-      
-      // 7. Lưu local
-      await _saveLocalStats();
-      
-      // 8. Sync Firebase
-      await syncToFirebase(mssv);
-      
-      return {
-        'rankIndex': rankIndex,
-        'earnedCoins': earnedCoins,
-        'earnedXp': earnedXp,
-        'earnedDiamonds': earnedDiamonds,
-        'leveledUp': leveledUp,
-        'newLevel': newLevel,
-      };
-    } finally {
-      _isClaimingRankReward = false;
-      isLoading.value = false;
+    // Check đã claim trên Firebase chưa (source of truth)
+    final alreadyClaimed = await _checkRankClaimedOnFirebase(mssv, rankIndex);
+    if (alreadyClaimed || stats.value.isRankClaimed(rankIndex)) {
+      debugPrint('⚠️ claimRankReward blocked: Rank $rankIndex already claimed');
+      return null;
     }
+    
+    return _secureExecuteWithLock(
+      actionName: 'claimRankReward',
+      isLocked: () => _isClaimingRankReward,
+      setLock: (v) => _isClaimingRankReward = v,
+      action: () async {
+        // 1. Tính reward
+        final reward = calculateRankReward(rankIndex);
+        final earnedCoins = reward['coins']!;
+        final earnedXp = reward['xp']!;
+        final earnedDiamonds = reward['diamonds']!;
+        
+        // 2. Tính XP và level mới (delegate to RewardCalculator)
+        final levelResult = RewardCalculator.addXpAndCalculateLevel(
+          currentXp: stats.value.currentXp,
+          currentLevel: stats.value.level,
+          addedXp: earnedXp,
+        );
+        
+        // 3. Update stats
+        final newClaimedRanks = [...stats.value.claimedRankRewards, rankIndex];
+        stats.value = stats.value.copyWith(
+          coins: stats.value.coins + earnedCoins,
+          diamonds: stats.value.diamonds + earnedDiamonds,
+          currentXp: levelResult['newXp'],
+          level: levelResult['newLevel'],
+          claimedRankRewards: newClaimedRanks,
+        );
+        
+        // 4. Lưu local
+        await _saveLocalStats();
+        
+        // 5. Sync Firebase
+        await syncToFirebase(mssv);
+        
+        return {
+          'rankIndex': rankIndex,
+          'earnedCoins': earnedCoins,
+          'earnedXp': earnedXp,
+          'earnedDiamonds': earnedDiamonds,
+          'leveledUp': levelResult['leveledUp'],
+          'newLevel': levelResult['newLevel'],
+        };
+      },
+    );
   }
 
   /// Nhận reward cho tất cả rank đã đạt nhưng chưa claim
@@ -1419,92 +1374,79 @@ class GameService extends GetxService {
     required String mssv,
     required int currentRankIndex,
   }) async {
-    if (_isClaimingRankReward) return null;
-    
-    _isClaimingRankReward = true;
-    isLoading.value = true;
-    
-    try {
-      // 1. Security check 1 lần
-      if (!isSecure.value) {
-        await _checkSecurity();
-        if (!isSecure.value) return null;
-      }
-      
-      // 2. Lấy danh sách đã claim từ Firebase 1 lần
-      Set<int> claimedOnFirebase = {};
-      try {
-        final doc = await _firestore.collection('students').doc(mssv).get();
-        if (doc.exists && doc.data()?['gameStats'] != null) {
-          final gameStats = doc.data()!['gameStats'] as Map<String, dynamic>;
-          final claimed = gameStats['claimedRankRewards'] as List? ?? [];
-          claimedOnFirebase = claimed.map((e) => e as int).toSet();
+    return _secureExecuteWithLock(
+      actionName: 'claimAllRankRewards',
+      isLocked: () => _isClaimingRankReward,
+      setLock: (v) => _isClaimingRankReward = v,
+      action: () async {
+        // 1. Lấy danh sách đã claim từ Firebase 1 lần
+        Set<int> claimedOnFirebase = {};
+        try {
+          final doc = await _firestore.collection('students').doc(mssv).get();
+          if (doc.exists && doc.data()?['gameStats'] != null) {
+            final gameStats = doc.data()!['gameStats'] as Map<String, dynamic>;
+            final claimed = gameStats['claimedRankRewards'] as List? ?? [];
+            claimedOnFirebase = claimed.map((e) => e as int).toSet();
+          }
+        } catch (e) {
+          debugPrint('Error fetching claimed ranks: $e');
         }
-      } catch (e) {
-        debugPrint('Error fetching claimed ranks: $e');
-      }
-      
-      // 3. Tính tổng reward và lọc rank chưa claim
-      int totalCoins = 0;
-      int totalXp = 0;
-      int totalDiamonds = 0;
-      List<int> newClaimedRanks = [...stats.value.claimedRankRewards];
-      int claimedCount = 0;
-      
-      for (int i = 0; i <= currentRankIndex; i++) {
-        // Skip nếu đã claim
-        if (claimedOnFirebase.contains(i)) continue;
-        if (newClaimedRanks.contains(i)) continue;
         
-        // Tính reward
-        final reward = calculateRankReward(i);
-        totalCoins += reward['coins']!;
-        totalXp += reward['xp']!;
-        totalDiamonds += reward['diamonds']!;
-        newClaimedRanks.add(i);
-        claimedCount++;
-      }
-      
-      if (claimedCount == 0) return null;
-      
-      // 4. Tính level mới
-      int newXp = stats.value.currentXp + totalXp;
-      int newLevel = stats.value.level;
-      bool leveledUp = false;
-      
-      while (newXp >= newLevel * 100) {
-        newXp -= newLevel * 100;
-        newLevel++;
-        leveledUp = true;
-      }
-      
-      // 5. Update stats 1 lần
-      stats.value = stats.value.copyWith(
-        coins: stats.value.coins + totalCoins,
-        diamonds: stats.value.diamonds + totalDiamonds,
-        currentXp: newXp,
-        level: newLevel,
-        claimedRankRewards: newClaimedRanks,
-      );
-      
-      // 6. Lưu local 1 lần
-      await _saveLocalStats();
-      
-      // 7. Sync Firebase 1 lần
-      await syncToFirebase(mssv);
-      
-      return {
-        'claimedCount': claimedCount,
-        'earnedCoins': totalCoins,
-        'earnedXp': totalXp,
-        'earnedDiamonds': totalDiamonds,
-        'leveledUp': leveledUp,
-        'newLevel': newLevel,
-      };
-    } finally {
-      _isClaimingRankReward = false;
-      isLoading.value = false;
-    }
+        // 2. Tính tổng reward và lọc rank chưa claim
+        int totalCoins = 0;
+        int totalXp = 0;
+        int totalDiamonds = 0;
+        List<int> newClaimedRanks = [...stats.value.claimedRankRewards];
+        int claimedCount = 0;
+        
+        for (int i = 0; i <= currentRankIndex; i++) {
+          // Skip nếu đã claim
+          if (claimedOnFirebase.contains(i)) continue;
+          if (newClaimedRanks.contains(i)) continue;
+          
+          // Tính reward
+          final reward = calculateRankReward(i);
+          totalCoins += reward['coins']!;
+          totalXp += reward['xp']!;
+          totalDiamonds += reward['diamonds']!;
+          newClaimedRanks.add(i);
+          claimedCount++;
+        }
+        
+        if (claimedCount == 0) return null;
+        
+        // 3. Tính level mới (delegate to RewardCalculator)
+        final levelResult = RewardCalculator.addXpAndCalculateLevel(
+          currentXp: stats.value.currentXp,
+          currentLevel: stats.value.level,
+          addedXp: totalXp,
+        );
+        
+        // 4. Update stats 1 lần
+        stats.value = stats.value.copyWith(
+          coins: stats.value.coins + totalCoins,
+          diamonds: stats.value.diamonds + totalDiamonds,
+          currentXp: levelResult['newXp'],
+          level: levelResult['newLevel'],
+          claimedRankRewards: newClaimedRanks,
+        );
+        
+        // 5. Lưu local 1 lần
+        await _saveLocalStats();
+        
+        // 6. Sync Firebase 1 lần
+        await syncToFirebase(mssv);
+        
+        return {
+          'claimedCount': claimedCount,
+          'earnedCoins': totalCoins,
+          'earnedXp': totalXp,
+          'earnedDiamonds': totalDiamonds,
+          'leveledUp': levelResult['leveledUp'],
+          'newLevel': levelResult['newLevel'],
+        };
+      },
+    );
   }
 
   /// Kiểm tra rank đã claim chưa (local check)
