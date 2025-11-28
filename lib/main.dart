@@ -11,6 +11,7 @@ import 'app/data/services/firebase_service.dart';
 import 'app/data/services/game_service.dart';
 import 'app/data/services/game_security_guard.dart';
 import 'app/data/services/game_sync_service.dart';
+import 'app/data/services/shop_service.dart';
 import 'app/data/services/data_sync_manager.dart';
 import 'app/data/services/storage_service.dart';
 import 'app/data/services/update_service.dart';
@@ -53,6 +54,9 @@ Future<void> initServices() async {
 
   // Game service (depends on security & sync)
   await Get.putAsync(() => GameService().init());
+
+  // Shop service (depends on game & security)
+  await Get.putAsync(() => ShopService().init());
 
   // Other services
   await Get.putAsync(() => UpdateService().init());
