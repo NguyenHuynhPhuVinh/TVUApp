@@ -13,6 +13,7 @@ export 'feedback/duo_badge.dart';
 export 'feedback/duo_progress.dart';
 export 'feedback/duo_empty_state.dart';
 export 'feedback/duo_feedback_message.dart';
+export 'feedback/duo_tag.dart';
 
 // Navigation widgets
 export 'navigation/duo_app_bar.dart';
@@ -32,6 +33,7 @@ export 'display/duo_profile_card.dart';
 export 'display/duo_message_card.dart';
 export 'display/duo_mini_stat.dart';
 export 'display/tvu_mascot.dart';
+export 'display/duo_info_row.dart';
 
 // Game widgets
 export 'game/duo_currency_card.dart';

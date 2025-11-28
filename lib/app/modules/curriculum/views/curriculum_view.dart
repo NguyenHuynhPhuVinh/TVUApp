@@ -319,15 +319,15 @@ class CurriculumView extends GetView<CurriculumController> {
               spacing: AppStyles.space2,
               runSpacing: AppStyles.space2,
               children: [
-                _buildTag('$soTC TC', AppColors.primary),
+                DuoTag(text: '$soTC TC', color: AppColors.primary),
                 if (isRequired)
-                  _buildTag('Bắt buộc', AppColors.orange)
+                  DuoTag(text: 'Bắt buộc', color: AppColors.orange)
                 else
-                  _buildTag('Tự chọn', AppColors.purple),
+                  DuoTag(text: 'Tự chọn', color: AppColors.purple),
                 if (lyThuyet.isNotEmpty && lyThuyet != '0')
-                  _buildTag('LT: $lyThuyet', AppColors.green),
+                  DuoTag(text: 'LT: $lyThuyet', color: AppColors.green),
                 if (thucHanh.isNotEmpty && thucHanh != '0')
-                  _buildTag('TH: $thucHanh', AppColors.primary),
+                  DuoTag(text: 'TH: $thucHanh', color: AppColors.primary),
               ],
             ),
           ],
@@ -336,21 +336,4 @@ class CurriculumView extends GetView<CurriculumController> {
     ).animate().fadeIn(duration: 300.ms, delay: (index * 30).ms).slideX(begin: 0.05, end: 0);
   }
 
-  Widget _buildTag(String text, Color color) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: AppStyles.space2, vertical: 3),
-      decoration: BoxDecoration(
-        color: AppColors.withAlpha(color, 0.1),
-        borderRadius: AppStyles.roundedMd,
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-          fontSize: 10.sp,
-          color: color,
-          fontWeight: AppStyles.fontSemibold,
-        ),
-      ),
-    );
-  }
 }

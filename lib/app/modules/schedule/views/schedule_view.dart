@@ -335,14 +335,14 @@ class ScheduleView extends GetView<ScheduleController> {
               ],
             ),
             SizedBox(height: AppStyles.space3),
-            _buildInfoRow(Iconsax.clock, 'Tiết $tietBatDau - $tietKetThuc'),
+            DuoInfoRow(icon: Iconsax.clock, text: 'Tiết $tietBatDau - $tietKetThuc'),
             SizedBox(height: AppStyles.space2),
-            _buildInfoRow(Iconsax.location, item['ma_phong'] ?? 'N/A'),
+            DuoInfoRow(icon: Iconsax.location, text: item['ma_phong'] ?? 'N/A'),
             SizedBox(height: AppStyles.space2),
-            _buildInfoRow(Iconsax.teacher, item['ten_giang_vien'] ?? 'N/A'),
+            DuoInfoRow(icon: Iconsax.teacher, text: item['ten_giang_vien'] ?? 'N/A'),
             if (item['ma_nhom'] != null && item['ma_nhom'].toString().isNotEmpty) ...[
               SizedBox(height: AppStyles.space2),
-              _buildInfoRow(Iconsax.people, 'Nhóm ${item['ma_nhom']}'),
+              DuoInfoRow(icon: Iconsax.people, text: 'Nhóm ${item['ma_nhom']}'),
             ],
           ],
         ),
@@ -358,21 +358,4 @@ class ScheduleView extends GetView<ScheduleController> {
     return DuoBadgeVariant.primary;
   }
 
-  Widget _buildInfoRow(IconData icon, String text) {
-    return Row(
-      children: [
-        Icon(icon, size: AppStyles.iconXs, color: AppColors.textTertiary),
-        SizedBox(width: AppStyles.space2),
-        Expanded(
-          child: Text(
-            text,
-            style: TextStyle(
-              fontSize: AppStyles.textSm,
-              color: AppColors.textSecondary,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
 }

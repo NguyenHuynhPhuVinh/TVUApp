@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_styles.dart';
+import '../../utils/number_formatter.dart';
 
 /// Duolingo-style Reward Card - hiển thị coins, diamonds, XP với animation
 class DuoRewardCard extends StatelessWidget {
@@ -332,14 +333,7 @@ class DuoBigRewardRow extends StatelessWidget {
     );
   }
 
-  String _formatNumber(int number) {
-    if (number >= 1000000) {
-      return '${(number / 1000000).toStringAsFixed(1)}M';
-    } else if (number >= 1000) {
-      return '${(number / 1000).toStringAsFixed(1)}K';
-    }
-    return number.toString();
-  }
+  String _formatNumber(int number) => NumberFormatter.compact(number);
 
   @override
   Widget build(BuildContext context) {

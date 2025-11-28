@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import '../../../core/utils/number_formatter.dart';
 import '../../../data/services/local_storage_service.dart';
 
 class TuitionController extends GetxController {
@@ -44,9 +45,6 @@ class TuitionController extends GetxController {
   }
 
   String formatCurrency(num amount) {
-    return '${amount.toStringAsFixed(0).replaceAllMapped(
-      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-      (Match m) => '${m[1]}.',
-    )}đ';
+    return '${NumberFormatter.currency(amount)}đ';
   }
 }

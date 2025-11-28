@@ -300,11 +300,11 @@ class HomeView extends GetView<HomeController> {
                   overflow: TextOverflow.ellipsis,
                 ),
                 SizedBox(height: AppStyles.space2),
-                _buildScheduleInfo(Iconsax.clock, 'Tiết $tietBatDau - $tietKetThuc'),
+                DuoInfoRow(icon: Iconsax.clock, text: 'Tiết $tietBatDau - $tietKetThuc'),
                 SizedBox(height: AppStyles.space1),
-                _buildScheduleInfo(Iconsax.location, item['ma_phong'] ?? 'N/A'),
+                DuoInfoRow(icon: Iconsax.location, text: item['ma_phong'] ?? 'N/A'),
                 SizedBox(height: AppStyles.space1),
-                _buildScheduleInfo(Iconsax.teacher, item['ten_giang_vien'] ?? 'N/A'),
+                DuoInfoRow(icon: Iconsax.teacher, text: item['ten_giang_vien'] ?? 'N/A'),
               ],
             ),
           ),
@@ -339,23 +339,6 @@ class HomeView extends GetView<HomeController> {
     ).animate().fadeIn(duration: 300.ms, delay: (index * 100).ms).slideX(begin: 0.1, end: 0);
   }
 
-  Widget _buildScheduleInfo(IconData icon, String text) {
-    return Row(
-      children: [
-        Icon(icon, size: AppStyles.iconXs, color: AppColors.textTertiary),
-        SizedBox(width: AppStyles.space2),
-        Expanded(
-          child: Text(
-            text,
-            style: TextStyle(
-              fontSize: AppStyles.textSm,
-              color: AppColors.textSecondary,
-            ),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-      ],
-    );
-  }
+
 
 }

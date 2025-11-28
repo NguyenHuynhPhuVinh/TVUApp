@@ -40,4 +40,19 @@ class NumberFormatter {
     }
     return number.toString();
   }
+
+  /// Format tiền tệ VND với dấu chấm phân cách
+  /// 1234567 -> 1.234.567
+  static String currency(num amount) {
+    return amount.toStringAsFixed(0).replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (Match m) => '${m[1]}.',
+    );
+  }
+
+  /// Format phần trăm
+  /// 85.5 -> 85.5%
+  static String percent(double value, {int decimals = 1}) {
+    return '${value.toStringAsFixed(decimals)}%';
+  }
 }
