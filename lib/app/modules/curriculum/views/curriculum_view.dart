@@ -51,13 +51,33 @@ class _SummarySection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.all(AppStyles.space4),
-      child: Obx(() => DuoCurriculumSummary(
-            majorName: controller.majorName.value,
-            completedCredits: controller.completedCredits,
-            totalCredits: controller.totalCredits,
-            completedSubjects: controller.completedSubjects,
-            totalSubjects: controller.totalSubjects,
-          )),
+      child: Column(
+        children: [
+          Obx(() => DuoCurriculumSummary(
+                majorName: controller.majorName.value,
+                completedCredits: controller.completedCredits,
+                totalCredits: controller.totalCredits,
+                completedSubjects: controller.completedSubjects,
+                totalSubjects: controller.totalSubjects,
+              )),
+          // Nút nhận tất cả nếu có môn chưa claim
+          Obx(() {
+            final unclaimed = controller.totalUnclaimedRewards;
+            if (unclaimed == 0) return const SizedBox.shrink();
+            
+            return Padding(
+              padding: EdgeInsets.only(top: AppStyles.space3),
+              child: DuoButton(
+                text: 'Nhận tất cả ($unclaimed môn)',
+                icon: Iconsax.gift,
+                variant: DuoButtonVariant.warning,
+                isLoading: controller.isClaimingAll.value,
+                onPressed: controller.claimAllRewards,
+              ),
+            );
+          }),
+        ],
+      ),
     ).animate().fadeIn(duration: 400.ms).slideY(begin: -0.1, end: 0);
   }
 }
@@ -161,9 +181,9 @@ class _SubjectItem extends StatelessWidget {
     return Container(
       margin: EdgeInsets.only(bottom: AppStyles.space3),
       child: Obx(() {
-        // Đọc observable để trigger rebuild
+        // Đọc observable để trigger rebuild khi claiming hoặc isClaimingAll thay đổi
         final _ = controller.claimingSubject.value;
-        final claimedSubjects = controller.isSubjectClaimed(maMon);
+        final __ = controller.isClaimingAll.value;
         
         return DuoSubjectCard(
           tenMon: item['ten_mon'] ?? 'N/A',

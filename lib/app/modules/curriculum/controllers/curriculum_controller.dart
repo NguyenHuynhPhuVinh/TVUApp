@@ -181,4 +181,59 @@ class CurriculumController extends GetxController {
       claimingSubject.value = '';
     }
   }
+
+  final isClaimingAll = false.obs;
+
+  /// Lấy danh sách tất cả môn chưa claim (format cho batch API)
+  List<Map<String, dynamic>> get allUnclaimedSubjectsForBatch {
+    final List<Map<String, dynamic>> unclaimed = [];
+    for (var semester in semesters) {
+      final subjects = semester['ds_CTDT_mon_hoc'] as List? ?? [];
+      for (var sub in subjects) {
+        final isCompleted = sub['mon_da_dat'] == 'x';
+        final maMon = sub['ma_mon'] as String? ?? '';
+        final soTinChi = int.tryParse(sub['so_tin_chi']?.toString() ?? '0') ?? 0;
+        if (isCompleted && maMon.isNotEmpty && soTinChi > 0 && !isSubjectClaimed(maMon)) {
+          unclaimed.add({
+            'maMon': maMon,
+            'tenMon': sub['ten_mon'] ?? '',
+            'soTinChi': soTinChi,
+          });
+        }
+      }
+    }
+    return unclaimed;
+  }
+
+  /// Nhận tất cả thưởng môn học đạt (batch - nhanh hơn)
+  Future<void> claimAllRewards() async {
+    if (isClaimingAll.value) return;
+    
+    final unclaimed = allUnclaimedSubjectsForBatch;
+    if (unclaimed.isEmpty) return;
+    
+    isClaimingAll.value = true;
+    
+    try {
+      final result = await _gameService.claimAllSubjectRewards(
+        mssv: _authService.username.value,
+        subjects: unclaimed,
+      );
+      
+      if (result != null && result['claimedCount'] > 0) {
+        DuoRewardDialog.showSubjectReward(
+          tenMon: '${result['claimedCount']} môn học',
+          rewards: {
+            'earnedCoins': result['earnedCoins'],
+            'earnedDiamonds': result['earnedDiamonds'],
+            'earnedXp': result['earnedXp'],
+            'leveledUp': result['leveledUp'],
+            'newLevel': result['newLevel'],
+          },
+        );
+      }
+    } finally {
+      isClaimingAll.value = false;
+    }
+  }
 }

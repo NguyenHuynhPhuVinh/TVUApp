@@ -1195,15 +1195,7 @@ class GameService extends GetxService {
       // 7. Lưu local
       await _saveLocalStats();
       
-      // 8. Thêm transaction
-      await _addTransaction(
-        type: TransactionType.subjectReward,
-        amount: earnedCoins,
-        description: 'Nhận thưởng môn $tenMon',
-        metadata: {'maMon': maMon, 'soTinChi': soTinChi},
-      );
-      
-      // 9. Sync Firebase
+      // 8. Sync Firebase (không thêm transaction vì không liên quan TVUCash)
       await syncToFirebase(mssv);
       
       return {
@@ -1225,5 +1217,104 @@ class GameService extends GetxService {
   /// Kiểm tra môn học đã claim chưa (local check)
   bool isSubjectClaimed(String maMon) {
     return stats.value.isSubjectClaimed(maMon);
+  }
+
+  /// Nhận reward cho nhiều môn học cùng lúc (batch)
+  /// Chỉ sync Firebase 1 lần cuối để tăng tốc
+  Future<Map<String, dynamic>?> claimAllSubjectRewards({
+    required String mssv,
+    required List<Map<String, dynamic>> subjects, // [{maMon, tenMon, soTinChi}]
+  }) async {
+    if (_isClaimingSubject) return null;
+    if (subjects.isEmpty) return null;
+    
+    _isClaimingSubject = true;
+    isLoading.value = true;
+    
+    try {
+      // 1. Security check 1 lần
+      if (!isSecure.value) {
+        await _checkSecurity();
+        if (!isSecure.value) return null;
+      }
+      
+      // 2. Lấy danh sách đã claim từ Firebase 1 lần
+      Set<String> claimedOnFirebase = {};
+      try {
+        final doc = await _firestore.collection('students').doc(mssv).get();
+        if (doc.exists && doc.data()?['gameStats'] != null) {
+          final gameStats = doc.data()!['gameStats'] as Map<String, dynamic>;
+          final claimed = gameStats['claimedSubjects'] as List? ?? [];
+          claimedOnFirebase = claimed.map((e) => e.toString()).toSet();
+        }
+      } catch (e) {
+        debugPrint('Error fetching claimed subjects: $e');
+      }
+      
+      // 3. Tính tổng reward và lọc môn chưa claim
+      int totalCoins = 0;
+      int totalDiamonds = 0;
+      int totalXp = 0;
+      List<String> newClaimedSubjects = [...stats.value.claimedSubjects];
+      int claimedCount = 0;
+      
+      for (var subject in subjects) {
+        final maMon = subject['maMon'] as String? ?? '';
+        final soTinChi = subject['soTinChi'] as int? ?? 0;
+        
+        // Skip nếu đã claim
+        if (maMon.isEmpty || soTinChi <= 0) continue;
+        if (claimedOnFirebase.contains(maMon)) continue;
+        if (newClaimedSubjects.contains(maMon)) continue;
+        
+        // Tính reward
+        final reward = calculateSubjectReward(soTinChi);
+        totalCoins += reward['coins']!;
+        totalDiamonds += reward['diamonds']!;
+        totalXp += reward['xp']!;
+        newClaimedSubjects.add(maMon);
+        claimedCount++;
+      }
+      
+      if (claimedCount == 0) return null;
+      
+      // 4. Tính level mới
+      int newXp = stats.value.currentXp + totalXp;
+      int newLevel = stats.value.level;
+      bool leveledUp = false;
+      
+      while (newXp >= newLevel * 100) {
+        newXp -= newLevel * 100;
+        newLevel++;
+        leveledUp = true;
+      }
+      
+      // 5. Update stats 1 lần
+      stats.value = stats.value.copyWith(
+        coins: stats.value.coins + totalCoins,
+        diamonds: stats.value.diamonds + totalDiamonds,
+        currentXp: newXp,
+        level: newLevel,
+        claimedSubjects: newClaimedSubjects,
+      );
+      
+      // 6. Lưu local 1 lần
+      await _saveLocalStats();
+      
+      // 7. Sync Firebase 1 lần
+      await syncToFirebase(mssv);
+      
+      return {
+        'claimedCount': claimedCount,
+        'earnedCoins': totalCoins,
+        'earnedDiamonds': totalDiamonds,
+        'earnedXp': totalXp,
+        'leveledUp': leveledUp,
+        'newLevel': newLevel,
+      };
+    } finally {
+      _isClaimingSubject = false;
+      isLoading.value = false;
+    }
   }
 }
