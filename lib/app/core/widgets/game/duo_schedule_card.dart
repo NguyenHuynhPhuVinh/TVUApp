@@ -116,7 +116,7 @@ class DuoScheduleCard extends StatelessWidget {
 
   Widget _buildCheckInSection() {
     final coins = soTiet * 250000;
-    final xp = soTiet * 1250;
+    final xp = soTiet * 2500;
     final diamonds = soTiet * 413;
 
     // Style theo trạng thái giống CTDT
