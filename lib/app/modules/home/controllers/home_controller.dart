@@ -32,6 +32,11 @@ class HomeController extends GetxController {
   void onInit() {
     super.onInit();
     loadData();
+    
+    // Listen game stats changes để cập nhật badge
+    ever(_gameService.stats, (_) {
+      checkUnclaimedTuitionBonus();
+    });
   }
 
   void loadData() {
