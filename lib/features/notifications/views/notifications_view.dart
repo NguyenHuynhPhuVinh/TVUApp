@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
-import '../../../../core/extensions/animation_extensions.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_styles.dart';
-import '../../../../core/components/widgets.dart';
-import '../controllers/news_controller.dart';
+import '../../../core/extensions/animation_extensions.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_styles.dart';
+import '../../../core/components/widgets.dart';
+import '../controllers/notifications_controller.dart';
 
-class NewsView extends GetView<NewsController> {
-  const NewsView({super.key});
+class NotificationsView extends GetView<NotificationsController> {
+  const NotificationsView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +47,7 @@ class NewsView extends GetView<NewsController> {
 class _NotificationItem extends StatelessWidget {
   final Map<String, dynamic> item;
   final int index;
-  final NewsController controller;
+  final NotificationsController controller;
 
   const _NotificationItem({
     required this.item,
@@ -78,6 +78,3 @@ class _NotificationItem extends StatelessWidget {
     ).animateFadeSlideRight(delay: (index * 30).toDouble(), slideBegin: 0.05);
   }
 }
-
-
-

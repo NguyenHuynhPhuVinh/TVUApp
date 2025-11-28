@@ -8,7 +8,7 @@ abstract class Routes {
   static const tuition = '/tuition';
   static const profile = '/profile';
   static const curriculum = '/curriculum';
-  static const news = '/news';
+  static const notifications = '/notifications';
   static const settings = '/settings';
   static const gameSetup = '/game-setup';
   static const gameStats = '/game-stats';

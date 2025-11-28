@@ -36,9 +36,11 @@ import '../features/gamification/modules/wallet/views/wallet_view.dart';
 import '../features/gamification/modules/shop/bindings/shop_binding.dart';
 import '../features/gamification/modules/shop/views/shop_view.dart';
 
+// Notifications feature
+import '../features/notifications/bindings/notifications_binding.dart';
+import '../features/notifications/views/notifications_view.dart';
+
 // User features
-import '../features/user/news/bindings/news_binding.dart';
-import '../features/user/news/views/news_view.dart';
 import '../features/user/bindings/profile_binding.dart';
 import '../features/user/views/profile_view.dart';
 
@@ -94,9 +96,9 @@ class AppPages {
       binding: CurriculumBinding(),
     ),
     GetPage(
-      name: Routes.news,
-      page: () => const NewsView(),
-      binding: NewsBinding(),
+      name: Routes.notifications,
+      page: () => const NotificationsView(),
+      binding: NotificationsBinding(),
     ),
     GetPage(
       name: Routes.gameSetup,
