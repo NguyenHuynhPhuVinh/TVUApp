@@ -20,6 +20,7 @@ export 'feedback/duo_update_dialog.dart';
 export 'feedback/duo_security_dialog.dart';
 export 'feedback/duo_terms_dialog.dart';
 export 'feedback/duo_notification_detail.dart';
+export 'feedback/duo_confirm_dialog.dart';
 
 // Navigation widgets
 export 'navigation/duo_app_bar.dart';

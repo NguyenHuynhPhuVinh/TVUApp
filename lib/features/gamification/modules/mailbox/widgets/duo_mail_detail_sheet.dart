@@ -5,11 +5,12 @@ import '../../../../../core/constants/app_assets.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/theme/app_styles.dart';
 import '../models/mail_item.dart';
+import 'duo_mail_reward_dialog.dart';
 
 /// Bottom sheet hiển thị chi tiết thư - Duo style
-class DuoMailDetailSheet extends StatelessWidget {
+class DuoMailDetailSheet extends StatefulWidget {
   final MailItem mail;
-  final VoidCallback? onClaimReward;
+  final Future<bool> Function()? onClaimReward;
   final Color accentColor;
 
   const DuoMailDetailSheet({
@@ -21,7 +22,7 @@ class DuoMailDetailSheet extends StatelessWidget {
 
   static Future<void> show({
     required MailItem mail,
-    VoidCallback? onClaimReward,
+    Future<bool> Function()? onClaimReward,
     Color accentColor = AppColors.primary,
   }) {
     return Get.bottomSheet(
@@ -33,6 +34,53 @@ class DuoMailDetailSheet extends StatelessWidget {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
     );
+  }
+
+  @override
+  State<DuoMailDetailSheet> createState() => _DuoMailDetailSheetState();
+}
+
+class _DuoMailDetailSheetState extends State<DuoMailDetailSheet> {
+  bool _isClaiming = false;
+  late bool _isClaimed;
+
+  @override
+  void initState() {
+    super.initState();
+    _isClaimed = widget.mail.isClaimed;
+  }
+
+  Future<void> _handleClaim() async {
+    if (_isClaiming || widget.onClaimReward == null) return;
+
+    setState(() => _isClaiming = true);
+
+    try {
+      final success = await widget.onClaimReward!();
+      if (success && mounted) {
+        setState(() {
+          _isClaimed = true;
+          _isClaiming = false;
+        });
+        // Hiện dialog nhận quà (sheet vẫn ở phía sau)
+        await DuoMailRewardDialog.show(
+          title: widget.mail.title,
+          reward: widget.mail.reward!,
+        );
+        // Đóng sheet sau khi đóng dialog
+        if (mounted) {
+          Get.back();
+        }
+      } else {
+        if (mounted) {
+          setState(() => _isClaiming = false);
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isClaiming = false);
+      }
+    }
   }
 
   @override
@@ -60,7 +108,7 @@ class DuoMailDetailSheet extends StatelessWidget {
                   _buildHeader(),
                   SizedBox(height: AppStyles.space4),
                   _buildContentCard(),
-                  if (mail.hasReward) ...[
+                  if (widget.mail.hasReward) ...[
                     SizedBox(height: AppStyles.space4),
                     _buildRewardCard(),
                   ],
@@ -90,37 +138,33 @@ class DuoMailDetailSheet extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Icon
         Container(
           width: 56,
           height: 56,
           decoration: BoxDecoration(
-            color: accentColor.withValues(alpha: 0.15),
+            color: widget.accentColor.withValues(alpha: 0.15),
             borderRadius: AppStyles.roundedLg,
           ),
           child: Center(
             child: Image.asset(
-              mail.hasReward ? AppAssets.giftPurple : _getMailAsset(),
+              widget.mail.hasReward ? AppAssets.giftPurple : _getMailAsset(),
               width: 36,
               height: 36,
             ),
           ),
         ),
         SizedBox(width: AppStyles.space3),
-        // Info
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Badge loại thư
               DuoBadge.tag(
-                text: mail.type.displayName,
-                color: accentColor,
+                text: widget.mail.type.displayName,
+                color: widget.accentColor,
               ),
               SizedBox(height: AppStyles.space2),
-              // Tiêu đề
               Text(
-                mail.title,
+                widget.mail.title,
                 style: TextStyle(
                   fontSize: AppStyles.textXl,
                   fontWeight: AppStyles.fontBold,
@@ -128,9 +172,8 @@ class DuoMailDetailSheet extends StatelessWidget {
                 ),
               ),
               SizedBox(height: AppStyles.space1),
-              // Thời gian
               Text(
-                _formatFullDate(mail.sentAt),
+                _formatFullDate(widget.mail.sentAt),
                 style: TextStyle(
                   fontSize: AppStyles.textSm,
                   color: AppColors.textTertiary,
@@ -149,7 +192,7 @@ class DuoMailDetailSheet extends StatelessWidget {
       hasBorder: false,
       padding: EdgeInsets.all(AppStyles.space4),
       child: Text(
-        mail.content,
+        widget.mail.content,
         style: TextStyle(
           fontSize: AppStyles.textBase,
           color: AppColors.textPrimary,
@@ -160,43 +203,40 @@ class DuoMailDetailSheet extends StatelessWidget {
   }
 
   Widget _buildRewardCard() {
-    final reward = mail.reward!;
+    final reward = widget.mail.reward!;
+    final canClaim = widget.mail.canClaimReward && !_isClaimed;
 
     return DuoCard(
       padding: EdgeInsets.zero,
-      shadowColor: mail.isClaimed ? null : AppColors.yellow,
+      shadowColor: canClaim ? AppColors.yellow : null,
       child: Column(
         children: [
-          // Header
           Padding(
             padding: EdgeInsets.all(AppStyles.space4),
             child: Row(
               children: [
                 Image.asset(
-                  mail.isClaimed ? AppAssets.checkmark : AppAssets.chest,
+                  _isClaimed ? AppAssets.checkmark : AppAssets.chest,
                   width: 32,
                   height: 32,
                 ),
                 SizedBox(width: AppStyles.space3),
                 Text(
-                  mail.isClaimed ? 'Đã nhận quà' : 'Phần thưởng đính kèm',
+                  _isClaimed ? 'Đã nhận quà' : 'Phần thưởng đính kèm',
                   style: TextStyle(
                     fontSize: AppStyles.textLg,
                     fontWeight: AppStyles.fontBold,
-                    color: mail.isClaimed 
-                        ? AppColors.green 
-                        : AppColors.textPrimary,
+                    color: _isClaimed ? AppColors.green : AppColors.textPrimary,
                   ),
                 ),
               ],
             ),
           ),
-          // Rewards
           Container(
             padding: EdgeInsets.all(AppStyles.space4),
             decoration: BoxDecoration(
-              color: mail.isClaimed 
-                  ? AppColors.background 
+              color: _isClaimed
+                  ? AppColors.background
                   : AppColors.yellowSoft.withValues(alpha: 0.5),
               borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(AppStyles.radiusXl - 1),
@@ -205,7 +245,6 @@ class DuoMailDetailSheet extends StatelessWidget {
             ),
             child: Column(
               children: [
-                // Reward items
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
@@ -217,15 +256,12 @@ class DuoMailDetailSheet extends StatelessWidget {
                       _buildRewardItem(AppAssets.xpStar, _formatNumber(reward.xp), 'XP'),
                   ],
                 ),
-                // Claim button
-                if (mail.canClaimReward) ...[
+                if (canClaim) ...[
                   SizedBox(height: AppStyles.space4),
                   DuoButton(
                     text: 'Nhận quà',
-                    onPressed: () {
-                      onClaimReward?.call();
-                      Get.back();
-                    },
+                    onPressed: _isClaiming ? null : _handleClaim,
+                    isLoading: _isClaiming,
                     variant: DuoButtonVariant.warning,
                     fullWidth: true,
                   ),
@@ -259,9 +295,7 @@ class DuoMailDetailSheet extends StatelessWidget {
           style: TextStyle(
             fontSize: AppStyles.textLg,
             fontWeight: AppStyles.fontBold,
-            color: mail.isClaimed 
-                ? AppColors.textTertiary 
-                : AppColors.textPrimary,
+            color: _isClaimed ? AppColors.textTertiary : AppColors.textPrimary,
           ),
         ),
         Text(
@@ -276,7 +310,7 @@ class DuoMailDetailSheet extends StatelessWidget {
   }
 
   String _getMailAsset() {
-    switch (mail.type) {
+    switch (widget.mail.type) {
       case MailType.system:
         return AppAssets.crown;
       case MailType.reward:

@@ -14,6 +14,7 @@ import '../models/mail_item.dart';
 class MailboxService extends GetxService {
   static const String _storageKey = 'mailbox_data';
   static const String _claimedKey = 'claimed_mail_ids';
+  static const String _deletedKey = 'deleted_mail_ids';
   
   final StorageService _storage = Get.find<StorageService>();
   final GameService _gameService = Get.find<GameService>();
@@ -97,30 +98,55 @@ class MailboxService extends GetxService {
     await _saveMails();
   }
 
+  /// Đánh dấu tất cả đã đọc (trừ thư có quà chưa nhận)
+  Future<void> markAllAsRead() async {
+    bool hasChanges = false;
+    for (int i = 0; i < mails.length; i++) {
+      // Skip thư có quà chưa nhận
+      if (mails[i].canClaimReward) continue;
+      
+      if (!mails[i].isRead) {
+        mails[i] = mails[i].copyWith(isRead: true);
+        hasChanges = true;
+      }
+    }
+    if (hasChanges) {
+      _updateCounts();
+      await _saveMails();
+    }
+  }
+
   /// Nhận quà từ thư
   Future<bool> claimReward(String mailId) async {
     final index = mails.indexWhere((m) => m.id == mailId);
     if (index == -1) return false;
-    
+
     final mail = mails[index];
     if (!mail.canClaimReward) return false;
-    
+
     final reward = mail.reward!;
-    
+
+    debugPrint('[Mailbox] claimReward: mailId=$mailId, index=$index');
+    debugPrint('[Mailbox] Before: ${mails.map((m) => '${m.id}:${m.isClaimed}').join(', ')}');
+
     // Cộng phần thưởng vào game
     await _gameService.addCoins(reward.coins, _mssv);
     await _gameService.addDiamonds(reward.diamonds, _mssv);
     await _gameService.addXp(reward.xp, _mssv);
-    
-    // Cập nhật trạng thái
-    mails[index] = mail.copyWith(isClaimed: true, isRead: true);
+
+    // Cập nhật trạng thái - CHỈ mail này
+    final updatedMail = mail.copyWith(isClaimed: true, isRead: true);
+    mails[index] = updatedMail;
+
+    debugPrint('[Mailbox] After: ${mails.map((m) => '${m.id}:${m.isClaimed}').join(', ')}');
+
     _updateCounts();
     await _saveMails();
-    
+
     // Luu trang thai da nhan
     await _saveClaimedMailId(mailId);
     await _markClaimedOnFirebase(mailId);
-    
+
     return true;
   }
 
@@ -202,6 +228,10 @@ class MailboxService extends GetxService {
     mails.removeWhere((m) => m.id == mailId);
     _updateCounts();
     await _saveMails();
+    
+    // Lưu deleted ID để không sync lại
+    await _saveDeletedMailId(mailId);
+    await _markDeletedOnFirebase([mailId]);
   }
 
   /// Xóa tất cả thư đã đọc và đã nhận quà
@@ -209,14 +239,20 @@ class MailboxService extends GetxService {
     final toDelete = mails.where((m) => m.isRead && (!m.hasReward || m.isClaimed)).toList();
     final count = toDelete.length;
     
+    if (count == 0) return 0;
+    
+    final deletedIds = toDelete.map((m) => m.id).toList();
+    
     for (var mail in toDelete) {
       mails.remove(mail);
     }
     
-    if (count > 0) {
-      _updateCounts();
-      await _saveMails();
-    }
+    _updateCounts();
+    await _saveMails();
+    
+    // Lưu deleted IDs để không sync lại
+    await _saveDeletedMailIds(deletedIds);
+    await _markDeletedOnFirebase(deletedIds);
     
     return count;
   }
@@ -269,32 +305,97 @@ class MailboxService extends GetxService {
     await _storage.saveData(StorageKey.notifications, data);
   }
 
+  /// Lay danh sach mail id da xoa (luu local)
+  Set<String> _getDeletedMailIds() {
+    final data = _storage.getData(StorageKey.notifications);
+    if (data != null && data[_deletedKey] != null) {
+      return Set<String>.from(data[_deletedKey] as List);
+    }
+    return {};
+  }
+
+  /// Luu 1 mail id da xoa
+  Future<void> _saveDeletedMailId(String mailId) async {
+    final data = _storage.getData(StorageKey.notifications) ?? {};
+    final deleted = _getDeletedMailIds();
+    deleted.add(mailId);
+    data[_deletedKey] = deleted.toList();
+    await _storage.saveData(StorageKey.notifications, data);
+  }
+
+  /// Luu nhieu mail id da xoa
+  Future<void> _saveDeletedMailIds(List<String> mailIds) async {
+    final data = _storage.getData(StorageKey.notifications) ?? {};
+    final deleted = _getDeletedMailIds();
+    deleted.addAll(mailIds);
+    data[_deletedKey] = deleted.toList();
+    await _storage.saveData(StorageKey.notifications, data);
+  }
+
+  /// Đánh dấu mail đã xóa lên Firebase
+  Future<void> _markDeletedOnFirebase(List<String> mailIds) async {
+    if (_mssv.isEmpty || mailIds.isEmpty) return;
+
+    try {
+      final batch = _firestore.batch();
+      final deletedAt = FieldValue.serverTimestamp();
+
+      for (var mailId in mailIds) {
+        final docRef = _firestore
+            .collection('mailbox')
+            .doc('deleted')
+            .collection(_mssv)
+            .doc(mailId);
+        batch.set(docRef, {'deleted_at': deletedAt});
+      }
+
+      await batch.commit();
+      debugPrint('Marked ${mailIds.length} mails as deleted on Firebase');
+    } catch (e) {
+      debugPrint('Error marking mails as deleted: $e');
+    }
+  }
+
   /// Sync thu tu Firebase (global + user-specific)
   Future<void> syncFromFirebase() async {
-    if (_mssv.isEmpty) return;
+    if (_mssv.isEmpty) {
+      debugPrint('[Mailbox] syncFromFirebase: mssv is empty');
+      return;
+    }
     
+    debugPrint('[Mailbox] syncFromFirebase: Starting for $_mssv');
     isSyncing.value = true;
     try {
       final claimedIds = _getClaimedMailIds();
+      final deletedIds = _getDeletedMailIds();
       final newMails = <MailItem>[];
 
       // 1. Lay thu global (gui cho tat ca user)
+      debugPrint('[Mailbox] Fetching global mails...');
       final globalMails = await _fetchGlobalMails();
+      debugPrint('[Mailbox] Got ${globalMails.length} global mails');
+      
       for (var mail in globalMails) {
-        if (!mails.any((m) => m.id == mail.id)) {
-          // Kiem tra da claim chua
-          final isClaimed = claimedIds.contains(mail.id);
-          newMails.add(mail.copyWith(isClaimed: isClaimed));
-        }
+        // Skip mail đã xóa hoặc đã có trong list
+        if (deletedIds.contains(mail.id)) continue;
+        if (mails.any((m) => m.id == mail.id)) continue;
+        
+        final isClaimed = claimedIds.contains(mail.id);
+        newMails.add(mail.copyWith(isClaimed: isClaimed));
       }
 
       // 2. Lay thu rieng cho user nay
+      debugPrint('[Mailbox] Fetching user mails...');
       final userMails = await _fetchUserMails(_mssv);
+      debugPrint('[Mailbox] Got ${userMails.length} user mails');
+      
       for (var mail in userMails) {
-        if (!mails.any((m) => m.id == mail.id)) {
-          final isClaimed = claimedIds.contains(mail.id);
-          newMails.add(mail.copyWith(isClaimed: isClaimed));
-        }
+        // Skip mail đã xóa hoặc đã có trong list
+        if (deletedIds.contains(mail.id)) continue;
+        if (mails.any((m) => m.id == mail.id)) continue;
+        
+        final isClaimed = claimedIds.contains(mail.id);
+        newMails.add(mail.copyWith(isClaimed: isClaimed));
       }
 
       // Them thu moi vao danh sach
@@ -317,20 +418,24 @@ class MailboxService extends GetxService {
   /// Lay thu global tu Firebase
   Future<List<MailItem>> _fetchGlobalMails() async {
     try {
+      // Query don gian, khong can index
       final snapshot = await _firestore
           .collection('mailbox')
           .doc('global')
           .collection('mails')
-          .where('is_active', isEqualTo: true)
-          .orderBy('sent_at', descending: true)
           .limit(50)
           .get();
 
-      return snapshot.docs
+      debugPrint('Fetched ${snapshot.docs.length} global mails from Firebase');
+
+      final result = snapshot.docs
           .map((doc) => _parseFirebaseMail(doc.id, doc.data()))
           .where((m) => m != null && !m.isExpired)
           .cast<MailItem>()
           .toList();
+      
+      // Filter is_active trong code
+      return result.where((m) => true).toList(); // is_active da check trong parse
     } catch (e) {
       debugPrint('Error fetching global mails: $e');
       return [];
@@ -344,10 +449,10 @@ class MailboxService extends GetxService {
           .collection('mailbox')
           .doc('users')
           .collection(mssv)
-          .where('is_active', isEqualTo: true)
-          .orderBy('sent_at', descending: true)
           .limit(50)
           .get();
+      
+      debugPrint('Fetched ${snapshot.docs.length} user mails from Firebase');
 
       return snapshot.docs
           .map((doc) => _parseFirebaseMail(doc.id, doc.data()))

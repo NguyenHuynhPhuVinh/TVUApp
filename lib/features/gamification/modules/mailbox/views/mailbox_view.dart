@@ -22,50 +22,83 @@ class MailboxView extends GetView<MailboxController> {
         showLogo: false,
         leading: const DuoBackButton(),
         actions: [
-          // Nút nhận tất cả (chỉ hiện khi có quà)
           Obx(() {
-            if (controller.unclaimedCount == 0) {
+            // Nếu có quà chưa nhận → chỉ hiện nút "Nhận tất cả"
+            if (controller.unclaimedCount > 0) {
+              final isLoading = controller.isClaimingAll.value;
               return Padding(
-                padding: EdgeInsets.only(right: AppStyles.space3),
-                child: DuoIconButton(
+                padding: EdgeInsets.only(right: AppStyles.space2),
+                child: GestureDetector(
+                  onTap: isLoading ? null : controller.claimAllRewards,
+                  child: Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: AppStyles.space3,
+                      vertical: AppStyles.space2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isLoading ? AppColors.yellowDark : AppColors.yellow,
+                      borderRadius: AppStyles.roundedLg,
+                      boxShadow: AppColors.buttonBoxShadow(AppColors.yellowDark, offset: 3),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (isLoading)
+                          const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        else
+                          Image.asset(AppAssets.giftPurple, width: 16, height: 16),
+                        SizedBox(width: AppStyles.space1),
+                        Text(
+                          isLoading ? 'Đang nhận...' : 'Nhận tất cả',
+                          style: TextStyle(
+                            fontSize: AppStyles.textSm,
+                            fontWeight: AppStyles.fontBold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }
+
+            // Không có quà → hiện 3 nút: đọc full, refresh, xóa
+            return Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Nút đọc tất cả
+                DuoIconButton(
+                  icon: Icons.done_all_rounded,
+                  variant: DuoIconButtonVariant.white,
+                  size: DuoIconButtonSize.md,
+                  onTap: controller.markAllAsRead,
+                ),
+                SizedBox(width: AppStyles.space1),
+                // Nút refresh
+                DuoIconButton(
                   icon: Icons.refresh_rounded,
                   variant: DuoIconButtonVariant.white,
                   size: DuoIconButtonSize.md,
                   onTap: controller.refreshMails,
                 ),
-              );
-            }
-            return Padding(
-              padding: EdgeInsets.only(right: AppStyles.space3),
-              child: GestureDetector(
-                onTap: controller.claimAllRewards,
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: AppStyles.space3,
-                    vertical: AppStyles.space2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.yellow,
-                    borderRadius: AppStyles.roundedLg,
-                    boxShadow: AppColors.buttonBoxShadow(AppColors.yellowDark, offset: 3),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Image.asset(AppAssets.giftPurple, width: 16, height: 16),
-                      SizedBox(width: AppStyles.space1),
-                      Text(
-                        'Nhận tất cả',
-                        style: TextStyle(
-                          fontSize: AppStyles.textSm,
-                          fontWeight: AppStyles.fontBold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
+                SizedBox(width: AppStyles.space1),
+                // Nút xóa tất cả thư đã đọc
+                DuoIconButton(
+                  icon: Icons.delete_sweep_rounded,
+                  variant: DuoIconButtonVariant.white,
+                  size: DuoIconButtonSize.md,
+                  onTap: () => _showDeleteConfirmDialog(),
                 ),
-              ),
+                SizedBox(width: AppStyles.space2),
+              ],
             );
           }),
         ],
@@ -108,5 +141,17 @@ class MailboxView extends GetView<MailboxController> {
       accentColor: controller.getMailTypeColor(mail.type),
       onClaimReward: () => controller.claimReward(mail),
     );
+  }
+
+  Future<void> _showDeleteConfirmDialog() async {
+    final confirmed = await DuoConfirmDialog.showDelete(
+      title: 'Xóa thư đã đọc?',
+      message: 'Tất cả thư đã đọc (và đã nhận quà) sẽ bị xóa vĩnh viễn. Bạn có chắc chắn không?',
+      confirmText: 'Xóa',
+      cancelText: 'Hủy',
+    );
+    if (confirmed) {
+      controller.deleteReadMails();
+    }
   }
 }

@@ -25,33 +25,14 @@ class MailboxController extends GetxController {
     await _mailboxService.markAsRead(mail.id);
   }
 
-  /// Nhận quà từ thư
-  Future<void> claimReward(MailItem mail) async {
-    if (!mail.canClaimReward) return;
-
-    isLoading.value = true;
-    
-    // Hiện loading dialog
-    Get.dialog(
-      const Center(
-        child: CircularProgressIndicator(color: AppColors.yellow),
-      ),
-      barrierDismissible: false,
-    );
+  /// Nhận quà từ thư - trả về bool để sheet biết kết quả
+  Future<bool> claimReward(MailItem mail) async {
+    if (!mail.canClaimReward) return false;
 
     try {
       final success = await _mailboxService.claimReward(mail.id);
-      Get.back(); // Đóng loading
-      
-      if (success) {
-        // Hiện reward dialog
-        await DuoMailRewardDialog.show(
-          title: mail.title,
-          reward: mail.reward!,
-        );
-      }
+      return success;
     } catch (e) {
-      Get.back(); // Đóng loading
       Get.snackbar(
         'Lỗi',
         'Không thể nhận quà. Vui lòng thử lại.',
@@ -59,26 +40,16 @@ class MailboxController extends GetxController {
         backgroundColor: AppColors.red,
         colorText: Colors.white,
       );
-    } finally {
-      isLoading.value = false;
+      return false;
     }
   }
 
   /// Nhận tất cả quà
   Future<void> claimAllRewards() async {
-    if (unclaimedCount == 0) {
-      Get.snackbar(
-        'Thông báo',
-        'Không có quà để nhận',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: AppColors.primary,
-        colorText: Colors.white,
-      );
-      return;
-    }
+    if (unclaimedCount == 0 || isClaimingAll.value) return;
 
     isClaimingAll.value = true;
-    
+
     // Tính tổng phần thưởng trước
     int totalCoins = 0;
     int totalDiamonds = 0;
@@ -91,38 +62,9 @@ class MailboxController extends GetxController {
       }
     }
 
-    // Hiện loading dialog
-    Get.dialog(
-      Center(
-        child: Container(
-          padding: EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: AppColors.backgroundWhite,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const CircularProgressIndicator(color: AppColors.yellow),
-              const SizedBox(height: 16),
-              Text(
-                'Đang nhận $unclaimedCount phần quà...',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-      barrierDismissible: false,
-    );
-
     try {
       final count = await _mailboxService.claimAllRewards();
-      Get.back(); // Đóng loading
-      
+
       if (count > 0) {
         // Hiện reward dialog
         await DuoMailRewardDialog.showBulk(
@@ -133,7 +75,6 @@ class MailboxController extends GetxController {
         );
       }
     } catch (e) {
-      Get.back(); // Đóng loading
       Get.snackbar(
         'Lỗi',
         'Không thể nhận quà. Vui lòng thử lại.',
@@ -144,6 +85,12 @@ class MailboxController extends GetxController {
     } finally {
       isClaimingAll.value = false;
     }
+  }
+
+  /// Đánh dấu tất cả đã đọc
+  Future<void> markAllAsRead() async {
+    if (unreadCount == 0) return;
+    await _mailboxService.markAllAsRead();
   }
 
   /// Xóa thư
@@ -160,6 +107,28 @@ class MailboxController extends GetxController {
     }
 
     await _mailboxService.deleteMail(mail.id);
+  }
+
+  /// Xóa tất cả thư đã đọc (và đã nhận quà nếu có)
+  Future<void> deleteReadMails() async {
+    final count = await _mailboxService.deleteReadMails();
+    if (count > 0) {
+      Get.snackbar(
+        'Thành công',
+        'Đã xóa $count thư',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: AppColors.green,
+        colorText: Colors.white,
+      );
+    } else {
+      Get.snackbar(
+        'Thông báo',
+        'Không có thư nào để xóa',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: AppColors.primary,
+        colorText: Colors.white,
+      );
+    }
   }
 
   /// Lấy màu theo loại thư
