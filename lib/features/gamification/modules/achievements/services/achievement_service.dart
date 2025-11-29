@@ -55,7 +55,26 @@ class AchievementService extends GetxService {
     // Tự động check achievements khi game stats thay đổi
     _listenToGameStats();
     
+    // Check tiến độ ngay khi init để cập nhật thành tựu
+    // Retry nhiều lần để đảm bảo có data
+    _scheduleInitialCheck();
+    
     return this;
+  }
+  
+  /// Schedule check tiến độ ban đầu với retry
+  void _scheduleInitialCheck() {
+    Future.delayed(const Duration(milliseconds: 500), () async {
+      final stats = _gameService.stats.value;
+      if (stats.isInitialized) {
+        await _autoCheckProgress();
+      } else {
+        // Retry sau 1 giây nếu chưa init
+        Future.delayed(const Duration(seconds: 1), () async {
+          await _autoCheckProgress();
+        });
+      }
+    });
   }
   
   /// Listen vào game stats để tự động cập nhật tiến độ thành tựu
@@ -71,60 +90,74 @@ class AchievementService extends GetxService {
   /// Tự động check tiến độ dựa trên game stats và storage data
   Future<void> _autoCheckProgress() async {
     final stats = _gameService.stats.value;
-    if (!stats.isInitialized) return;
     
     // Lấy data từ storage
     final storage = Get.find<StorageService>();
     
-    // Tính tín chỉ và môn đã qua từ curriculum
+    // Tính tín chỉ, môn đã qua, GPA và điểm A từ grades (nguồn chính xác)
     int totalCredits = 0;
     int subjectsPassed = 0;
-    final curriculumData = storage.getCurriculum();
-    if (curriculumData != null && curriculumData['data'] != null) {
-      final semList = curriculumData['data']['ds_CTDT_hocky'] as List? ?? [];
-      for (final sem in semList) {
-        final subjects = sem['ds_mon_hoc'] as List? ?? [];
-        for (final subject in subjects) {
-          if (subject['da_hoan_thanh'] == true || subject['da_hoan_thanh'] == 1) {
-            subjectsPassed++;
-            totalCredits += (subject['so_tin_chi'] as num?)?.toInt() ?? 0;
-          }
-        }
-      }
-    }
-    
-    // Tính GPA và grade A từ grades
     double gpa = 0;
     int gradeACount = 0;
     int perfectScoreCount = 0;
+    
     final gradesData = storage.getGrades();
     if (gradesData != null && gradesData['data'] != null) {
       final semesterList = gradesData['data']['ds_diem_hocky'] as List? ?? [];
-      for (final sem in semesterList) {
-        // Lấy GPA tích lũy từ học kỳ đầu tiên (mới nhất)
-        if (gpa == 0) {
-          gpa = (sem['dtb_tich_luy_he_10'] as num?)?.toDouble() ?? 0;
+      
+      for (int i = 0; i < semesterList.length; i++) {
+        final sem = semesterList[i];
+        
+        // Lấy GPA tích lũy và tín chỉ tích lũy từ học kỳ đầu tiên (mới nhất)
+        if (i == 0) {
+          gpa = double.tryParse(sem['dtb_tich_luy_he_10']?.toString() ?? '') ?? 0;
+          totalCredits = int.tryParse(sem['so_tin_chi_dat_tich_luy']?.toString() ?? '') ?? 0;
         }
+        
         final subjects = sem['ds_diem_mon_hoc'] as List? ?? [];
         for (final subject in subjects) {
-          final score = (subject['diem_tk'] as num?)?.toDouble() ?? 0;
+          // Đếm môn đã đạt
+          final ketQua = subject['ket_qua'];
+          if (ketQua == 1 || ketQua == '1') {
+            subjectsPassed++;
+          }
+          
+          // Đếm điểm A và điểm 10
+          final scoreStr = subject['diem_tk']?.toString() ?? '';
+          final score = double.tryParse(scoreStr) ?? 0;
           if (score >= 8.5) gradeACount++;
           if (score >= 10) perfectScoreCount++;
         }
       }
     }
     
-    // Tính rank index từ GPA
-    int currentRankIndex = 0;
-    if (gpa >= 9.0) currentRankIndex = 9;
-    else if (gpa >= 8.5) currentRankIndex = 8;
-    else if (gpa >= 8.0) currentRankIndex = 7;
-    else if (gpa >= 7.5) currentRankIndex = 6;
-    else if (gpa >= 7.0) currentRankIndex = 5;
-    else if (gpa >= 6.5) currentRankIndex = 4;
-    else if (gpa >= 6.0) currentRankIndex = 3;
-    else if (gpa >= 5.5) currentRankIndex = 2;
-    else if (gpa >= 5.0) currentRankIndex = 1;
+    // Tính tổng học phí đã đóng từ tuition data
+    int tuitionPaid = 0;
+    int semestersPaid = 0;
+    bool allSemesterPaid = true;
+    
+    final tuitionData = storage.getTuition();
+    if (tuitionData != null && tuitionData['data'] != null) {
+      final tuitionList = tuitionData['data']['ds_hoc_phi_hoc_ky'] as List? ?? [];
+      for (final sem in tuitionList) {
+        final daThu = double.tryParse(sem['da_thu']?.toString() ?? '') ?? 0;
+        final conNo = double.tryParse(sem['con_no']?.toString() ?? '') ?? 0;
+        
+        tuitionPaid += daThu.toInt();
+        
+        if (daThu > 0 && conNo <= 0) {
+          semestersPaid++;
+        }
+        
+        if (conNo > 0) {
+          allSemesterPaid = false;
+        }
+      }
+    }
+    
+    // Tính rank index từ GPA (0-55)
+    // Công thức: (gpa / 10) * 55
+    final currentRankIndex = ((gpa / 10) * 55).floor().clamp(0, 55);
     
     // Check first login (game initialized = first login)
     final firstLogin = stats.isInitialized;
@@ -146,7 +179,8 @@ class AchievementService extends GetxService {
       lessonsAttended: stats.totalLessonsAttended,
       attendanceRate: stats.attendanceRate,
       // Financial
-      tuitionPaid: stats.totalTuitionPaid,
+      tuitionPaid: tuitionPaid,
+      semestersPaid: semestersPaid,
       // Progress
       level: stats.level,
       totalCoinsEarned: stats.coins,
@@ -157,6 +191,7 @@ class AchievementService extends GetxService {
       gameInitialized: stats.isInitialized,
       firstRankReward: firstRankReward,
       firstSubjectReward: firstSubjectReward,
+      allSemesterPaid: allSemesterPaid && semestersPaid > 0,
     );
     
     // Hiển thị thông báo nếu có thành tựu mới

@@ -11,6 +11,7 @@ import '../../../shared/widgets/game_widgets.dart';
 import '../../../../../core/constants/app_assets.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/theme/app_styles.dart';
+import '../../../../../infrastructure/storage/storage_service.dart';
 
 /// Controller cho màn hình thành tựu
 class AchievementsController extends GetxController {
@@ -101,7 +102,7 @@ class AchievementsController extends GetxController {
     try {
       final stats = _gameService.stats.value;
 
-      // Lấy dữ liệu học tập
+      // Lấy dữ liệu học tập từ GradesController
       int subjectsPassed = 0;
       int totalCredits = 0;
       double gpa = 0;
@@ -111,6 +112,13 @@ class AchievementsController extends GetxController {
       if (Get.isRegistered<GradesController>()) {
         final gradesController = Get.find<GradesController>();
         final semesters = gradesController.gradesBySemester;
+
+        if (semesters.isNotEmpty) {
+          // Lấy GPA tích lũy và tín chỉ từ học kỳ đầu tiên (mới nhất)
+          final latestSemester = semesters.first;
+          gpa = latestSemester.dtbTichLuyHe10Double ?? 0;
+          totalCredits = latestSemester.soTinChiDatTichLuyInt;
+        }
 
         for (final semester in semesters) {
           for (final subject in semester.subjects) {
@@ -122,14 +130,31 @@ class AchievementsController extends GetxController {
               if (score >= 10) perfectScoreCount++;
             }
           }
+        }
+      }
 
-          // Lấy GPA tích lũy từ học kỳ cuối
-          if (semester.dtbTichLuyHe10Double != null) {
-            gpa = semester.dtbTichLuyHe10Double!;
+      // Tính học phí đã đóng từ storage
+      int tuitionPaid = 0;
+      int semestersPaid = 0;
+      bool allSemesterPaid = true;
+      
+      final storage = Get.find<StorageService>();
+      final tuitionData = storage.getTuition();
+      if (tuitionData != null && tuitionData['data'] != null) {
+        final tuitionList = tuitionData['data']['ds_hoc_phi_hoc_ky'] as List? ?? [];
+        for (final sem in tuitionList) {
+          final daThu = double.tryParse(sem['da_thu']?.toString() ?? '') ?? 0;
+          final conNo = double.tryParse(sem['con_no']?.toString() ?? '') ?? 0;
+          
+          tuitionPaid += daThu.toInt();
+          
+          if (daThu > 0 && conNo <= 0) {
+            semestersPaid++;
           }
-
-          // Lấy tổng tín chỉ tích lũy
-          totalCredits = semester.soTinChiDatTichLuyInt;
+          
+          if (conNo > 0) {
+            allSemesterPaid = false;
+          }
         }
       }
 
@@ -148,14 +173,19 @@ class AchievementsController extends GetxController {
         lessonsAttended: stats.totalLessonsAttended,
         attendanceRate: stats.attendanceRate,
         // Financial
-        tuitionPaid: stats.totalTuitionPaid,
+        tuitionPaid: tuitionPaid,
+        semestersPaid: semestersPaid,
         // Progress
         level: stats.level,
         totalCoinsEarned: stats.coins,
         totalDiamondsEarned: stats.diamonds,
         currentRankIndex: currentRankIndex,
         // Special
+        firstLogin: stats.isInitialized,
         gameInitialized: stats.isInitialized,
+        firstRankReward: stats.claimedRankRewards.isNotEmpty,
+        firstSubjectReward: stats.claimedSubjects.isNotEmpty,
+        allSemesterPaid: allSemesterPaid && semestersPaid > 0,
       );
 
       // Hiển thị thông báo nếu có thành tựu mới
