@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -9,6 +10,7 @@ import '../../../core/game_service.dart';
 import '../../../core/game_sync_service.dart';
 import '../../../core/game_security_guard.dart';
 import '../../../../../infrastructure/security/security_service.dart';
+import '../../../../../infrastructure/storage/storage_service.dart';
 
 /// Service quản lý hệ thống thành tựu
 /// 
@@ -49,7 +51,133 @@ class AchievementService extends GetxService {
     _guard = Get.find<GameSecurityGuard>();
     _security = Get.find<SecurityService>();
     await _loadAchievements();
+    
+    // Tự động check achievements khi game stats thay đổi
+    _listenToGameStats();
+    
     return this;
+  }
+  
+  /// Listen vào game stats để tự động cập nhật tiến độ thành tựu
+  void _listenToGameStats() {
+    ever(_gameService.stats, (_) {
+      // Debounce - chỉ check sau 1 giây để tránh spam
+      Future.delayed(const Duration(seconds: 1), () {
+        _autoCheckProgress();
+      });
+    });
+  }
+  
+  /// Tự động check tiến độ dựa trên game stats và storage data
+  Future<void> _autoCheckProgress() async {
+    final stats = _gameService.stats.value;
+    if (!stats.isInitialized) return;
+    
+    // Lấy data từ storage
+    final storage = Get.find<StorageService>();
+    
+    // Tính tín chỉ và môn đã qua từ curriculum
+    int totalCredits = 0;
+    int subjectsPassed = 0;
+    final curriculumData = storage.getCurriculum();
+    if (curriculumData != null && curriculumData['data'] != null) {
+      final semList = curriculumData['data']['ds_CTDT_hocky'] as List? ?? [];
+      for (final sem in semList) {
+        final subjects = sem['ds_mon_hoc'] as List? ?? [];
+        for (final subject in subjects) {
+          if (subject['da_hoan_thanh'] == true || subject['da_hoan_thanh'] == 1) {
+            subjectsPassed++;
+            totalCredits += (subject['so_tin_chi'] as num?)?.toInt() ?? 0;
+          }
+        }
+      }
+    }
+    
+    // Tính GPA và grade A từ grades
+    double gpa = 0;
+    int gradeACount = 0;
+    int perfectScoreCount = 0;
+    final gradesData = storage.getGrades();
+    if (gradesData != null && gradesData['data'] != null) {
+      final semesterList = gradesData['data']['ds_diem_hocky'] as List? ?? [];
+      for (final sem in semesterList) {
+        // Lấy GPA tích lũy từ học kỳ đầu tiên (mới nhất)
+        if (gpa == 0) {
+          gpa = (sem['dtb_tich_luy_he_10'] as num?)?.toDouble() ?? 0;
+        }
+        final subjects = sem['ds_diem_mon_hoc'] as List? ?? [];
+        for (final subject in subjects) {
+          final score = (subject['diem_tk'] as num?)?.toDouble() ?? 0;
+          if (score >= 8.5) gradeACount++;
+          if (score >= 10) perfectScoreCount++;
+        }
+      }
+    }
+    
+    // Tính rank index từ GPA
+    int currentRankIndex = 0;
+    if (gpa >= 9.0) currentRankIndex = 9;
+    else if (gpa >= 8.5) currentRankIndex = 8;
+    else if (gpa >= 8.0) currentRankIndex = 7;
+    else if (gpa >= 7.5) currentRankIndex = 6;
+    else if (gpa >= 7.0) currentRankIndex = 5;
+    else if (gpa >= 6.5) currentRankIndex = 4;
+    else if (gpa >= 6.0) currentRankIndex = 3;
+    else if (gpa >= 5.5) currentRankIndex = 2;
+    else if (gpa >= 5.0) currentRankIndex = 1;
+    
+    // Check first login (game initialized = first login)
+    final firstLogin = stats.isInitialized;
+    
+    // Check first rank reward
+    final firstRankReward = stats.claimedRankRewards.isNotEmpty;
+    
+    // Check first subject reward
+    final firstSubjectReward = stats.claimedSubjects.isNotEmpty;
+    
+    final newlyUnlocked = await updateProgress(
+      // Academic
+      subjectsPassed: subjectsPassed,
+      totalCredits: totalCredits,
+      gpa: gpa,
+      gradeACount: gradeACount,
+      perfectScoreCount: perfectScoreCount,
+      // Attendance
+      lessonsAttended: stats.totalLessonsAttended,
+      attendanceRate: stats.attendanceRate,
+      // Financial
+      tuitionPaid: stats.totalTuitionPaid,
+      // Progress
+      level: stats.level,
+      totalCoinsEarned: stats.coins,
+      totalDiamondsEarned: stats.diamonds,
+      currentRankIndex: currentRankIndex,
+      // Special
+      firstLogin: firstLogin,
+      gameInitialized: stats.isInitialized,
+      firstRankReward: firstRankReward,
+      firstSubjectReward: firstSubjectReward,
+    );
+    
+    // Hiển thị thông báo nếu có thành tựu mới
+    if (newlyUnlocked.isNotEmpty) {
+      _showUnlockedNotification(newlyUnlocked);
+    }
+  }
+  
+  /// Hiển thị thông báo khi mở khóa thành tựu mới
+  void _showUnlockedNotification(List<Achievement> achievements) {
+    if (achievements.isEmpty) return;
+    
+    final names = achievements.map((a) => a.name).join(', ');
+    Get.snackbar(
+      'Thành tựu mới!',
+      'Bạn đã mở khóa: $names',
+      snackPosition: SnackPosition.TOP,
+      duration: const Duration(seconds: 3),
+      backgroundColor: const Color(0xF058CC02),
+      colorText: const Color(0xFFFFFFFF),
+    );
   }
 
   // ============ LOCAL STORAGE ============
@@ -176,26 +304,33 @@ class AchievementService extends GetxService {
           if (graduated == true) newValue = 1;
       }
 
-      if (newValue != null && newValue != achievement.currentValue) {
+      // Cập nhật nếu có giá trị mới và lớn hơn hoặc bằng giá trị cũ
+      if (newValue != null && newValue >= achievement.currentValue) {
+        final shouldUnlock = newValue >= achievement.targetValue;
         final updated = achievement.copyWith(
           currentValue: newValue,
-          isUnlocked: newValue >= achievement.targetValue,
-          unlockedAt:
-              newValue >= achievement.targetValue ? DateTime.now() : null,
+          isUnlocked: shouldUnlock,
+          unlockedAt: shouldUnlock && !achievement.isUnlocked 
+              ? DateTime.now() 
+              : achievement.unlockedAt,
         );
-        achievements[i] = updated;
+        
+        // Chỉ cập nhật nếu có thay đổi
+        if (updated.currentValue != achievement.currentValue || 
+            updated.isUnlocked != achievement.isUnlocked) {
+          achievements[i] = updated;
 
-        if (updated.isUnlocked && !achievement.isUnlocked) {
-          newlyUnlocked.add(updated);
-          debugPrint('Achievement unlocked: ${updated.name}');
+          if (updated.isUnlocked && !achievement.isUnlocked) {
+            newlyUnlocked.add(updated);
+            debugPrint('Achievement unlocked: ${updated.name}');
+          }
         }
       }
     }
 
-    if (newlyUnlocked.isNotEmpty) {
-      await _saveAchievements();
-      _updateStats();
-    }
+    // Luôn save và update stats nếu có thay đổi
+    await _saveAchievements();
+    _updateStats();
 
     return newlyUnlocked;
   }

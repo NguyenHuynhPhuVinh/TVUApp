@@ -26,6 +26,7 @@ class AchievementsController extends GetxController {
 
   /// Filter
   final showOnlyUnlocked = false.obs;
+  final showOnlyLocked = false.obs;
   final showOnlyClaimable = false.obs;
 
   @override
@@ -56,6 +57,11 @@ class AchievementsController extends GetxController {
     // Filter by unlocked
     if (showOnlyUnlocked.value) {
       list = list.where((a) => a.isUnlocked).toList();
+    }
+
+    // Filter by locked
+    if (showOnlyLocked.value) {
+      list = list.where((a) => !a.isUnlocked).toList();
     }
 
     // Filter by claimable
@@ -208,12 +214,26 @@ class AchievementsController extends GetxController {
   /// Toggle filter
   void toggleUnlockedFilter() {
     showOnlyUnlocked.value = !showOnlyUnlocked.value;
-    if (showOnlyUnlocked.value) showOnlyClaimable.value = false;
+    if (showOnlyUnlocked.value) {
+      showOnlyLocked.value = false;
+      showOnlyClaimable.value = false;
+    }
+  }
+
+  void toggleLockedFilter() {
+    showOnlyLocked.value = !showOnlyLocked.value;
+    if (showOnlyLocked.value) {
+      showOnlyUnlocked.value = false;
+      showOnlyClaimable.value = false;
+    }
   }
 
   void toggleClaimableFilter() {
     showOnlyClaimable.value = !showOnlyClaimable.value;
-    if (showOnlyClaimable.value) showOnlyUnlocked.value = false;
+    if (showOnlyClaimable.value) {
+      showOnlyUnlocked.value = false;
+      showOnlyLocked.value = false;
+    }
   }
 
   // ============ UI HELPERS ============

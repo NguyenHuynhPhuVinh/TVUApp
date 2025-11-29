@@ -11,19 +11,30 @@ import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/theme/app_styles.dart';
 
 /// Card preview thành tựu cho Home/Profile
-class DuoAchievementPreviewCard extends StatelessWidget {
+class DuoAchievementPreviewCard extends StatefulWidget {
   const DuoAchievementPreviewCard({super.key});
 
   @override
+  State<DuoAchievementPreviewCard> createState() => _DuoAchievementPreviewCardState();
+}
+
+class _DuoAchievementPreviewCardState extends State<DuoAchievementPreviewCard> {
+  @override
   Widget build(BuildContext context) {
-    // Kiểm tra service đã được đăng ký chưa
+    // Kiểm tra service đã đăng ký chưa
     if (!Get.isRegistered<AchievementService>()) {
-      return const SizedBox.shrink();
+      return _buildLoadingCard();
     }
 
     final service = Get.find<AchievementService>();
 
+    // Wrap toàn bộ trong Obx để reactive khi achievements load xong
     return Obx(() {
+      // Nếu achievements chưa load xong, hiện loading
+      if (service.achievements.isEmpty) {
+        return _buildLoadingCard();
+      }
+      
       final totalUnlocked = service.totalUnlocked.value;
       final totalAchievements = service.achievements.length;
       final unclaimedCount = service.unclaimedCount.value;
@@ -155,6 +166,62 @@ class DuoAchievementPreviewCard extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+  
+  Widget _buildLoadingCard() {
+    return DuoCard(
+      onTap: () => Get.toNamed(Routes.achievements),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Image.asset(AppAssets.crown, width: 28, height: 28),
+              SizedBox(width: AppStyles.space2),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Thành tựu',
+                      style: TextStyle(
+                        fontWeight: AppStyles.fontBold,
+                        fontSize: AppStyles.textBase,
+                      ),
+                    ),
+                    Text(
+                      'Đang tải...',
+                      style: TextStyle(
+                        fontSize: AppStyles.textXs,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(width: AppStyles.space2),
+              SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: AppColors.purple,
+                ),
+              ),
+              SizedBox(width: AppStyles.space2),
+              Icon(Icons.chevron_right, color: AppColors.textTertiary),
+            ],
+          ),
+          SizedBox(height: AppStyles.space3),
+          DuoProgressBar(
+            progress: 0,
+            progressColor: AppColors.purple,
+            shadowColor: AppColors.purpleDark,
+            height: 8,
+          ),
+        ],
+      ),
     );
   }
 }

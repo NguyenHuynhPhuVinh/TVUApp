@@ -22,17 +22,21 @@ class AchievementsView extends GetView<AchievementsController> {
         actions: [
           // Nút nhận tất cả
           Obx(() {
-            if (controller.unclaimedCount == 0) return const SizedBox.shrink();
+            final isClaiming = controller.isClaiming.value;
+            final count = controller.unclaimedCount;
+            
+            // Ẩn nút chỉ khi không đang loading VÀ không còn gì để nhận
+            if (!isClaiming && count == 0) return const SizedBox.shrink();
+            
             return Padding(
               padding: EdgeInsets.only(right: AppStyles.space2),
               child: DuoButton(
-                text: 'Nhận (${controller.unclaimedCount})',
-                onPressed: controller.isClaiming.value
-                    ? null
-                    : controller.claimAllRewards,
+                text: isClaiming ? 'Đang nhận...' : 'Nhận ($count)',
+                onPressed: isClaiming ? null : controller.claimAllRewards,
+                isLoading: isClaiming,
                 size: DuoButtonSize.sm,
                 variant: DuoButtonVariant.purple,
-                icon: Icons.redeem,
+                icon: isClaiming ? null : Icons.redeem,
                 fullWidth: false,
               ),
             );
@@ -90,6 +94,12 @@ class AchievementsView extends GetView<AchievementsController> {
                         label: 'Đã mở khóa',
                         isSelected: controller.showOnlyUnlocked.value,
                         onTap: controller.toggleUnlockedFilter,
+                      ),
+                      SizedBox(width: AppStyles.space3),
+                      _buildFilterChip(
+                        label: 'Chưa mở khóa',
+                        isSelected: controller.showOnlyLocked.value,
+                        onTap: controller.toggleLockedFilter,
                       ),
                       SizedBox(width: AppStyles.space3),
                       _buildFilterChip(

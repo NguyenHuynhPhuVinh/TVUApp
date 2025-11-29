@@ -15,9 +15,11 @@ class MainBinding extends Bindings {
     Get.lazyPut<GradesController>(() => GradesController());
     Get.lazyPut<ProfileController>(() => ProfileController());
     
-    // Achievement service - khởi tạo async
+    // Achievement service - khởi tạo ngay và permanent
     if (!Get.isRegistered<AchievementService>()) {
-      Get.putAsync<AchievementService>(() => AchievementService().init());
+      final service = AchievementService();
+      Get.put<AchievementService>(service, permanent: true);
+      service.init(); // Init ngay, không cần await
     }
   }
 }

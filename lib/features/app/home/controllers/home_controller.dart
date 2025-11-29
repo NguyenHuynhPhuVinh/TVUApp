@@ -64,18 +64,32 @@ class HomeController extends GetxController {
   }
   
   void _listenToAchievements() {
-    // Đợi AchievementService được đăng ký rồi mới listen
-    Future.delayed(const Duration(milliseconds: 500), () {
-      if (Get.isRegistered<AchievementService>()) {
-        final service = Get.find<AchievementService>();
-        // Listen trực tiếp vào unclaimedCount
-        ever(service.unclaimedCount, (count) {
-          hasUnclaimedAchievement.value = count > 0;
-        });
-        // Cập nhật ngay lần đầu
-        hasUnclaimedAchievement.value = service.unclaimedCount.value > 0;
-      }
+    _tryListenToAchievements();
+  }
+  
+  void _tryListenToAchievements() {
+    if (!Get.isRegistered<AchievementService>()) {
+      // Retry sau 200ms nếu service chưa đăng ký
+      Future.delayed(const Duration(milliseconds: 200), _tryListenToAchievements);
+      return;
+    }
+    
+    final service = Get.find<AchievementService>();
+    
+    // Listen vào cả achievements list (để biết khi nào load xong)
+    ever(service.achievements, (_) {
+      hasUnclaimedAchievement.value = service.unclaimedCount.value > 0;
     });
+    
+    // Listen vào unclaimedCount
+    ever(service.unclaimedCount, (count) {
+      hasUnclaimedAchievement.value = count > 0;
+    });
+    
+    // Cập nhật ngay nếu đã có data
+    if (service.achievements.isNotEmpty) {
+      hasUnclaimedAchievement.value = service.unclaimedCount.value > 0;
+    }
   }
 
   void loadData() {
