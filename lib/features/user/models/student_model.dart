@@ -9,6 +9,9 @@ class StudentInfo {
   final String soDienThoai;
   final String ngaySinh;
   final String gioiTinh;
+  final String noiSinh;
+  final String nienKhoa;
+  final String hienDienSv;
   final String? avatar;
 
   const StudentInfo({
@@ -21,6 +24,9 @@ class StudentInfo {
     this.soDienThoai = '',
     this.ngaySinh = '',
     this.gioiTinh = '',
+    this.noiSinh = '',
+    this.nienKhoa = '',
+    this.hienDienSv = '',
     this.avatar,
   });
 
@@ -32,9 +38,12 @@ class StudentInfo {
       khoa: json['khoa']?.toString() ?? '',
       nganh: json['nganh']?.toString() ?? '',
       email: json['email']?.toString() ?? '',
-      soDienThoai: json['so_dien_thoai']?.toString() ?? '',
+      soDienThoai: json['so_dien_thoai']?.toString() ?? json['dien_thoai']?.toString() ?? '',
       ngaySinh: json['ngay_sinh']?.toString() ?? '',
       gioiTinh: json['gioi_tinh']?.toString() ?? '',
+      noiSinh: json['noi_sinh']?.toString() ?? '',
+      nienKhoa: json['nien_khoa']?.toString() ?? '',
+      hienDienSv: json['hien_dien_sv']?.toString() ?? '',
       avatar: json['avatar']?.toString(),
     );
   }
@@ -49,6 +58,9 @@ class StudentInfo {
         'so_dien_thoai': soDienThoai,
         'ngay_sinh': ngaySinh,
         'gioi_tinh': gioiTinh,
+        'noi_sinh': noiSinh,
+        'nien_khoa': nienKhoa,
+        'hien_dien_sv': hienDienSv,
         'avatar': avatar,
       };
 

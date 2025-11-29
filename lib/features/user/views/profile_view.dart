@@ -38,83 +38,92 @@ class ProfileView extends GetView<ProfileController> {
   }
 
   Widget _buildProfileHeader() {
-    return Obx(() => DuoProfileHeader(
-          name: controller.studentInfo['ten_day_du'] ?? 'N/A',
-          subtitle: 'MSSV: ${controller.studentInfo['ma_sv'] ?? 'N/A'}',
-          email: controller.studentInfo['email'],
-        )).animateFadeSlide(slideBegin: -0.1);
+    return Obx(() {
+      final info = controller.studentInfo.value;
+      return DuoProfileHeader(
+        name: info?.tenDayDu ?? 'N/A',
+        subtitle: 'MSSV: ${info?.mssv ?? 'N/A'}',
+        email: info?.email,
+      );
+    }).animateFadeSlide(slideBegin: -0.1);
   }
 
   Widget _buildPersonalInfo() {
-    return Obx(() => DuoInfoSection(
-          title: 'Thông tin cá nhân',
-          titleIcon: Iconsax.user,
-          items: [
-            DuoInfoItem(
-              icon: Iconsax.calendar,
-              label: 'Ngày sinh',
-              value: controller.studentInfo['ngay_sinh'] ?? 'N/A',
-              iconColor: AppColors.orange,
-            ),
-            DuoInfoItem(
-              icon: Iconsax.user_octagon,
-              label: 'Giới tính',
-              value: controller.studentInfo['gioi_tinh'] ?? 'N/A',
-              iconColor: AppColors.purple,
-            ),
-            DuoInfoItem(
-              icon: Iconsax.call,
-              label: 'Điện thoại',
-              value: controller.studentInfo['dien_thoai'] ?? 'N/A',
-              iconColor: AppColors.green,
-            ),
-            DuoInfoItem(
-              icon: Iconsax.location,
-              label: 'Nơi sinh',
-              value: controller.studentInfo['noi_sinh'] ?? 'N/A',
-              iconColor: AppColors.primary,
-            ),
-          ],
-        )).animateFadeSlide(delay: 100);
+    return Obx(() {
+      final info = controller.studentInfo.value;
+      return DuoInfoSection(
+        title: 'Thông tin cá nhân',
+        titleIcon: Iconsax.user,
+        items: [
+          DuoInfoItem(
+            icon: Iconsax.calendar,
+            label: 'Ngày sinh',
+            value: info?.ngaySinh.isNotEmpty == true ? info!.ngaySinh : 'N/A',
+            iconColor: AppColors.orange,
+          ),
+          DuoInfoItem(
+            icon: Iconsax.user_octagon,
+            label: 'Giới tính',
+            value: info?.gioiTinh.isNotEmpty == true ? info!.gioiTinh : 'N/A',
+            iconColor: AppColors.purple,
+          ),
+          DuoInfoItem(
+            icon: Iconsax.call,
+            label: 'Điện thoại',
+            value: info?.soDienThoai.isNotEmpty == true ? info!.soDienThoai : 'N/A',
+            iconColor: AppColors.green,
+          ),
+          DuoInfoItem(
+            icon: Iconsax.location,
+            label: 'Nơi sinh',
+            value: info?.noiSinh.isNotEmpty == true ? info!.noiSinh : 'N/A',
+            iconColor: AppColors.primary,
+          ),
+        ],
+      );
+    }).animateFadeSlide(delay: 100);
   }
 
   Widget _buildAcademicInfo() {
-    return Obx(() => DuoInfoSection(
-          title: 'Thông tin học tập',
-          titleIcon: Iconsax.book,
-          items: [
-            DuoInfoItem(
-              icon: Iconsax.people,
-              label: 'Lớp',
-              value: controller.studentInfo['lop'] ?? 'N/A',
-              iconColor: AppColors.primary,
-            ),
-            DuoInfoItem(
-              icon: Iconsax.teacher,
-              label: 'Ngành',
-              value: controller.studentInfo['nganh'] ?? 'N/A',
-              iconColor: AppColors.green,
-            ),
-            DuoInfoItem(
-              icon: Iconsax.building,
-              label: 'Khoa',
-              value: controller.studentInfo['khoa'] ?? 'N/A',
-              iconColor: AppColors.orange,
-            ),
-            DuoInfoItem(
-              icon: Iconsax.calendar_1,
-              label: 'Niên khóa',
-              value: controller.studentInfo['nien_khoa'] ?? 'N/A',
-              iconColor: AppColors.purple,
-            ),
-            DuoInfoItem(
-              icon: Iconsax.status,
-              label: 'Trạng thái',
-              value: controller.studentInfo['hien_dien_sv'] ?? 'N/A',
-              iconColor: AppColors.green,
-            ),
-          ],
-        )).animateFadeSlide(delay: 200);
+    return Obx(() {
+      final info = controller.studentInfo.value;
+      return DuoInfoSection(
+        title: 'Thông tin học tập',
+        titleIcon: Iconsax.book,
+        items: [
+          DuoInfoItem(
+            icon: Iconsax.people,
+            label: 'Lớp',
+            value: info?.lop.isNotEmpty == true ? info!.lop : 'N/A',
+            iconColor: AppColors.primary,
+          ),
+          DuoInfoItem(
+            icon: Iconsax.teacher,
+            label: 'Ngành',
+            value: info?.nganh.isNotEmpty == true ? info!.nganh : 'N/A',
+            iconColor: AppColors.green,
+          ),
+          DuoInfoItem(
+            icon: Iconsax.building,
+            label: 'Khoa',
+            value: info?.khoa.isNotEmpty == true ? info!.khoa : 'N/A',
+            iconColor: AppColors.orange,
+          ),
+          DuoInfoItem(
+            icon: Iconsax.calendar_1,
+            label: 'Niên khóa',
+            value: info?.nienKhoa.isNotEmpty == true ? info!.nienKhoa : 'N/A',
+            iconColor: AppColors.purple,
+          ),
+          DuoInfoItem(
+            icon: Iconsax.status,
+            label: 'Trạng thái',
+            value: info?.hienDienSv.isNotEmpty == true ? info!.hienDienSv : 'N/A',
+            iconColor: AppColors.green,
+          ),
+        ],
+      );
+    }).animateFadeSlide(delay: 200);
   }
 
   Widget _buildGameStats() {

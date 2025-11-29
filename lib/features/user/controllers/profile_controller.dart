@@ -5,13 +5,14 @@ import '../../../../features/auth/data/auth_service.dart';
 import '../../../../features/gamification/core/game_service.dart';
 import '../../../../infrastructure/storage/storage_service.dart';
 import '../../../../routes/app_routes.dart';
+import '../models/student_model.dart';
 
 class ProfileController extends GetxController {
   final AuthService _authService = Get.find<AuthService>();
   final StorageService _storage = Get.find<StorageService>();
   final GameService _gameService = Get.find<GameService>();
 
-  final studentInfo = <String, dynamic>{}.obs;
+  final studentInfo = Rxn<StudentInfo>();
 
   // Game stats - expose reactive stats directly
   PlayerStats get gameStats => _gameService.stats.value;
@@ -34,7 +35,7 @@ class ProfileController extends GetxController {
   void loadProfile() {
     final studentInfoData = _storage.getStudentInfo();
     if (studentInfoData != null && studentInfoData['data'] != null) {
-      studentInfo.value = Map<String, dynamic>.from(studentInfoData['data']);
+      studentInfo.value = StudentInfo.fromJson(studentInfoData['data']);
     }
   }
 
