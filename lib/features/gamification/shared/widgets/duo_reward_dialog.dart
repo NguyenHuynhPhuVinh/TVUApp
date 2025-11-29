@@ -493,18 +493,24 @@ class DuoRewardDialog extends StatelessWidget {
             ),
           ),
           SizedBox(height: AppStyles.space3),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: rewards.asMap().entries.map((entry) {
-              final index = entry.key;
-              final item = entry.value;
-              return _buildRewardItem(
-                item.icon,
-                '+${_formatNumber(item.value)}',
-                item.label,
-                index * 100,
-              );
-            }).toList(),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: rewards.asMap().entries.map((entry) {
+                final index = entry.key;
+                final item = entry.value;
+                return Padding(
+                  padding: EdgeInsets.symmetric(horizontal: AppStyles.space2),
+                  child: _buildRewardItem(
+                    item.icon,
+                    '+${_formatNumber(item.value)}',
+                    item.label,
+                    index * 100,
+                  ),
+                );
+              }).toList(),
+            ),
           ),
         ],
       ),
