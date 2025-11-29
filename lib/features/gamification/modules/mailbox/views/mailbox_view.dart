@@ -71,15 +71,21 @@ class MailboxView extends GetView<MailboxController> {
             }
 
             // Không có quà → hiện 3 nút: đọc full, refresh, xóa
+            final canMarkRead = controller.hasUnreadWithoutReward;
+            final canDelete = controller.deletableCount > 0;
+
             return Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Nút đọc tất cả
-                DuoIconButton(
-                  icon: Icons.done_all_rounded,
-                  variant: DuoIconButtonVariant.white,
-                  size: DuoIconButtonSize.md,
-                  onTap: controller.markAllAsRead,
+                // Nút đọc tất cả (mờ khi không còn thư chưa đọc)
+                Opacity(
+                  opacity: canMarkRead ? 1.0 : 0.4,
+                  child: DuoIconButton(
+                    icon: Icons.done_all_rounded,
+                    variant: DuoIconButtonVariant.white,
+                    size: DuoIconButtonSize.md,
+                    onTap: canMarkRead ? controller.markAllAsRead : null,
+                  ),
                 ),
                 SizedBox(width: AppStyles.space1),
                 // Nút refresh
@@ -90,12 +96,15 @@ class MailboxView extends GetView<MailboxController> {
                   onTap: controller.refreshMails,
                 ),
                 SizedBox(width: AppStyles.space1),
-                // Nút xóa tất cả thư đã đọc
-                DuoIconButton(
-                  icon: Icons.delete_sweep_rounded,
-                  variant: DuoIconButtonVariant.white,
-                  size: DuoIconButtonSize.md,
-                  onTap: () => _showDeleteConfirmDialog(),
+                // Nút xóa tất cả thư đã đọc (mờ khi không có thư để xóa)
+                Opacity(
+                  opacity: canDelete ? 1.0 : 0.4,
+                  child: DuoIconButton(
+                    icon: Icons.delete_sweep_rounded,
+                    variant: DuoIconButtonVariant.white,
+                    size: DuoIconButtonSize.md,
+                    onTap: canDelete ? () => _showDeleteConfirmDialog() : null,
+                  ),
                 ),
                 SizedBox(width: AppStyles.space2),
               ],

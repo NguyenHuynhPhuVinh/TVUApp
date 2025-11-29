@@ -19,6 +19,14 @@ class MailboxController extends GetxController {
   int get unclaimedCount => _mailboxService.unclaimedCount.value;
   bool get hasNewMail => _mailboxService.hasNewMail;
 
+  /// Số thư có thể xóa (đã đọc + đã nhận quà nếu có)
+  int get deletableCount =>
+      mails.where((m) => m.isRead && (!m.hasReward || m.isClaimed)).length;
+
+  /// Có thư chưa đọc (không tính thư có quà chưa nhận)
+  bool get hasUnreadWithoutReward =>
+      mails.any((m) => !m.isRead && !m.canClaimReward);
+
   /// Đánh dấu đã đọc
   Future<void> markAsRead(MailItem mail) async {
     if (mail.isRead) return;
