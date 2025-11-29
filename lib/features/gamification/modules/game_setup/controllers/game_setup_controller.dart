@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../auth/data/auth_service.dart';
+import '../../../../academic/models/semester_model.dart';
 import '../../../core/game_service.dart';
 import '../../../../../infrastructure/storage/storage_service.dart';
 import '../../../../../routes/app_routes.dart';
@@ -40,12 +41,13 @@ class GameSetupController extends GetxController {
 
   void _calculateTotalLessons() {
     totalLessons.value = _gameService.calculateTotalLessons();
-    
+
     // Đếm số học kỳ
     final semestersData = _storage.getSemesters();
     if (semestersData != null && semestersData['data'] != null) {
       final semesterList = semestersData['data']['ds_hoc_ky'] as List? ?? [];
-      totalSemesters.value = semesterList.length;
+      final semesters = semesterList.map((e) => Semester.fromJson(e)).toList();
+      totalSemesters.value = semesters.length;
     }
   }
 

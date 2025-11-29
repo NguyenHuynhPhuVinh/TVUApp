@@ -25,9 +25,6 @@ import 'features/gamification/modules/shop/shop_service.dart';
 // Features - App
 import 'routes/app_pages.dart';
 
-// Core
-import 'core/theme/app_theme.dart';
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
@@ -88,8 +85,6 @@ class TVUApp extends StatelessWidget {
         return GetMaterialApp(
           title: 'Cổng TVUApp',
           debugShowCheckedModeBanner: false,
-          theme: AppTheme.lightTheme,
-          darkTheme: AppTheme.darkTheme,
           themeMode: ThemeMode.system,
           initialRoute: AppPages.initial,
           getPages: AppPages.routes,

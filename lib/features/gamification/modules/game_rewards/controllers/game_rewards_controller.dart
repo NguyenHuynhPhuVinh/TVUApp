@@ -1,5 +1,5 @@
 import 'package:get/get.dart';
-import '../../../../../core/utils/number_formatter.dart';
+import '../../../../../features/academic/models/tuition_semester.dart';
 import '../../../../../infrastructure/storage/storage_service.dart';
 import '../../../../../routes/app_routes.dart';
 
@@ -55,12 +55,15 @@ class GameRewardsController extends GetxController {
     final tuitionData = _storage.getTuition();
     if (tuitionData != null && tuitionData['data'] != null) {
       final list = tuitionData['data']['ds_hoc_phi_hoc_ky'] as List? ?? [];
-      
+      final semesters = list
+          .map((e) => TuitionSemester.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
+
       int totalPaid = 0;
-      for (var item in list) {
-        totalPaid += NumberFormatter.parseInt(item['da_thu']);
+      for (var semester in semesters) {
+        totalPaid += semester.paidAmount;
       }
-      
+
       hasTuitionBonus.value = totalPaid > 0;
     }
   }

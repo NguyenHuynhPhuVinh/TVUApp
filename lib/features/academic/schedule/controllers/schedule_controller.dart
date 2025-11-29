@@ -5,6 +5,7 @@ import '../../../../features/gamification/core/check_in_manager.dart';
 import '../../../../features/gamification/core/game_service.dart';
 import '../../../../infrastructure/storage/storage_service.dart';
 import '../../models/schedule_model.dart';
+import '../../models/semester_model.dart';
 
 class ScheduleController extends GetxController {
   late final StorageService _storage;
@@ -15,7 +16,7 @@ class ScheduleController extends GetxController {
   final selectedWeekIndex = 0.obs;
   final weeks = <ScheduleWeek>[].obs;
   final currentWeekLessons = <ScheduleLesson>[].obs;
-  final semesters = <Map<String, dynamic>>[].obs;
+  final semesters = <Semester>[].obs;
   final selectedSemester = Rxn<int>();
   final currentSemester = 0.obs;
   final checkInStates = <String, bool>{}.obs;
@@ -41,7 +42,7 @@ class ScheduleController extends GetxController {
       final data = semestersData['data'];
       final semesterList = data['ds_hoc_ky'] as List? ?? [];
       semesters.value =
-          semesterList.map((e) => Map<String, dynamic>.from(e)).toList();
+          semesterList.map((e) => Semester.fromJson(e)).toList();
       currentSemester.value = data['hoc_ky_theo_ngay_hien_tai'] ?? 0;
 
       if (semesters.isNotEmpty) {
@@ -96,8 +97,8 @@ class ScheduleController extends GetxController {
   }
 
   String getSemesterName(int hocKy) {
-    final found = semesters.firstWhereOrNull((s) => s['hoc_ky'] == hocKy);
-    return found?['ten_hoc_ky'] ?? 'Học kỳ $hocKy';
+    final found = semesters.firstWhereOrNull((s) => s.hocKy == hocKy);
+    return found?.tenHocKy ?? 'Học kỳ $hocKy';
   }
 
   // ============ LESSON CHECK-IN ============

@@ -66,9 +66,9 @@ class _SemesterSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Obx(() {
       final selected = controller.semesters.firstWhereOrNull(
-        (s) => s['hoc_ky'] == controller.selectedSemester.value,
+        (s) => s.hocKy == controller.selectedSemester.value,
       );
-      final tenHocKy = selected?['ten_hoc_ky'] as String? ?? 'Chọn học kỳ';
+      final tenHocKy = selected?.tenHocKy ?? 'Chọn học kỳ';
       final isCurrent =
           controller.selectedSemester.value == controller.currentSemester.value;
 
@@ -76,7 +76,7 @@ class _SemesterSection extends StatelessWidget {
         tenHocKy: tenHocKy,
         isCurrent: isCurrent,
         onTap: () => DuoSemesterPicker.show(
-          semesters: controller.semesters,
+          semesters: controller.semesters.map((s) => s.toJson()).toList(),
           selectedSemester: controller.selectedSemester.value,
           currentSemester: controller.currentSemester.value,
           onSelected: controller.changeSemester,

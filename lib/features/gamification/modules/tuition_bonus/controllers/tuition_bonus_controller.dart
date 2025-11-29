@@ -1,7 +1,7 @@
 import 'package:get/get.dart';
 import '../../../../../core/extensions/number_extensions.dart';
-import '../../../../../core/utils/number_formatter.dart';
 import '../../../../../features/auth/data/auth_service.dart';
+import '../../../../../features/academic/models/tuition_semester.dart';
 import '../../../core/game_service.dart';
 import '../../../../../infrastructure/storage/storage_service.dart';
 import '../../../../../routes/app_routes.dart';
@@ -31,12 +31,15 @@ class TuitionBonusController extends GetxController {
     final tuitionData = _storage.getTuition();
     if (tuitionData != null && tuitionData['data'] != null) {
       final list = tuitionData['data']['ds_hoc_phi_hoc_ky'] as List? ?? [];
-      
+      final semesters = list
+          .map((e) => TuitionSemester.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
+
       int totalPaid = 0;
-      for (var item in list) {
-        totalPaid += NumberFormatter.parseInt(item['da_thu']);
+      for (var semester in semesters) {
+        totalPaid += semester.paidAmount;
       }
-      
+
       tuitionPaid.value = totalPaid;
       // 1 VND = 1 tiền ảo (1:1)
       virtualBalance.value = _gameService.calculateVirtualBalanceFromTuition(totalPaid);

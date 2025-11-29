@@ -1,6 +1,5 @@
 import 'package:get/get.dart';
 
-import '../../../../core/utils/number_formatter.dart';
 import '../../../../features/auth/data/auth_service.dart';
 import '../../../../features/gamification/core/check_in_manager.dart';
 import '../../../../features/gamification/core/game_service.dart';
@@ -8,7 +7,10 @@ import '../../../../features/gamification/shared/models/player_stats.dart';
 import '../../../../features/gamification/core/rank_helper.dart';
 import '../../../../features/user/models/student_model.dart';
 import '../../../../infrastructure/storage/storage_service.dart';
+import '../../../academic/models/curriculum_model.dart';
+import '../../../academic/models/grade_model.dart';
 import '../../../academic/models/schedule_model.dart';
+import '../../../academic/models/tuition_semester.dart';
 
 class HomeController extends GetxController {
   final StorageService _storage = Get.find<StorageService>();
@@ -132,13 +134,13 @@ class HomeController extends GetxController {
 
     final tuitionList =
         tuitionData['data']['ds_hoc_phi_hoc_ky'] as List? ?? [];
+    final semesters = tuitionList
+        .map((e) => TuitionSemester.fromJson(Map<String, dynamic>.from(e)))
+        .toList();
 
-    for (var item in tuitionList) {
-      final daThu = NumberFormatter.parseInt(item['da_thu']);
-      final semesterId = item['ten_hoc_ky']?.toString() ?? '';
-
-      if (daThu > 0 && semesterId.isNotEmpty) {
-        if (!_gameService.stats.value.isSemesterClaimed(semesterId)) {
+    for (var semester in semesters) {
+      if (semester.paidAmount > 0 && semester.tenHocKy.isNotEmpty) {
+        if (!_gameService.stats.value.isSemesterClaimed(semester.tenHocKy)) {
           hasUnclaimedTuitionBonus.value = true;
           return;
         }
@@ -155,15 +157,12 @@ class HomeController extends GetxController {
     }
 
     final semList = curriculumData['data']['ds_CTDT_hocky'] as List? ?? [];
+    final semesters = semList.map((e) => CurriculumSemester.fromJson(e)).toList();
 
-    for (var semester in semList) {
-      final subjects = semester['ds_CTDT_mon_hoc'] as List? ?? [];
-      for (var sub in subjects) {
-        final isCompleted = sub['mon_da_dat'] == 'x';
-        final maMon = sub['ma_mon'] as String? ?? '';
-
-        if (isCompleted && maMon.isNotEmpty) {
-          if (!_gameService.stats.value.isSubjectClaimed(maMon)) {
+    for (var semester in semesters) {
+      for (var subject in semester.subjects) {
+        if (subject.isCompleted && subject.maMon.isNotEmpty) {
+          if (!_gameService.stats.value.isSubjectClaimed(subject.maMon)) {
             hasUnclaimedCurriculumReward.value = true;
             return;
           }
@@ -180,15 +179,14 @@ class HomeController extends GetxController {
       return;
     }
 
-    final semesters = gradesData['data']['ds_diem_hocky'] as List? ?? [];
-    if (semesters.isEmpty) {
+    final semesterList = gradesData['data']['ds_diem_hocky'] as List? ?? [];
+    if (semesterList.isEmpty) {
       hasUnclaimedRankReward.value = false;
       return;
     }
 
-    final latestSemester = semesters.first as Map<String, dynamic>;
-    final gpa10Str = latestSemester['dtb_tich_luy_he_10']?.toString() ?? '0';
-    final gpa = double.tryParse(gpa10Str) ?? 0;
+    final latestSemester = SemesterGrade.fromJson(semesterList.first);
+    final gpa = latestSemester.dtbTichLuyHe10Double ?? 0;
     final rankIndex = RankHelper.getRankIndexFromGpa(gpa);
 
     hasUnclaimedRankReward.value =

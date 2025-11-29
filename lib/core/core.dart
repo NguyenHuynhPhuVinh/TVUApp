@@ -1,7 +1,6 @@
 // Core barrel file - Export all core modules
 export 'theme/app_colors.dart';
 export 'theme/app_styles.dart';
-export 'theme/app_theme.dart';
 
 export 'constants/api_constants.dart';
 export 'constants/app_assets.dart';
