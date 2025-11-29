@@ -67,13 +67,13 @@ class AchievementDefinitions {
     );
   }
 
-  /// Chuỗi thành tựu: Điểm A (8.5+)
+  /// Chuỗi thành tựu: Điểm A (9.0+)
   static List<Achievement> gradeASeries() {
     final milestones = [1, 3, 5, 10, 15, 20, 30, 50];
     return _generateSeries(
       baseId: 'grade_a',
       baseName: 'Điểm A Xuất Sắc',
-      baseDescription: 'Đạt {target} môn điểm A (8.5+)',
+      baseDescription: 'Đạt {target} môn điểm A (9.0+)',
       category: AchievementCategory.academic,
       milestones: milestones,
     );

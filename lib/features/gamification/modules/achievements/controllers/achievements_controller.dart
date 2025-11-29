@@ -126,8 +126,8 @@ class AchievementsController extends GetxController {
               subjectsPassed++;
 
               final score = subject.diemTkDouble ?? 0;
-              if (score >= 8.5) gradeACount++;
-              if (score >= 10) perfectScoreCount++;
+              if (score >= 9.0) gradeACount++;
+              if (score == 10) perfectScoreCount++;
             }
           }
         }

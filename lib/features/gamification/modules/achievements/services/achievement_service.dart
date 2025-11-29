@@ -122,11 +122,11 @@ class AchievementService extends GetxService {
             subjectsPassed++;
           }
           
-          // Đếm điểm A và điểm 10
+          // Đếm điểm A (9.0+) và điểm 10
           final scoreStr = subject['diem_tk']?.toString() ?? '';
           final score = double.tryParse(scoreStr) ?? 0;
-          if (score >= 8.5) gradeACount++;
-          if (score >= 10) perfectScoreCount++;
+          if (score >= 9.0) gradeACount++;
+          if (score == 10) perfectScoreCount++;
         }
       }
     }
