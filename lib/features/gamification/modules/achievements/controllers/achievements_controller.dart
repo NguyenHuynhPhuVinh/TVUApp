@@ -161,6 +161,11 @@ class AchievementsController extends GetxController {
       // Tính rank index từ GPA
       final currentRankIndex = RankHelper.getRankIndexFromGpa(gpa);
 
+      // Tính tổng số buổi đã check-in
+      final checkIns = storage.getLessonCheckIns();
+      final checkInTotal = checkIns.length;
+      final firstCheckIn = checkInTotal > 0;
+
       // Cập nhật tiến độ
       final newlyUnlocked = await _achievementService.updateProgress(
         // Academic
@@ -172,6 +177,7 @@ class AchievementsController extends GetxController {
         // Attendance
         lessonsAttended: stats.totalLessonsAttended,
         attendanceRate: stats.attendanceRate,
+        checkInTotal: checkInTotal,
         // Financial
         tuitionPaid: tuitionPaid,
         semestersPaid: semestersPaid,
@@ -183,6 +189,7 @@ class AchievementsController extends GetxController {
         // Special
         firstLogin: stats.isInitialized,
         gameInitialized: stats.isInitialized,
+        firstCheckIn: firstCheckIn,
         firstRankReward: stats.claimedRankRewards.isNotEmpty,
         firstSubjectReward: stats.claimedSubjects.isNotEmpty,
         allSemesterPaid: allSemesterPaid && semestersPaid > 0,

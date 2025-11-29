@@ -159,6 +159,11 @@ class AchievementService extends GetxService {
     // Công thức: (gpa / 10) * 55
     final currentRankIndex = ((gpa / 10) * 55).floor().clamp(0, 55);
     
+    // Tính tổng số buổi đã check-in từ storage
+    final checkIns = storage.getLessonCheckIns();
+    final checkInTotal = checkIns.length;
+    final firstCheckIn = checkInTotal > 0;
+    
     // Check first login (game initialized = first login)
     final firstLogin = stats.isInitialized;
     
@@ -178,6 +183,7 @@ class AchievementService extends GetxService {
       // Attendance
       lessonsAttended: stats.totalLessonsAttended,
       attendanceRate: stats.attendanceRate,
+      checkInTotal: checkInTotal,
       // Financial
       tuitionPaid: tuitionPaid,
       semestersPaid: semestersPaid,
@@ -189,6 +195,7 @@ class AchievementService extends GetxService {
       // Special
       firstLogin: firstLogin,
       gameInitialized: stats.isInitialized,
+      firstCheckIn: firstCheckIn,
       firstRankReward: firstRankReward,
       firstSubjectReward: firstSubjectReward,
       allSemesterPaid: allSemesterPaid && semestersPaid > 0,
@@ -251,7 +258,7 @@ class AchievementService extends GetxService {
     int? perfectScoreCount,
     int? lessonsAttended,
     double? attendanceRate,
-    int? checkInStreak,
+    int? checkInTotal,
     int? tuitionPaid,
     int? semestersPaid,
     int? level,
@@ -300,7 +307,7 @@ class AchievementService extends GetxService {
         case 'attendance':
           if (attendanceRate != null) newValue = attendanceRate.round();
         case 'checkin':
-          newValue = checkInStreak;
+          newValue = checkInTotal;
         case 'tuition':
           newValue = tuitionPaid;
         case 'semesters':

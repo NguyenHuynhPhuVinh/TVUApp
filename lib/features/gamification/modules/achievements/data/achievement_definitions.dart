@@ -156,23 +156,23 @@ class AchievementDefinitions {
     );
   }
 
-  /// Chuỗi thành tựu: Check-in liên tiếp
-  static List<Achievement> checkInStreakSeries() {
-    final milestones = [3, 7, 14, 30, 60, 90, 180, 365];
+  /// Chuỗi thành tựu: Tổng số buổi đã check-in
+  static List<Achievement> checkInTotalSeries() {
+    final milestones = [5, 10, 25, 50, 100, 200, 500, 1000];
     return _generateSeriesCustom(
-      baseId: 'checkin_streak',
+      baseId: 'checkin_total',
       names: [
-        'Khởi Động',
-        'Tuần Lễ Chăm Chỉ',
-        'Hai Tuần Kiên Trì',
-        'Tháng Vàng',
-        'Hai Tháng Bền Bỉ',
-        'Quý Vàng',
-        'Nửa Năm Kiên Định',
-        'Năm Hoàn Hảo',
+        'Bắt Đầu Check-in',
+        'Sinh Viên Chăm Chỉ',
+        'Đi Học Đều Đặn',
+        'Nửa Trăm Buổi',
+        'Trăm Buổi Học',
+        'Siêu Chuyên Cần',
+        'Huyền Thoại Điểm Danh',
+        'Vua Check-in',
       ],
       descriptions:
-          milestones.map((m) => 'Check-in $m ngày liên tiếp').toList(),
+          milestones.map((m) => 'Check-in $m buổi học').toList(),
       category: AchievementCategory.attendance,
       milestones: milestones,
       tiers: [
@@ -478,7 +478,7 @@ class AchievementDefinitions {
       // Attendance
       ...lessonsAttendedSeries(),
       ...attendanceRateSeries(),
-      ...checkInStreakSeries(),
+      ...checkInTotalSeries(),
       // Financial
       ...tuitionPaidSeries(),
       ...semestersPaidSeries(),
