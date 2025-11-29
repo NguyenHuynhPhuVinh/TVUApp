@@ -7,6 +7,7 @@ import 'firebase_options.dart';
 
 // Infrastructure
 import 'infrastructure/network/api_service.dart';
+import 'infrastructure/network/connectivity_service.dart';
 import 'infrastructure/firebase/firebase_service.dart';
 import 'infrastructure/storage/storage_service.dart';
 import 'infrastructure/security/security_service.dart';
@@ -51,6 +52,9 @@ void main() async {
 }
 
 Future<void> initServices() async {
+  // Connectivity service (init first to check network status)
+  await Get.putAsync(() => ConnectivityService().init());
+
   // Core storage service
   await Get.putAsync(() => StorageService().init());
 

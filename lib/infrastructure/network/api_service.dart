@@ -3,10 +3,20 @@ import 'package:get/get.dart' hide Response, FormData;
 
 import '../../core/constants/api_constants.dart';
 import '../../features/auth/data/auth_service.dart';
+import 'connectivity_service.dart';
 
 class ApiService extends GetxService {
   late final Dio _dio;
   final AuthService _authService = Get.find<AuthService>();
+
+  /// Kiểm tra có mạng không
+  bool get _hasConnection {
+    try {
+      return Get.find<ConnectivityService>().hasConnection;
+    } catch (_) {
+      return true; // Nếu service chưa init, giả sử có mạng
+    }
+  }
 
   ApiService() {
     _dio = Dio(BaseOptions(
@@ -77,6 +87,7 @@ class ApiService extends GetxService {
 
   // Get Semesters API
   Future<Map<String, dynamic>?> getSemesters() async {
+    if (!_hasConnection) return null;
     try {
       final response = await _dio.post(
         ApiConstants.semesters,
@@ -98,6 +109,7 @@ class ApiService extends GetxService {
 
   // Schedule API
   Future<Map<String, dynamic>?> getSchedule(int semester) async {
+    if (!_hasConnection) return null;
     try {
       final response = await _dio.post(
         ApiConstants.schedule,
@@ -116,6 +128,7 @@ class ApiService extends GetxService {
 
   // Grades API
   Future<Map<String, dynamic>?> getGrades() async {
+    if (!_hasConnection) return null;
     try {
       final response = await _dio.post(
         ApiConstants.grades,
@@ -131,6 +144,7 @@ class ApiService extends GetxService {
 
   // Tuition API
   Future<Map<String, dynamic>?> getTuition() async {
+    if (!_hasConnection) return null;
     try {
       final response = await _dio.post(
         ApiConstants.tuition,
@@ -146,6 +160,7 @@ class ApiService extends GetxService {
 
   // Student Info API
   Future<Map<String, dynamic>?> getStudentInfo() async {
+    if (!_hasConnection) return null;
     try {
       final response = await _dio.post(
         ApiConstants.studentInfo,
@@ -162,6 +177,7 @@ class ApiService extends GetxService {
 
   // Curriculum API
   Future<Map<String, dynamic>?> getCurriculum() async {
+    if (!_hasConnection) return null;
     try {
       final response = await _dio.post(
         ApiConstants.curriculum,
@@ -180,6 +196,7 @@ class ApiService extends GetxService {
 
   // Notifications API
   Future<Map<String, dynamic>?> getNotifications({int limit = 50, int page = 1}) async {
+    if (!_hasConnection) return null;
     try {
       final response = await _dio.post(
         ApiConstants.notifications,

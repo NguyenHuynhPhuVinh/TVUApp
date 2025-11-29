@@ -83,21 +83,30 @@ class HomeView extends GetView<HomeController> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(AppStyles.space4),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _WelcomeSection(controller: controller),
-            SizedBox(height: AppStyles.space6),
-            _QuickActionsSection(),
-            SizedBox(height: AppStyles.space6),
-            _TodayScheduleSection(controller: controller),
-            SizedBox(height: AppStyles.space6),
-            _AchievementsSection(),
-            SizedBox(height: AppStyles.space4),
-          ],
-        ),
+      body: Column(
+        children: [
+          // Offline banner
+          const DuoOfflineBanner(),
+          // Main content
+          Expanded(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.all(AppStyles.space4),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _WelcomeSection(controller: controller),
+                  SizedBox(height: AppStyles.space6),
+                  _QuickActionsSection(),
+                  SizedBox(height: AppStyles.space6),
+                  _TodayScheduleSection(controller: controller),
+                  SizedBox(height: AppStyles.space6),
+                  _AchievementsSection(),
+                  SizedBox(height: AppStyles.space4),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
