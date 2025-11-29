@@ -226,12 +226,19 @@ class ProfileView extends GetView<ProfileController> {
         ).animateFadeSlide(delay: 350),
         SizedBox(height: AppStyles.space2),
         DuoMenuItem(
+          icon: Iconsax.message_question,
+          title: 'Báo cáo lỗi',
+          subtitle: 'Gửi phản hồi và báo cáo sự cố',
+          onTap: () => Get.toNamed(Routes.bugReport),
+        ).animateFadeSlide(delay: 400),
+        SizedBox(height: AppStyles.space2),
+        DuoMenuItem(
           icon: Iconsax.logout,
           title: 'Đăng xuất',
           subtitle: 'Thoát khỏi tài khoản hiện tại',
           onTap: controller.logout,
           isDestructive: true,
-        ).animateFadeSlide(delay: 400),
+        ).animateFadeSlide(delay: 450),
       ],
     );
   }

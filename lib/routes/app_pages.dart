@@ -46,6 +46,10 @@ import '../features/notifications/views/notifications_view.dart';
 import '../features/user/bindings/profile_binding.dart';
 import '../features/user/views/profile_view.dart';
 
+// Bug Report feature
+import '../features/bug_report/bindings/bug_report_binding.dart';
+import '../features/bug_report/views/bug_report_view.dart';
+
 import 'app_routes.dart';
 
 class AppPages {
@@ -136,6 +140,11 @@ class AppPages {
       name: Routes.achievements,
       page: () => const AchievementsView(),
       binding: AchievementsBinding(),
+    ),
+    GetPage(
+      name: Routes.bugReport,
+      page: () => const BugReportView(),
+      binding: BugReportBinding(),
     ),
   ];
 }

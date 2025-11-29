@@ -17,5 +17,6 @@ abstract class Routes {
   static const wallet = '/wallet';
   static const shop = '/shop';
   static const achievements = '/achievements';
+  static const bugReport = '/bug-report';
 }
 

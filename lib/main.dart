@@ -22,6 +22,9 @@ import 'features/gamification/core/game_security_guard.dart';
 import 'features/gamification/core/game_sync_service.dart';
 import 'features/gamification/modules/shop/shop_service.dart';
 
+// Features - Bug Report
+import 'features/bug_report/services/bug_report_service.dart';
+
 // Features - App
 import 'routes/app_pages.dart';
 
@@ -66,6 +69,7 @@ Future<void> initServices() async {
 
   // Other services
   await Get.putAsync(() => UpdateService().init());
+  await Get.putAsync(() => BugReportService().init());
   Get.put(ApiService());
 
   // Data sync manager (depends on api, storage, firebase, game)
