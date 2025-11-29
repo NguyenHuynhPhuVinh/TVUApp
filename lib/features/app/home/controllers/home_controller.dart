@@ -6,6 +6,7 @@ import '../../../../features/gamification/core/game_service.dart';
 import '../../../../features/gamification/shared/models/player_stats.dart';
 import '../../../../features/gamification/core/rank_helper.dart';
 import '../../../../features/gamification/modules/achievements/services/achievement_service.dart';
+import '../../../../features/gamification/modules/mailbox/services/mailbox_service.dart';
 import '../../../../features/user/models/student_model.dart';
 import '../../../../infrastructure/storage/storage_service.dart';
 import '../../../academic/models/curriculum_model.dart';
@@ -28,6 +29,7 @@ class HomeController extends GetxController {
   final hasUnclaimedCurriculumReward = false.obs;
   final hasUnclaimedRankReward = false.obs;
   final hasUnclaimedAchievement = false.obs;
+  final hasNewMail = false.obs;
 
   // Getters for student info
   String get studentName => studentInfo.value?.tenDayDu ?? '';
@@ -61,6 +63,9 @@ class HomeController extends GetxController {
     
     // Listen to achievement changes
     _listenToAchievements();
+    
+    // Listen to mailbox changes
+    _listenToMailbox();
   }
   
   void _listenToAchievements() {
@@ -90,6 +95,31 @@ class HomeController extends GetxController {
     if (service.achievements.isNotEmpty) {
       hasUnclaimedAchievement.value = service.unclaimedCount.value > 0;
     }
+  }
+  
+  void _listenToMailbox() {
+    _tryListenToMailbox();
+  }
+  
+  void _tryListenToMailbox() {
+    if (!Get.isRegistered<MailboxService>()) {
+      Future.delayed(const Duration(milliseconds: 200), _tryListenToMailbox);
+      return;
+    }
+    
+    final service = Get.find<MailboxService>();
+    
+    // Listen vào unreadCount và unclaimedCount
+    ever(service.unreadCount, (_) {
+      hasNewMail.value = service.hasNewMail;
+    });
+    
+    ever(service.unclaimedCount, (_) {
+      hasNewMail.value = service.hasNewMail;
+    });
+    
+    // Cập nhật ngay
+    hasNewMail.value = service.hasNewMail;
   }
 
   void loadData() {

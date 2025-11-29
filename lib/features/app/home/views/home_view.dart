@@ -46,6 +46,32 @@ class HomeView extends GetView<HomeController> {
                 ],
               )),
           SizedBox(width: AppStyles.space1),
+          // Mailbox icon with badge
+          Obx(() => Stack(
+                children: [
+                  DuoIconButton(
+                    icon: Iconsax.sms,
+                    variant: DuoIconButtonVariant.white,
+                    size: DuoIconButtonSize.md,
+                    onTap: () => Get.toNamed('/mailbox'),
+                  ),
+                  if (controller.hasNewMail.value)
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      child: Container(
+                        width: 10,
+                        height: 10,
+                        decoration: BoxDecoration(
+                          color: AppColors.red,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 1.5),
+                        ),
+                      ),
+                    ),
+                ],
+              )),
+          SizedBox(width: AppStyles.space1),
           Padding(
             padding: EdgeInsets.only(right: AppStyles.space3),
             child: DuoIconButton(

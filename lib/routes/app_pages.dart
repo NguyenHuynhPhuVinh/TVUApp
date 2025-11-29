@@ -50,6 +50,10 @@ import '../features/user/views/profile_view.dart';
 import '../features/bug_report/bindings/bug_report_binding.dart';
 import '../features/bug_report/views/bug_report_view.dart';
 
+// Mailbox feature
+import '../features/gamification/modules/mailbox/bindings/mailbox_binding.dart';
+import '../features/gamification/modules/mailbox/views/mailbox_view.dart';
+
 import 'app_routes.dart';
 
 class AppPages {
@@ -145,6 +149,11 @@ class AppPages {
       name: Routes.bugReport,
       page: () => const BugReportView(),
       binding: BugReportBinding(),
+    ),
+    GetPage(
+      name: Routes.mailbox,
+      page: () => const MailboxView(),
+      binding: MailboxBinding(),
     ),
   ];
 }

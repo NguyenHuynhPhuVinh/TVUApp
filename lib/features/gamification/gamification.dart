@@ -21,3 +21,6 @@ export 'modules/shop/shop_service.dart';
 
 // Modules - Achievements
 export 'modules/achievements/achievements.dart';
+
+// Modules - Mailbox
+export 'modules/mailbox/mailbox.dart';
