@@ -33,7 +33,14 @@ class ScheduleController extends GetxController {
       storage: _storage,
     );
     loadSemesters();
-    syncCheckInsFromFirebase();
+    _initSync();
+  }
+
+  Future<void> _initSync() async {
+    await syncCheckInsFromFirebase();
+    await syncMissedLessonsFromFirebase();
+    // Tự động detect và đánh dấu tiết bỏ lỡ
+    await autoDetectMissedLessons();
   }
 
   void loadSemesters() {
@@ -233,9 +240,11 @@ class ScheduleController extends GetxController {
   void _loadCheckInStates() {
     try {
       checkInStates.clear();
+      missedStates.clear();
       for (var lesson in currentWeekLessons) {
         final key = _createCheckInKey(lesson);
         checkInStates[key] = _storage.hasCheckedIn(key);
+        missedStates[key] = _storage.hasMissedLesson(key);
       }
     } catch (e) {
       // Ignore errors
@@ -261,5 +270,231 @@ class ScheduleController extends GetxController {
     } catch (e) {
       // Ignore errors
     }
+  }
+
+  // ============ MISSED LESSONS ============
+
+  final missedStates = <String, bool>{}.obs;
+  final markingMissedKeys = <String>{}.obs;
+
+  /// Kiểm tra buổi học đã được đánh dấu bỏ lỡ chưa
+  bool hasMarkedAsMissed(ScheduleLesson lesson) {
+    final key = _createCheckInKey(lesson);
+    return missedStates[key] ?? _storage.hasMissedLesson(key);
+  }
+
+  /// Kiểm tra đang đánh dấu bỏ lỡ
+  bool isMarkingMissed(ScheduleLesson lesson) {
+    final key = _createCheckInKey(lesson);
+    return markingMissedKeys.contains(key);
+  }
+
+  /// Đánh dấu buổi học là bỏ lỡ và cập nhật thống kê
+  /// TUÂN THỦ 3 BƯỚC: 1. Check Firebase → 2. Lưu Local → 3. Sync Firebase
+  Future<Map<String, dynamic>?> markLessonAsMissed(ScheduleLesson lesson) async {
+    final key = _createCheckInKey(lesson);
+    final mssv = _authService.username.value;
+
+    // BƯỚC 0: LOCK - Ngăn race condition
+    if (markingMissedKeys.contains(key)) return null;
+    markingMissedKeys.add(key);
+
+    try {
+      // BƯỚC 1: CHECK FIREBASE (Source of Truth)
+      // Kiểm tra đã check-in hoặc đã đánh dấu bỏ lỡ chưa
+      final alreadyCheckedIn =
+          await _gameService.hasCheckedInOnFirebase(mssv, key);
+      if (alreadyCheckedIn) {
+        checkInStates[key] = true;
+        return null;
+      }
+
+      final alreadyMissed =
+          await _gameService.hasMissedLessonOnFirebase(mssv, key);
+      if (alreadyMissed) {
+        missedStates[key] = true;
+        return null;
+      }
+
+      // Kiểm tra local
+      if (_storage.hasCheckedIn(key)) return null;
+      if (_storage.hasMissedLesson(key)) return null;
+
+      // Gọi game service để cập nhật thống kê
+      final result = await _gameService.recordMissedLesson(
+        mssv: mssv,
+        soTiet: lesson.soTiet,
+      );
+
+      if (result == null) return null;
+
+      final missedData = {
+        'missedAt': DateTime.now().toIso8601String(),
+        'soTiet': lesson.soTiet,
+        'tenMon': lesson.tenMon,
+        'maMon': lesson.maMon,
+        'tietBatDau': lesson.tietBatDau,
+        'thuKieuSo': lesson.thuKieuSo,
+      };
+
+      // BƯỚC 2: LƯU LOCAL (Cache)
+      await _storage.saveMissedLesson(key, missedData);
+
+      // BƯỚC 3: SYNC FIREBASE (Source of Truth)
+      await _gameService.saveMissedLessonToFirebase(
+        mssv: mssv,
+        missedKey: key,
+        missedData: missedData,
+      );
+
+      missedStates[key] = true;
+      return result;
+    } finally {
+      markingMissedKeys.remove(key);
+    }
+  }
+
+  /// Sync missed lessons từ Firebase
+  Future<void> syncMissedLessonsFromFirebase() async {
+    final mssv = _authService.username.value;
+    if (mssv.isEmpty) return;
+
+    try {
+      final firebaseMissed =
+          await _gameService.getMissedLessonsFromFirebase(mssv);
+
+      for (var entry in firebaseMissed.entries) {
+        final key = entry.key;
+        final data = entry.value as Map<String, dynamic>;
+        if (!_storage.hasMissedLesson(key)) {
+          await _storage.saveMissedLesson(key, data);
+        }
+      }
+      _loadMissedStates();
+    } catch (e) {
+      // Ignore errors
+    }
+  }
+
+  void _loadMissedStates() {
+    try {
+      missedStates.clear();
+      for (var lesson in currentWeekLessons) {
+        final key = _createCheckInKey(lesson);
+        missedStates[key] = _storage.hasMissedLesson(key);
+      }
+    } catch (e) {
+      // Ignore errors
+    }
+  }
+
+  /// Tự động detect và đánh dấu các tiết đã hết hạn mà chưa check-in
+  /// Chạy khi app khởi động hoặc khi load schedule
+  Future<void> autoDetectMissedLessons() async {
+    if (!_gameService.isInitialized) return;
+
+    final mssv = _authService.username.value;
+    if (mssv.isEmpty) return;
+
+    // Duyệt qua tất cả các tuần đã qua trong học kỳ hiện tại
+    final scheduleData = _storage.getSchedule(currentSemester.value);
+    if (scheduleData == null) return;
+
+    final weekList = scheduleData['ds_tuan_tkb'] as List? ?? [];
+    final allWeeks = weekList.map((e) => ScheduleWeek.fromJson(e)).toList();
+
+    for (var week in allWeeks) {
+      await _detectMissedLessonsInWeek(
+        week: week,
+        semester: currentSemester.value,
+        mssv: mssv,
+      );
+    }
+
+    _loadCheckInStates();
+  }
+
+  /// Detect tiết bỏ lỡ trong một tuần cụ thể
+  Future<void> _detectMissedLessonsInWeek({
+    required ScheduleWeek week,
+    required int semester,
+    required String mssv,
+  }) async {
+    for (var lesson in week.lessons) {
+      final key = '${semester}_${week.tuanHocKy}_${lesson.thuKieuSo}_${lesson.tietBatDau}_${lesson.maMon}';
+
+      // Bỏ qua nếu đã check-in hoặc đã đánh dấu bỏ lỡ
+      if (_storage.hasCheckedIn(key)) continue;
+      if (_storage.hasMissedLesson(key)) continue;
+
+      // Lấy ngày của buổi học
+      final lessonDate = _checkInManager.getLessonDate(week.ngayBatDau, lesson.thuKieuSo);
+      if (lessonDate == null) continue;
+
+      // Kiểm tra trạng thái
+      final result = _checkInManager.checkLessonStatusFromModel(
+        lesson: lesson,
+        lessonDate: lessonDate,
+        semester: semester,
+        week: week.tuanHocKy,
+      );
+
+      // Nếu đã hết hạn và chưa check-in → tự động đánh dấu bỏ lỡ
+      if (result.isExpired) {
+        await _autoMarkAsMissed(
+          key: key,
+          lesson: lesson,
+          mssv: mssv,
+        );
+      }
+    }
+  }
+
+  /// Tự động đánh dấu tiết bỏ lỡ (không cần user action)
+  Future<void> _autoMarkAsMissed({
+    required String key,
+    required ScheduleLesson lesson,
+    required String mssv,
+  }) async {
+    // Double check Firebase
+    final alreadyCheckedIn = await _gameService.hasCheckedInOnFirebase(mssv, key);
+    if (alreadyCheckedIn) {
+      await _storage.saveLessonCheckIn(key, {'syncedFromFirebase': true});
+      return;
+    }
+
+    final alreadyMissed = await _gameService.hasMissedLessonOnFirebase(mssv, key);
+    if (alreadyMissed) {
+      await _storage.saveMissedLesson(key, {'syncedFromFirebase': true});
+      return;
+    }
+
+    // Ghi nhận tiết bỏ lỡ
+    await _gameService.recordMissedLesson(
+      mssv: mssv,
+      soTiet: lesson.soTiet,
+    );
+
+    final missedData = {
+      'missedAt': DateTime.now().toIso8601String(),
+      'autoDetected': true,
+      'soTiet': lesson.soTiet,
+      'tenMon': lesson.tenMon,
+      'maMon': lesson.maMon,
+      'tietBatDau': lesson.tietBatDau,
+      'thuKieuSo': lesson.thuKieuSo,
+    };
+
+    // Lưu local
+    await _storage.saveMissedLesson(key, missedData);
+
+    // Sync Firebase
+    await _gameService.saveMissedLessonToFirebase(
+      mssv: mssv,
+      missedKey: key,
+      missedData: missedData,
+    );
+
+    missedStates[key] = true;
   }
 }

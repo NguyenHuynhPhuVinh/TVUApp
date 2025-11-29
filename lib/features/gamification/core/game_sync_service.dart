@@ -223,6 +223,73 @@ class GameSyncService extends GetxService {
     }
   }
 
+  // ============ MISSED LESSONS SYNC ============
+
+  /// Lưu tiết bỏ lỡ lên Firebase
+  Future<bool> saveMissedLessonToFirebase({
+    required String mssv,
+    required String missedKey,
+    required Map<String, dynamic> missedData,
+  }) async {
+    if (mssv.isEmpty) return false;
+
+    try {
+      await _firestore
+          .collection('students')
+          .doc(mssv)
+          .collection('missedLessons')
+          .doc(missedKey)
+          .set({
+        ...missedData,
+        'syncedAt': FieldValue.serverTimestamp(),
+      });
+      return true;
+    } catch (e) {
+      debugPrint('Error saving missed lesson to Firebase: $e');
+      return false;
+    }
+  }
+
+  /// Lấy danh sách tiết bỏ lỡ từ Firebase
+  Future<Map<String, dynamic>> getMissedLessonsFromFirebase(String mssv) async {
+    if (mssv.isEmpty) return {};
+
+    try {
+      final snapshot = await _firestore
+          .collection('students')
+          .doc(mssv)
+          .collection('missedLessons')
+          .get();
+
+      final missedLessons = <String, dynamic>{};
+      for (var doc in snapshot.docs) {
+        missedLessons[doc.id] = doc.data();
+      }
+      return missedLessons;
+    } catch (e) {
+      debugPrint('Error getting missed lessons from Firebase: $e');
+      return {};
+    }
+  }
+
+  /// Kiểm tra đã đánh dấu bỏ lỡ trên Firebase chưa
+  Future<bool> hasMissedLessonOnFirebase(String mssv, String missedKey) async {
+    if (mssv.isEmpty) return false;
+
+    try {
+      final doc = await _firestore
+          .collection('students')
+          .doc(mssv)
+          .collection('missedLessons')
+          .doc(missedKey)
+          .get();
+      return doc.exists;
+    } catch (e) {
+      debugPrint('Error checking missed lesson on Firebase: $e');
+      return false;
+    }
+  }
+
   // ============ CLAIM VALIDATION ============
 
   /// Kiểm tra đã nhận bonus học phí trên Firebase chưa

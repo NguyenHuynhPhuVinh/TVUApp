@@ -145,6 +145,25 @@ class GameService extends GetxService {
   Future<bool> hasCheckedInOnFirebase(String mssv, String checkInKey) =>
       _syncService.hasCheckedInOnFirebase(mssv, checkInKey);
 
+  // ============ MISSED LESSONS SYNC ============
+
+  Future<bool> saveMissedLessonToFirebase({
+    required String mssv,
+    required String missedKey,
+    required Map<String, dynamic> missedData,
+  }) =>
+      _syncService.saveMissedLessonToFirebase(
+        mssv: mssv,
+        missedKey: missedKey,
+        missedData: missedData,
+      );
+
+  Future<Map<String, dynamic>> getMissedLessonsFromFirebase(String mssv) =>
+      _syncService.getMissedLessonsFromFirebase(mssv);
+
+  Future<bool> hasMissedLessonOnFirebase(String mssv, String missedKey) =>
+      _syncService.hasMissedLessonOnFirebase(mssv, missedKey);
+
   // ============ CALCULATE HELPERS ============
 
   int calculateTotalLessons() {
@@ -690,6 +709,32 @@ class GameService extends GetxService {
           'leveledUp': levelResult['leveledUp'],
           'newLevel': levelResult['newLevel'],
           'currentXp': levelResult['newXp'],
+        };
+      },
+    );
+  }
+
+  /// Ghi nhận tiết bỏ lỡ và cập nhật thống kê
+  Future<Map<String, dynamic>?> recordMissedLesson({
+    required String mssv,
+    required int soTiet,
+  }) async {
+    if (!_guard.validateLessons(soTiet, 'recordMissedLesson')) return null;
+
+    return _guard.secureExecute(
+      actionName: 'recordMissedLesson',
+      action: () async {
+        await _updateAndSync(
+          stats.value.copyWith(
+            totalLessonsMissed: stats.value.totalLessonsMissed + soTiet,
+          ),
+          mssv,
+        );
+
+        return {
+          'soTiet': soTiet,
+          'totalLessonsMissed': stats.value.totalLessonsMissed,
+          'attendanceRate': stats.value.attendanceRate,
         };
       },
     );

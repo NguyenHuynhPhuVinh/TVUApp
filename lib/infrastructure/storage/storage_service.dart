@@ -11,7 +11,8 @@ enum StorageKey {
   schedules('schedules_data'),
   studentInfo('student_info_data'),
   notifications('notifications_data'),
-  lessonCheckIns('lesson_checkins_data');
+  lessonCheckIns('lesson_checkins_data'),
+  missedLessons('missed_lessons_data');
 
   final String key;
   const StorageKey(this.key);
@@ -156,6 +157,51 @@ class StorageService extends GetxService {
 
     if (hasChanges) {
       await saveData(StorageKey.lessonCheckIns, localCheckIns);
+    }
+  }
+
+  // ============ MISSED LESSONS METHODS ============
+
+  /// Lưu tiết bỏ lỡ
+  Future<void> saveMissedLesson(
+      String missedKey, Map<String, dynamic> data) async {
+    final allMissed = getMissedLessons();
+    allMissed[missedKey] = data;
+    await saveData(StorageKey.missedLessons, allMissed);
+  }
+
+  /// Lấy tất cả tiết bỏ lỡ
+  Map<String, dynamic> getMissedLessons() {
+    return getData(StorageKey.missedLessons) ?? {};
+  }
+
+  /// Kiểm tra đã đánh dấu bỏ lỡ chưa
+  bool hasMissedLesson(String missedKey) {
+    final allMissed = getMissedLessons();
+    return allMissed.containsKey(missedKey);
+  }
+
+  /// Lấy thông tin tiết bỏ lỡ
+  Map<String, dynamic>? getMissedLesson(String missedKey) {
+    final allMissed = getMissedLessons();
+    return allMissed[missedKey] as Map<String, dynamic>?;
+  }
+
+  /// Merge missed lessons từ Firebase vào local
+  Future<void> mergeMissedLessonsFromFirebase(
+      Map<String, dynamic> firebaseMissed) async {
+    final localMissed = getMissedLessons();
+    bool hasChanges = false;
+
+    for (var entry in firebaseMissed.entries) {
+      if (!localMissed.containsKey(entry.key)) {
+        localMissed[entry.key] = entry.value;
+        hasChanges = true;
+      }
+    }
+
+    if (hasChanges) {
+      await saveData(StorageKey.missedLessons, localMissed);
     }
   }
 
