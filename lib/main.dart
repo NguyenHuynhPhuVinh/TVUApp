@@ -22,6 +22,7 @@ import 'features/gamification/core/game_security_guard.dart';
 import 'features/gamification/core/game_sync_service.dart';
 import 'features/gamification/modules/shop/shop_service.dart';
 import 'features/gamification/modules/mailbox/services/mailbox_service.dart';
+import 'features/gamification/modules/reward_code/services/reward_code_service.dart';
 
 // Features - Bug Report
 import 'features/bug_report/services/bug_report_service.dart';
@@ -70,6 +71,9 @@ Future<void> initServices() async {
 
   // Mailbox service (depends on game & storage)
   Get.put(MailboxService(), permanent: true);
+
+  // Reward code service (depends on game & storage)
+  Get.put(RewardCodeService(), permanent: true);
 
   // Other services
   await Get.putAsync(() => UpdateService().init());

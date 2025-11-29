@@ -226,11 +226,18 @@ class ProfileView extends GetView<ProfileController> {
         ).animateFadeSlide(delay: 350),
         SizedBox(height: AppStyles.space2),
         DuoMenuItem(
+          icon: Iconsax.ticket_discount,
+          title: 'Nhập mã thưởng',
+          subtitle: 'Nhập mã để nhận quà',
+          onTap: () => Get.toNamed(Routes.rewardCode),
+        ).animateFadeSlide(delay: 400),
+        SizedBox(height: AppStyles.space2),
+        DuoMenuItem(
           icon: Iconsax.message_question,
           title: 'Báo cáo lỗi',
           subtitle: 'Gửi phản hồi và báo cáo sự cố',
           onTap: () => Get.toNamed(Routes.bugReport),
-        ).animateFadeSlide(delay: 400),
+        ).animateFadeSlide(delay: 450),
         SizedBox(height: AppStyles.space2),
         DuoMenuItem(
           icon: Iconsax.logout,
@@ -238,7 +245,7 @@ class ProfileView extends GetView<ProfileController> {
           subtitle: 'Thoát khỏi tài khoản hiện tại',
           onTap: controller.logout,
           isDestructive: true,
-        ).animateFadeSlide(delay: 450),
+        ).animateFadeSlide(delay: 500),
       ],
     );
   }

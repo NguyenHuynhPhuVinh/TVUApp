@@ -54,6 +54,10 @@ import '../features/bug_report/views/bug_report_view.dart';
 import '../features/gamification/modules/mailbox/bindings/mailbox_binding.dart';
 import '../features/gamification/modules/mailbox/views/mailbox_view.dart';
 
+// Reward Code feature
+import '../features/gamification/modules/reward_code/bindings/reward_code_binding.dart';
+import '../features/gamification/modules/reward_code/views/reward_code_view.dart';
+
 import 'app_routes.dart';
 
 class AppPages {
@@ -154,6 +158,11 @@ class AppPages {
       name: Routes.mailbox,
       page: () => const MailboxView(),
       binding: MailboxBinding(),
+    ),
+    GetPage(
+      name: Routes.rewardCode,
+      page: () => const RewardCodeView(),
+      binding: RewardCodeBinding(),
     ),
   ];
 }

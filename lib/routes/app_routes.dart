@@ -19,5 +19,6 @@ abstract class Routes {
   static const achievements = '/achievements';
   static const bugReport = '/bug-report';
   static const mailbox = '/mailbox';
+  static const rewardCode = '/reward-code';
 }
 
