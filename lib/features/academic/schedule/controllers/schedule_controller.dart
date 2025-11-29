@@ -126,7 +126,7 @@ class ScheduleController extends GetxController {
     return _checkInManager.getLessonDate(week.ngayBatDau, lesson.thuKieuSo);
   }
 
-  /// Lấy trạng thái check-in của buổi học
+  /// Lấy trạng thái check-in của buổi học (sử dụng Model)
   CheckInResult _getCheckInStatus(ScheduleLesson lesson) {
     final lessonDate = _getLessonDate(lesson);
     if (lessonDate == null) {
@@ -135,8 +135,8 @@ class ScheduleController extends GetxController {
         checkInKey: _createCheckInKey(lesson),
       );
     }
-    return _checkInManager.checkLessonStatus(
-      lesson: lesson.toJson(),
+    return _checkInManager.checkLessonStatusFromModel(
+      lesson: lesson,
       lessonDate: lessonDate,
       semester: _currentSemester,
       week: _currentWeek,

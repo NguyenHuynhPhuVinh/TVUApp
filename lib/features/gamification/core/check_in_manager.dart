@@ -1,6 +1,7 @@
 import 'game_service.dart';
 import '../../../infrastructure/storage/storage_service.dart';
 import '../../../core/utils/date_formatter.dart';
+import '../../academic/models/schedule_model.dart';
 
 /// Trạng thái check-in của buổi học
 enum CheckInStatus {
@@ -42,24 +43,19 @@ class CheckInManager {
   })  : _gameService = gameService,
         _storage = storage;
 
-  /// Kiểm tra trạng thái check-in của buổi học
-  /// [lesson] - Map chứa thông tin buổi học từ API
+  /// Kiểm tra trạng thái check-in của buổi học (sử dụng Model)
+  /// [lesson] - ScheduleLesson model
   /// [lessonDate] - Ngày của buổi học
   /// [semester] - Học kỳ
   /// [week] - Tuần học kỳ
-  CheckInResult checkLessonStatus({
-    required Map<String, dynamic> lesson,
+  CheckInResult checkLessonStatusFromModel({
+    required ScheduleLesson lesson,
     required DateTime lessonDate,
     required int semester,
     required int week,
   }) {
-    final tietBatDau = lesson['tiet_bat_dau'] as int? ?? 1;
-    final soTiet = lesson['so_tiet'] as int? ?? 1;
-    final maMon = lesson['ma_mon'] ?? '';
-    final day = lesson['thu_kieu_so'] ?? 0;
-
     // Tạo check-in key
-    final checkInKey = '${semester}_${week}_${day}_${tietBatDau}_$maMon';
+    final checkInKey = '${semester}_${week}_${lesson.thuKieuSo}_${lesson.tietBatDau}_${lesson.maMon}';
 
     // 1. Kiểm tra đã check-in chưa
     if (_storage.hasCheckedIn(checkInKey)) {
@@ -70,7 +66,7 @@ class CheckInManager {
     }
 
     // 2. Kiểm tra buổi học có trước thời điểm init game không
-    final endTime = GameService.calculateLessonEndTime(lessonDate, tietBatDau, soTiet);
+    final endTime = GameService.calculateLessonEndTime(lessonDate, lesson.tietBatDau, lesson.soTiet);
     final initializedAt = _gameService.stats.value.initializedAt;
     if (initializedAt != null && endTime.isBefore(initializedAt)) {
       return CheckInResult(
@@ -81,7 +77,7 @@ class CheckInManager {
 
     // 3. Kiểm tra thời gian
     final now = DateTime.now();
-    final checkInStart = GameService.calculateCheckInStartTime(lessonDate, tietBatDau);
+    final checkInStart = GameService.calculateCheckInStartTime(lessonDate, lesson.tietBatDau);
     final checkInDeadline = GameService.calculateCheckInDeadline(lessonDate);
 
     // Đã hết hạn
@@ -108,17 +104,37 @@ class CheckInManager {
     );
   }
 
-  /// Kiểm tra có buổi học nào có thể điểm danh hôm nay không
+  /// Kiểm tra trạng thái check-in của buổi học (từ Map - backward compatible)
+  /// [lesson] - Map chứa thông tin buổi học từ API
+  /// [lessonDate] - Ngày của buổi học
+  /// [semester] - Học kỳ
+  /// [week] - Tuần học kỳ
+  CheckInResult checkLessonStatus({
+    required Map<String, dynamic> lesson,
+    required DateTime lessonDate,
+    required int semester,
+    required int week,
+  }) {
+    final scheduleLesson = ScheduleLesson.fromJson(lesson);
+    return checkLessonStatusFromModel(
+      lesson: scheduleLesson,
+      lessonDate: lessonDate,
+      semester: semester,
+      week: week,
+    );
+  }
+
+  /// Kiểm tra có buổi học nào có thể điểm danh hôm nay không (sử dụng Model)
   /// Dùng cho badge indicator trên HomeController
-  bool hasPendingCheckIn({
-    required List<Map<String, dynamic>> todaySchedule,
+  bool hasPendingCheckInFromModels({
+    required List<ScheduleLesson> todaySchedule,
     required int currentSemester,
     required int currentWeek,
   }) {
     final now = DateTime.now();
 
     for (var lesson in todaySchedule) {
-      final result = checkLessonStatus(
+      final result = checkLessonStatusFromModel(
         lesson: lesson,
         lessonDate: now,
         semester: currentSemester,
@@ -132,17 +148,42 @@ class CheckInManager {
     return false;
   }
 
-  /// Tạo check-in key từ lesson data
-  /// Dùng khi cần key mà không cần full check
+  /// Kiểm tra có buổi học nào có thể điểm danh hôm nay không (từ Map - backward compatible)
+  /// Dùng cho badge indicator trên HomeController
+  bool hasPendingCheckIn({
+    required List<Map<String, dynamic>> todaySchedule,
+    required int currentSemester,
+    required int currentWeek,
+  }) {
+    final lessons = todaySchedule.map((e) => ScheduleLesson.fromJson(e)).toList();
+    return hasPendingCheckInFromModels(
+      todaySchedule: lessons,
+      currentSemester: currentSemester,
+      currentWeek: currentWeek,
+    );
+  }
+
+  /// Tạo check-in key từ ScheduleLesson model
+  String createCheckInKeyFromModel({
+    required ScheduleLesson lesson,
+    required int semester,
+    required int week,
+  }) {
+    return '${semester}_${week}_${lesson.thuKieuSo}_${lesson.tietBatDau}_${lesson.maMon}';
+  }
+
+  /// Tạo check-in key từ lesson data (backward compatible)
   String createCheckInKey({
     required Map<String, dynamic> lesson,
     required int semester,
     required int week,
   }) {
-    final day = lesson['thu_kieu_so'] ?? 0;
-    final tietBatDau = lesson['tiet_bat_dau'] ?? 0;
-    final maMon = lesson['ma_mon'] ?? '';
-    return '${semester}_${week}_${day}_${tietBatDau}_$maMon';
+    final scheduleLesson = ScheduleLesson.fromJson(lesson);
+    return createCheckInKeyFromModel(
+      lesson: scheduleLesson,
+      semester: semester,
+      week: week,
+    );
   }
 
   /// Lấy ngày của buổi học trong tuần

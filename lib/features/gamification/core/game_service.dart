@@ -6,6 +6,7 @@ import 'reward_calculator.dart';
 import '../shared/models/player_stats.dart';
 import '../shared/models/wallet_transaction.dart';
 import '../../../infrastructure/storage/storage_service.dart';
+import '../../academic/models/schedule_model.dart';
 import 'game_security_guard.dart';
 import 'game_sync_service.dart';
 
@@ -153,12 +154,11 @@ class GameService extends GetxService {
     int totalLessons = 0;
     for (var scheduleData in allSchedules.values) {
       if (scheduleData is Map<String, dynamic>) {
-        final weeks = scheduleData['ds_tuan_tkb'] as List? ?? [];
+        final weekList = scheduleData['ds_tuan_tkb'] as List? ?? [];
+        final weeks = weekList.map((e) => ScheduleWeek.fromJson(e)).toList();
         for (var week in weeks) {
-          final schedules = week['ds_thoi_khoa_bieu'] as List? ?? [];
-          for (var schedule in schedules) {
-            final soTiet = schedule['so_tiet'] as int? ?? 0;
-            totalLessons += soTiet;
+          for (var lesson in week.lessons) {
+            totalLessons += lesson.soTiet;
           }
         }
       }

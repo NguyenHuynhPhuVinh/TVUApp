@@ -114,12 +114,9 @@ class HomeController extends GetxController {
     final currentWeek = _checkInManager.findCurrentWeek(weeks);
     final weekNumber = _checkInManager.getWeekNumber(currentWeek);
 
-    // Convert ScheduleLesson to Map for CheckInManager
-    final todayScheduleMap =
-        todaySchedule.map((l) => l.toJson()).toList();
-
-    hasPendingCheckIn.value = _checkInManager.hasPendingCheckIn(
-      todaySchedule: todayScheduleMap,
+    // Sử dụng method với Model trực tiếp
+    hasPendingCheckIn.value = _checkInManager.hasPendingCheckInFromModels(
+      todaySchedule: todaySchedule.toList(),
       currentSemester: currentSemester,
       currentWeek: weekNumber,
     );
