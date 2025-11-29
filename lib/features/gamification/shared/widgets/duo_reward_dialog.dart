@@ -292,11 +292,13 @@ class DuoRewardDialog extends StatelessWidget {
   }
 
   Widget _buildCloseButton() {
-    return DuoButton(
-      text: 'Tuyệt vời!',
-      variant: DuoButtonVariant.success,
-      onPressed: () => Get.back(),
-      fullWidth: true,
+    return Builder(
+      builder: (context) => DuoButton(
+        text: 'Tuyệt vời!',
+        variant: DuoButtonVariant.success,
+        onPressed: () => Navigator.of(context).pop(),
+        fullWidth: true,
+      ),
     );
   }
 

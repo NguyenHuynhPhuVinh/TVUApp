@@ -6,6 +6,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_styles.dart';
 import '../../../../core/components/widgets.dart';
 import '../../../../features/academic/widgets/academic_widgets.dart';
+
 import '../controllers/home_controller.dart';
 
 class HomeView extends GetView<HomeController> {
@@ -19,6 +20,32 @@ class HomeView extends GetView<HomeController> {
         title: 'TVU App',
         showLogo: true,
         actions: [
+          // Achievement icon with badge
+          Obx(() => Stack(
+                children: [
+                  DuoIconButton(
+                    icon: Iconsax.medal_star,
+                    variant: DuoIconButtonVariant.white,
+                    size: DuoIconButtonSize.md,
+                    onTap: () => Get.toNamed('/achievements'),
+                  ),
+                  if (controller.hasUnclaimedAchievement.value)
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      child: Container(
+                        width: 10,
+                        height: 10,
+                        decoration: BoxDecoration(
+                          color: AppColors.red,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 1.5),
+                        ),
+                      ),
+                    ),
+                ],
+              )),
+          SizedBox(width: AppStyles.space1),
           Padding(
             padding: EdgeInsets.only(right: AppStyles.space3),
             child: DuoIconButton(

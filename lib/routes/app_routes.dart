@@ -16,5 +16,6 @@ abstract class Routes {
   static const tuitionBonus = '/tuition-bonus';
   static const wallet = '/wallet';
   static const shop = '/shop';
+  static const achievements = '/achievements';
 }
 

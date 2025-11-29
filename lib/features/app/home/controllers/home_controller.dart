@@ -5,6 +5,7 @@ import '../../../../features/gamification/core/check_in_manager.dart';
 import '../../../../features/gamification/core/game_service.dart';
 import '../../../../features/gamification/shared/models/player_stats.dart';
 import '../../../../features/gamification/core/rank_helper.dart';
+import '../../../../features/gamification/modules/achievements/services/achievement_service.dart';
 import '../../../../features/user/models/student_model.dart';
 import '../../../../infrastructure/storage/storage_service.dart';
 import '../../../academic/models/curriculum_model.dart';
@@ -26,6 +27,7 @@ class HomeController extends GetxController {
   final hasUnclaimedTuitionBonus = false.obs;
   final hasUnclaimedCurriculumReward = false.obs;
   final hasUnclaimedRankReward = false.obs;
+  final hasUnclaimedAchievement = false.obs;
 
   // Getters for student info
   String get studentName => studentInfo.value?.tenDayDu ?? '';
@@ -54,7 +56,18 @@ class HomeController extends GetxController {
       checkUnclaimedTuitionBonus();
       checkUnclaimedCurriculumReward();
       checkUnclaimedRankReward();
+      checkUnclaimedAchievements();
     });
+    
+    // Listen to achievement changes
+    _listenToAchievements();
+  }
+  
+  void _listenToAchievements() {
+    if (Get.isRegistered<AchievementService>()) {
+      final service = Get.find<AchievementService>();
+      ever(service.unclaimedCount, (_) => checkUnclaimedAchievements());
+    }
   }
 
   void loadData() {
@@ -64,6 +77,7 @@ class HomeController extends GetxController {
     checkUnclaimedTuitionBonus();
     checkUnclaimedCurriculumReward();
     checkUnclaimedRankReward();
+    checkUnclaimedAchievements();
   }
 
   void loadStudentInfo() {
@@ -188,5 +202,20 @@ class HomeController extends GetxController {
 
     hasUnclaimedRankReward.value =
         _gameService.countUnclaimedRanks(rankIndex) > 0;
+  }
+
+  void checkUnclaimedAchievements() {
+    if (!Get.isRegistered<AchievementService>()) {
+      hasUnclaimedAchievement.value = false;
+      return;
+    }
+    final achievementService = Get.find<AchievementService>();
+    hasUnclaimedAchievement.value = achievementService.unclaimedCount.value > 0;
+  }
+
+  /// Số thành tựu chưa nhận
+  int get unclaimedAchievementCount {
+    if (!Get.isRegistered<AchievementService>()) return 0;
+    return Get.find<AchievementService>().unclaimedCount.value;
   }
 }

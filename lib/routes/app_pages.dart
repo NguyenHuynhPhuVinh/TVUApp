@@ -35,6 +35,8 @@ import '../features/gamification/modules/wallet/bindings/wallet_binding.dart';
 import '../features/gamification/modules/wallet/views/wallet_view.dart';
 import '../features/gamification/modules/shop/bindings/shop_binding.dart';
 import '../features/gamification/modules/shop/views/shop_view.dart';
+import '../features/gamification/modules/achievements/bindings/achievements_binding.dart';
+import '../features/gamification/modules/achievements/views/achievements_view.dart';
 
 // Notifications feature
 import '../features/notifications/bindings/notifications_binding.dart';
@@ -129,6 +131,11 @@ class AppPages {
       name: Routes.shop,
       page: () => const ShopView(),
       binding: ShopBinding(),
+    ),
+    GetPage(
+      name: Routes.achievements,
+      page: () => const AchievementsView(),
+      binding: AchievementsBinding(),
     ),
   ];
 }

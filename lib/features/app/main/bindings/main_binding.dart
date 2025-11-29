@@ -4,6 +4,7 @@ import '../../home/controllers/home_controller.dart';
 import '../../../../features/academic/schedule/controllers/schedule_controller.dart';
 import '../../../../features/academic/grades/controllers/grades_controller.dart';
 import '../../../../features/user/controllers/profile_controller.dart';
+import '../../../../features/gamification/modules/achievements/services/achievement_service.dart';
 
 class MainBinding extends Bindings {
   @override
@@ -13,6 +14,11 @@ class MainBinding extends Bindings {
     Get.lazyPut<ScheduleController>(() => ScheduleController());
     Get.lazyPut<GradesController>(() => GradesController());
     Get.lazyPut<ProfileController>(() => ProfileController());
+    
+    // Achievement service - khởi tạo async
+    if (!Get.isRegistered<AchievementService>()) {
+      Get.putAsync<AchievementService>(() => AchievementService().init());
+    }
   }
 }
 

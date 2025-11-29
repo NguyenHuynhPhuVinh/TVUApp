@@ -18,3 +18,6 @@ export 'shared/widgets/game_widgets.dart';
 
 // Modules - Shop
 export 'modules/shop/shop_service.dart';
+
+// Modules - Achievements
+export 'modules/achievements/achievements.dart';

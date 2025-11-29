@@ -6,6 +6,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_styles.dart';
 import '../../../core/components/widgets.dart';
 import '../../../features/gamification/shared/widgets/game_widgets.dart';
+
 import '../../../routes/app_routes.dart';
 import '../controllers/profile_controller.dart';
 
@@ -211,11 +212,18 @@ class ProfileView extends GetView<ProfileController> {
     return Column(
       children: [
         DuoMenuItem(
+          icon: Iconsax.medal_star,
+          title: 'Thành tựu',
+          subtitle: 'Xem tất cả thành tựu và phần thưởng',
+          onTap: () => Get.toNamed(Routes.achievements),
+        ).animateFadeSlide(delay: 300),
+        SizedBox(height: AppStyles.space2),
+        DuoMenuItem(
           icon: Iconsax.wallet,
           title: 'Ví của tôi',
           subtitle: 'Xem số dư và lịch sử giao dịch',
           onTap: () => Get.toNamed(Routes.wallet),
-        ).animateFadeSlide(delay: 300),
+        ).animateFadeSlide(delay: 350),
         SizedBox(height: AppStyles.space2),
         DuoMenuItem(
           icon: Iconsax.logout,
@@ -223,7 +231,7 @@ class ProfileView extends GetView<ProfileController> {
           subtitle: 'Thoát khỏi tài khoản hiện tại',
           onTap: controller.logout,
           isDestructive: true,
-        ).animateFadeSlide(delay: 350),
+        ).animateFadeSlide(delay: 400),
       ],
     );
   }

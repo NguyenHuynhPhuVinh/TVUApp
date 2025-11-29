@@ -394,5 +394,97 @@ class GameSyncService extends GetxService {
     }
     return {};
   }
+
+  // ============ ACHIEVEMENT SYNC ============
+
+  /// Lưu thành tựu đã claim lên Firebase
+  Future<bool> saveAchievementToFirebase({
+    required String mssv,
+    required String achievementId,
+    required DateTime claimedAt,
+  }) async {
+    if (mssv.isEmpty) return false;
+
+    try {
+      await _firestore
+          .collection('students')
+          .doc(mssv)
+          .collection('achievements')
+          .doc(achievementId)
+          .set({
+        'achievementId': achievementId,
+        'claimedAt': Timestamp.fromDate(claimedAt),
+        'syncedAt': FieldValue.serverTimestamp(),
+      });
+      return true;
+    } catch (e) {
+      debugPrint('Error saving achievement to Firebase: $e');
+      return false;
+    }
+  }
+
+  /// Lấy danh sách thành tựu đã claim từ Firebase
+  Future<Set<String>> getClaimedAchievementsFromFirebase(String mssv) async {
+    if (mssv.isEmpty) return {};
+
+    try {
+      final snapshot = await _firestore
+          .collection('students')
+          .doc(mssv)
+          .collection('achievements')
+          .get();
+
+      return snapshot.docs.map((doc) => doc.id).toSet();
+    } catch (e) {
+      debugPrint('Error getting achievements from Firebase: $e');
+      return {};
+    }
+  }
+
+  /// Kiểm tra thành tựu đã claim trên Firebase chưa
+  Future<bool> checkAchievementClaimedOnFirebase(
+      String mssv, String achievementId) async {
+    if (mssv.isEmpty) return false;
+
+    try {
+      final doc = await _firestore
+          .collection('students')
+          .doc(mssv)
+          .collection('achievements')
+          .doc(achievementId)
+          .get();
+      return doc.exists;
+    } catch (e) {
+      debugPrint('Error checking achievement on Firebase: $e');
+      return false;
+    }
+  }
+
+  /// Lưu thành tựu với data signing (checksum + device fingerprint)
+  /// BẢO MẬT: Data được sign với checksum để verify integrity
+  Future<bool> saveAchievementToFirebaseSecure({
+    required String mssv,
+    required String achievementId,
+    required Map<String, dynamic> signedData,
+  }) async {
+    if (mssv.isEmpty) return false;
+
+    try {
+      await _firestore
+          .collection('students')
+          .doc(mssv)
+          .collection('achievements')
+          .doc(achievementId)
+          .set({
+        ...signedData,
+        'deviceFingerprint': _security.deviceFingerprint.value,
+        'syncedAt': FieldValue.serverTimestamp(),
+      });
+      return true;
+    } catch (e) {
+      debugPrint('Error saving achievement securely to Firebase: $e');
+      return false;
+    }
+  }
 }
 

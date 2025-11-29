@@ -6,6 +6,7 @@ import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/theme/app_styles.dart';
 import '../../../../../core/components/widgets.dart';
 import '../../../shared/widgets/game_widgets.dart';
+import '../../achievements/widgets/duo_achievement_preview_card.dart';
 import '../controllers/game_stats_controller.dart';
 
 class GameStatsView extends GetView<GameStatsController> {
@@ -85,6 +86,11 @@ class GameStatsView extends GetView<GameStatsController> {
               // Message Card
               DuoFeedbackCard.fromAttendanceRate(controller.attendanceRate)
                   .animateFadeSlide(delay: 700),
+
+              SizedBox(height: 24.h),
+
+              // Achievements Preview
+              const DuoAchievementPreviewCard().animateFadeSlide(delay: 800),
 
               SizedBox(height: 40.h),
 
