@@ -486,5 +486,42 @@ class GameSyncService extends GetxService {
       return false;
     }
   }
+
+  /// Lưu nhiều thành tựu cùng lúc với batch write (1 request duy nhất)
+  /// BẢO MẬT: Tất cả data được sign với checksum
+  Future<bool> saveAchievementsBatchToFirebase({
+    required String mssv,
+    required List<Map<String, dynamic>> achievementsData,
+  }) async {
+    if (mssv.isEmpty || achievementsData.isEmpty) return false;
+
+    try {
+      final batch = _firestore.batch();
+      final deviceFingerprint = _security.deviceFingerprint.value;
+      final serverTimestamp = FieldValue.serverTimestamp();
+
+      for (final data in achievementsData) {
+        final achievementId = data['achievementId'] as String;
+        final docRef = _firestore
+            .collection('students')
+            .doc(mssv)
+            .collection('achievements')
+            .doc(achievementId);
+
+        batch.set(docRef, {
+          ...data,
+          'deviceFingerprint': deviceFingerprint,
+          'syncedAt': serverTimestamp,
+        });
+      }
+
+      await batch.commit();
+      debugPrint('✅ Batch saved ${achievementsData.length} achievements to Firebase');
+      return true;
+    } catch (e) {
+      debugPrint('Error batch saving achievements to Firebase: $e');
+      return false;
+    }
+  }
 }
 

@@ -336,7 +336,10 @@ class AchievementService extends GetxService {
       int totalDiamonds = 0;
       int totalXp = 0;
       int claimedCount = 0;
+      final toClaim = <Achievement>[];
+      final rewards = <AchievementReward>[];
 
+      // Bước 1: Tính tổng và chuẩn bị danh sách (không await trong loop)
       for (final achievement in claimable) {
         // Skip nếu đã claim trên Firebase
         if (claimedOnFirebase.contains(achievement.id)) {
@@ -351,14 +354,9 @@ class AchievementService extends GetxService {
         totalCoins += reward.coins;
         totalDiamonds += reward.diamonds;
         totalXp += reward.xp;
-
-        final idx = achievements.indexWhere((a) => a.id == achievement.id);
-        if (idx != -1) {
-          achievements[idx] = achievement.copyWith(isRewardClaimed: true);
-          // LỚP 5: Data Signing cho từng achievement
-          await _syncAchievementToFirebaseSecure(mssv, achievement.id, reward);
-          claimedCount++;
-        }
+        toClaim.add(achievement);
+        rewards.add(reward);
+        claimedCount++;
       }
 
       if (claimedCount == 0) {
@@ -367,13 +365,26 @@ class AchievementService extends GetxService {
         return null;
       }
 
-      // Cộng rewards một lần
+      // Bước 2: Cập nhật local state ngay lập tức
+      for (final achievement in toClaim) {
+        final idx = achievements.indexWhere((a) => a.id == achievement.id);
+        if (idx != -1) {
+          achievements[idx] = achievement.copyWith(isRewardClaimed: true);
+        }
+      }
+      
+      // Cập nhật stats ngay để UI phản hồi nhanh
+      _updateStats();
+
+      // Bước 3: Cộng rewards một lần
       await _gameService.addCoins(totalCoins, mssv);
       await _gameService.addDiamonds(totalDiamonds, mssv);
       final xpResult = await _gameService.addXp(totalXp, mssv);
 
       await _saveAchievements();
-      _updateStats();
+
+      // Bước 4: Sync Firebase song song (không block UI)
+      _syncAllAchievementsToFirebase(mssv, toClaim, rewards);
 
       return {
         'claimedCount': claimedCount,
@@ -387,6 +398,46 @@ class AchievementService extends GetxService {
       _isClaimingAll = false;
       isLoading.value = false;
     }
+  }
+  
+  /// Sync tất cả achievements lên Firebase (1 batch request duy nhất)
+  void _syncAllAchievementsToFirebase(
+    String mssv,
+    List<Achievement> achievementsList,
+    List<AchievementReward> rewards,
+  ) {
+    // Fire and forget - không await, chạy background
+    Future(() async {
+      try {
+        // Chuẩn bị data cho batch
+        final batchData = <Map<String, dynamic>>[];
+        
+        for (int i = 0; i < achievementsList.length; i++) {
+          final achievement = achievementsList[i];
+          final reward = rewards[i];
+          
+          final claimData = {
+            'achievementId': achievement.id,
+            'coins': reward.coins,
+            'diamonds': reward.diamonds,
+            'xp': reward.xp,
+            'claimedAt': DateTime.now().toIso8601String(),
+          };
+          
+          // Sign data với checksum
+          final signedData = _security.signData(claimData);
+          batchData.add(signedData);
+        }
+        
+        // Gửi 1 batch request duy nhất
+        await _syncService.saveAchievementsBatchToFirebase(
+          mssv: mssv,
+          achievementsData: batchData,
+        );
+      } catch (e) {
+        debugPrint('Failed to batch sync achievements: $e');
+      }
+    });
   }
 
   // ============ FIREBASE SYNC (BẢO MẬT) ============
