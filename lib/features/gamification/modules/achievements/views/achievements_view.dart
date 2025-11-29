@@ -78,8 +78,12 @@ class AchievementsView extends GetView<AchievementsController> {
 
               // Filter chips
               SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.all(AppStyles.space4),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: AppStyles.space4,
+                    vertical: AppStyles.space3,
+                  ),
                   child: Row(
                     children: [
                       _buildFilterChip(
@@ -87,7 +91,7 @@ class AchievementsView extends GetView<AchievementsController> {
                         isSelected: controller.showOnlyUnlocked.value,
                         onTap: controller.toggleUnlockedFilter,
                       ),
-                      SizedBox(width: AppStyles.space2),
+                      SizedBox(width: AppStyles.space3),
                       _buildFilterChip(
                         label: 'Có thể nhận',
                         isSelected: controller.showOnlyClaimable.value,
@@ -111,7 +115,6 @@ class AchievementsView extends GetView<AchievementsController> {
                         child: DuoAchievementCard(
                           achievement: achievement,
                           onClaim: () => controller.claimReward(achievement),
-                          isClaiming: controller.isClaiming.value,
                         ),
                       );
                     },

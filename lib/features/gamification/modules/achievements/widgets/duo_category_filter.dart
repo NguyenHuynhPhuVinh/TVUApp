@@ -24,31 +24,35 @@ class DuoCategoryFilter extends StatelessWidget {
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          // All categories
-          _buildCategoryChip(
-            context,
-            asset: AppAssets.crown,
-            label: 'Tất cả',
-            isSelected: selectedCategory == null,
-            onTap: () => onCategorySelected(null),
-          ),
-          SizedBox(width: AppStyles.space2),
-          // Each category
-          ...AchievementCategory.values.map((category) {
-            return Padding(
-              padding: EdgeInsets.only(right: AppStyles.space2),
-              child: _buildCategoryChip(
-                context,
-                asset: _getCategoryAsset(category),
-                label: getCategoryName(category),
-                isSelected: selectedCategory == category,
-                onTap: () => onCategorySelected(category),
-              ),
-            );
-          }),
-        ],
+      clipBehavior: Clip.none,
+      child: Padding(
+        padding: EdgeInsets.only(bottom: AppStyles.space1),
+        child: Row(
+          children: [
+            // All categories
+            _buildCategoryChip(
+              context,
+              asset: AppAssets.crown,
+              label: 'Tất cả',
+              isSelected: selectedCategory == null,
+              onTap: () => onCategorySelected(null),
+            ),
+            SizedBox(width: AppStyles.space2),
+            // Each category
+            ...AchievementCategory.values.map((category) {
+              return Padding(
+                padding: EdgeInsets.only(right: AppStyles.space2),
+                child: _buildCategoryChip(
+                  context,
+                  asset: _getCategoryAsset(category),
+                  label: getCategoryName(category),
+                  isSelected: selectedCategory == category,
+                  onTap: () => onCategorySelected(category),
+                ),
+              );
+            }),
+          ],
+        ),
       ),
     );
   }

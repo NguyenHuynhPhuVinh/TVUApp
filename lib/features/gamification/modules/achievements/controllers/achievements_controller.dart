@@ -169,19 +169,13 @@ class AchievementsController extends GetxController {
     final mssv = profileController.studentInfo.value?.mssv ?? '';
     if (mssv.isEmpty) return;
 
-    isClaiming.value = true;
+    final result = await _achievementService.claimReward(
+      mssv: mssv,
+      achievementId: achievement.id,
+    );
 
-    try {
-      final result = await _achievementService.claimReward(
-        mssv: mssv,
-        achievementId: achievement.id,
-      );
-
-      if (result != null) {
-        _showRewardDialog(result);
-      }
-    } finally {
-      isClaiming.value = false;
+    if (result != null) {
+      _showRewardDialog(result);
     }
   }
 

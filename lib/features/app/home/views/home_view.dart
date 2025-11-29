@@ -6,7 +6,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_styles.dart';
 import '../../../../core/components/widgets.dart';
 import '../../../../features/academic/widgets/academic_widgets.dart';
-
+import '../../../../features/gamification/modules/achievements/widgets/duo_achievement_preview_card.dart';
 import '../controllers/home_controller.dart';
 
 class HomeView extends GetView<HomeController> {
@@ -67,10 +67,34 @@ class HomeView extends GetView<HomeController> {
             _QuickActionsSection(),
             SizedBox(height: AppStyles.space6),
             _TodayScheduleSection(controller: controller),
+            SizedBox(height: AppStyles.space6),
+            _AchievementsSection(),
             SizedBox(height: AppStyles.space4),
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Section thành tựu
+class _AchievementsSection extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Thành tựu',
+          style: TextStyle(
+            fontSize: AppStyles.textLg,
+            fontWeight: AppStyles.fontBold,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        SizedBox(height: AppStyles.space4),
+        const DuoAchievementPreviewCard().animateFadeSlide(delay: 100),
+      ],
     );
   }
 }

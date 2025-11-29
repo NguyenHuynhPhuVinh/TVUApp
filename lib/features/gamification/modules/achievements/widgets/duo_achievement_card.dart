@@ -9,20 +9,40 @@ import '../../../../../core/theme/app_styles.dart';
 import '../../../../../core/utils/number_formatter.dart';
 
 /// Card hiển thị một thành tựu
-class DuoAchievementCard extends StatelessWidget {
+class DuoAchievementCard extends StatefulWidget {
   final Achievement achievement;
-  final VoidCallback? onClaim;
-  final bool isClaiming;
+  final Future<void> Function()? onClaim;
 
   const DuoAchievementCard({
     super.key,
     required this.achievement,
     this.onClaim,
-    this.isClaiming = false,
   });
+
+  @override
+  State<DuoAchievementCard> createState() => _DuoAchievementCardState();
+}
+
+class _DuoAchievementCardState extends State<DuoAchievementCard> {
+  bool _isClaimingThis = false;
+
+  Achievement get achievement => widget.achievement;
 
   Color get _tierColor =>
       Color(AchievementTierHelper.getTierColorValue(achievement.tier));
+
+  Future<void> _handleClaim() async {
+    if (_isClaimingThis || widget.onClaim == null) return;
+    
+    setState(() => _isClaimingThis = true);
+    try {
+      await widget.onClaim!();
+    } finally {
+      if (mounted) {
+        setState(() => _isClaimingThis = false);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -187,21 +207,27 @@ class DuoAchievementCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Rewards
+          // Rewards - dùng FittedBox để co lại khi overflow
           Expanded(
-            child: Wrap(
-              spacing: AppStyles.space3,
-              children: [
-                _buildRewardChip(
-                    AppAssets.coin, NumberFormatter.compact(reward.coins)),
-                _buildRewardChip(
-                    AppAssets.diamond, NumberFormatter.compact(reward.diamonds)),
-                _buildRewardChip(
-                    AppAssets.xpStar, NumberFormatter.compact(reward.xp)),
-              ],
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildRewardChip(
+                      AppAssets.coin, NumberFormatter.compact(reward.coins)),
+                  SizedBox(width: AppStyles.space3),
+                  _buildRewardChip(
+                      AppAssets.diamond, NumberFormatter.compact(reward.diamonds)),
+                  SizedBox(width: AppStyles.space3),
+                  _buildRewardChip(
+                      AppAssets.xpStar, NumberFormatter.compact(reward.xp)),
+                ],
+              ),
             ),
           ),
-
+          SizedBox(width: AppStyles.space2),
           // Action button
           _buildActionButton(),
         ],
@@ -232,8 +258,8 @@ class DuoAchievementCard extends StatelessWidget {
     if (achievement.canClaimReward) {
       return DuoButton(
         text: 'Nhận',
-        onPressed: isClaiming ? null : onClaim,
-        isLoading: isClaiming,
+        onPressed: _isClaimingThis ? null : _handleClaim,
+        isLoading: _isClaimingThis,
         size: DuoButtonSize.sm,
         variant: _getButtonVariant(),
         fullWidth: false,
