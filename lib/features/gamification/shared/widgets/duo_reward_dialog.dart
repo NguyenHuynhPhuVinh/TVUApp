@@ -23,63 +23,308 @@ class RewardItem {
   });
 }
 
-/// Dialog hiển thị phần thưởng sau khi điểm danh
+/// Dialog hiển thị phần thưởng - dùng chung cho toàn bộ hệ thống
+/// Hỗ trợ: check-in, mailbox, reward code, achievements, shop...
 class DuoRewardDialog extends StatelessWidget {
-  final String tenMon;
-  final int earnedCoins;
-  final int earnedDiamonds;
-  final int earnedXp;
+  final String title;
+  final String? subtitle;
+  final List<RewardItem> rewards;
   final bool leveledUp;
   final int? newLevel;
-  final String? customTitle;
-  final List<RewardItem>? customRewards;
+  final String? iconAsset;
+  final Color? glowColor;
+  final DuoButtonVariant buttonVariant;
+  final String buttonText;
 
   const DuoRewardDialog({
     super.key,
-    required this.tenMon,
-    required this.earnedCoins,
-    required this.earnedDiamonds,
-    required this.earnedXp,
+    required this.title,
+    this.subtitle,
+    required this.rewards,
     this.leveledUp = false,
     this.newLevel,
-    this.customTitle,
-    this.customRewards,
+    this.iconAsset,
+    this.glowColor,
+    this.buttonVariant = DuoButtonVariant.warning,
+    this.buttonText = 'Tuyệt vời!',
   });
 
-  /// Show dialog với rewards từ check-in
-  static void show({
-    required String tenMon,
-    required Map<String, dynamic> rewards,
-    String? title,
-  }) {
-    Get.dialog(
+  // ============ STATIC METHODS ============
+
+  /// Show dialog cơ bản với coins, diamonds, xp
+  static Future<void> show({
+    required String title,
+    String? subtitle,
+    required int coins,
+    required int diamonds,
+    required int xp,
+    bool leveledUp = false,
+    int? newLevel,
+    String? iconAsset,
+    Color? glowColor,
+  }) async {
+    final rewards = <RewardItem>[];
+    if (coins > 0) {
+      rewards.add(RewardItem(
+        icon: AppAssets.coin,
+        label: 'Xu',
+        value: coins,
+        color: AppColors.yellow,
+      ));
+    }
+    if (diamonds > 0) {
+      rewards.add(RewardItem(
+        icon: AppAssets.diamond,
+        label: 'Kim cương',
+        value: diamonds,
+        color: AppColors.primary,
+      ));
+    }
+    if (xp > 0) {
+      rewards.add(RewardItem(
+        icon: AppAssets.xpStar,
+        label: 'XP',
+        value: xp,
+        color: AppColors.purple,
+      ));
+    }
+
+    await Get.dialog(
       DuoRewardDialog(
-        tenMon: tenMon,
-        earnedCoins: rewards['earnedCoins'] ?? 0,
-        earnedDiamonds: rewards['earnedDiamonds'] ?? 0,
-        earnedXp: rewards['earnedXp'] ?? 0,
-        leveledUp: rewards['leveledUp'] == true,
-        newLevel: rewards['newLevel'],
-        customTitle: title,
+        title: title,
+        subtitle: subtitle,
+        rewards: rewards,
+        leveledUp: leveledUp,
+        newLevel: newLevel,
+        iconAsset: iconAsset,
+        glowColor: glowColor,
       ),
       barrierDismissible: true,
     );
   }
 
-  /// Show dialog cho nhận thưởng môn học CTDT
-  static void showSubjectReward({
+  /// Show dialog cho check-in điểm danh
+  static Future<void> showCheckIn({
     required String tenMon,
     required Map<String, dynamic> rewards,
-  }) {
-    Get.dialog(
+  }) async {
+    await show(
+      title: 'Điểm danh thành công!',
+      subtitle: tenMon,
+      coins: rewards['earnedCoins'] ?? 0,
+      diamonds: rewards['earnedDiamonds'] ?? 0,
+      xp: rewards['earnedXp'] ?? 0,
+      leveledUp: rewards['leveledUp'] == true,
+      newLevel: rewards['newLevel'],
+      iconAsset: AppAssets.checkmark,
+      glowColor: AppColors.green,
+    );
+  }
+
+  /// Show dialog cho nhận thưởng môn học CTDT
+  static Future<void> showSubjectReward({
+    required String tenMon,
+    required Map<String, dynamic> rewards,
+  }) async {
+    await show(
+      title: 'Nhận thưởng thành công!',
+      subtitle: tenMon,
+      coins: rewards['earnedCoins'] ?? 0,
+      diamonds: rewards['earnedDiamonds'] ?? 0,
+      xp: rewards['earnedXp'] ?? 0,
+      leveledUp: rewards['leveledUp'] == true,
+      newLevel: rewards['newLevel'],
+      iconAsset: AppAssets.medalGold,
+      glowColor: AppColors.yellow,
+    );
+  }
+
+  /// Show dialog cho nhận nhiều thưởng môn học CTDT
+  static Future<void> showBulkSubjectReward({
+    required int count,
+    required int totalCoins,
+    required int totalDiamonds,
+    required int totalXp,
+    bool leveledUp = false,
+    int? newLevel,
+  }) async {
+    await show(
+      title: 'Nhận thưởng thành công!',
+      subtitle: 'Đã nhận $count môn học',
+      coins: totalCoins,
+      diamonds: totalDiamonds,
+      xp: totalXp,
+      leveledUp: leveledUp,
+      newLevel: newLevel,
+      iconAsset: AppAssets.medalGold,
+      glowColor: AppColors.yellow,
+    );
+  }
+
+  /// Show dialog cho nhận quà từ mailbox
+  static Future<void> showMailReward({
+    required String mailTitle,
+    required int coins,
+    required int diamonds,
+    required int xp,
+    bool leveledUp = false,
+    int? newLevel,
+  }) async {
+    await show(
+      title: 'Nhận quà thành công!',
+      subtitle: mailTitle,
+      coins: coins,
+      diamonds: diamonds,
+      xp: xp,
+      leveledUp: leveledUp,
+      newLevel: newLevel,
+      iconAsset: AppAssets.chest,
+      glowColor: AppColors.yellow,
+    );
+  }
+
+  /// Show dialog cho nhận nhiều quà từ mailbox
+  static Future<void> showBulkMailReward({
+    required int count,
+    required int totalCoins,
+    required int totalDiamonds,
+    required int totalXp,
+  }) async {
+    await show(
+      title: 'Nhận quà thành công!',
+      subtitle: 'Đã nhận $count phần quà',
+      coins: totalCoins,
+      diamonds: totalDiamonds,
+      xp: totalXp,
+      iconAsset: AppAssets.chest,
+      glowColor: AppColors.yellow,
+    );
+  }
+
+  /// Show dialog cho nhận mã thưởng
+  static Future<void> showRewardCode({
+    required int coins,
+    required int diamonds,
+    required int xp,
+  }) async {
+    await show(
+      title: 'Nhận mã thành công!',
+      subtitle: 'Bạn đã nhận được phần thưởng',
+      coins: coins,
+      diamonds: diamonds,
+      xp: xp,
+      iconAsset: AppAssets.giftPurple,
+      glowColor: AppColors.green,
+    );
+  }
+
+  /// Show dialog cho nhận thưởng thành tựu
+  static Future<void> showAchievementReward({
+    required String achievementName,
+    required int coins,
+    required int diamonds,
+    required int xp,
+    bool leveledUp = false,
+    int? newLevel,
+  }) async {
+    await show(
+      title: 'Nhận thưởng thành công!',
+      subtitle: achievementName,
+      coins: coins,
+      diamonds: diamonds,
+      xp: xp,
+      leveledUp: leveledUp,
+      newLevel: newLevel,
+      iconAsset: AppAssets.crown,
+      glowColor: AppColors.purple,
+    );
+  }
+
+  /// Show dialog cho nhận nhiều thưởng thành tựu
+  static Future<void> showBulkAchievementReward({
+    required int count,
+    required int totalCoins,
+    required int totalDiamonds,
+    required int totalXp,
+    bool leveledUp = false,
+    int? newLevel,
+  }) async {
+    await show(
+      title: 'Nhận thưởng thành công!',
+      subtitle: 'Đã nhận $count thành tựu',
+      coins: totalCoins,
+      diamonds: totalDiamonds,
+      xp: totalXp,
+      leveledUp: leveledUp,
+      newLevel: newLevel,
+      iconAsset: AppAssets.crown,
+      glowColor: AppColors.purple,
+    );
+  }
+
+  /// Show dialog cho nhận thưởng rank
+  static Future<void> showRankReward({
+    required String rankName,
+    required int coins,
+    required int diamonds,
+    required int xp,
+    bool leveledUp = false,
+    int? newLevel,
+  }) async {
+    await show(
+      title: 'Nhận thưởng Rank!',
+      subtitle: rankName,
+      coins: coins,
+      diamonds: diamonds,
+      xp: xp,
+      leveledUp: leveledUp,
+      newLevel: newLevel,
+      iconAsset: AppAssets.medalGold,
+      glowColor: AppColors.purple,
+    );
+  }
+
+  /// Show dialog cho nhận nhiều thưởng rank
+  static Future<void> showBulkRankReward({
+    required int count,
+    required int totalCoins,
+    required int totalDiamonds,
+    required int totalXp,
+    bool leveledUp = false,
+    int? newLevel,
+  }) async {
+    await show(
+      title: 'Nhận tất cả thưởng!',
+      subtitle: '$count rank',
+      coins: totalCoins,
+      diamonds: totalDiamonds,
+      xp: totalXp,
+      leveledUp: leveledUp,
+      newLevel: newLevel,
+      iconAsset: AppAssets.medalGold,
+      glowColor: AppColors.purple,
+    );
+  }
+
+  /// Show dialog cho nhận thưởng học phí (TVUCash)
+  static Future<void> showTuitionBonus({
+    required int virtualBalance,
+    String? semesterName,
+  }) async {
+    await Get.dialog(
       DuoRewardDialog(
-        tenMon: tenMon,
-        earnedCoins: rewards['earnedCoins'] ?? 0,
-        earnedDiamonds: rewards['earnedDiamonds'] ?? 0,
-        earnedXp: rewards['earnedXp'] ?? 0,
-        leveledUp: rewards['leveledUp'] == true,
-        newLevel: rewards['newLevel'],
-        customTitle: 'Nhận thưởng thành công!',
+        title: 'Nhận thưởng thành công!',
+        subtitle: semesterName,
+        rewards: [
+          RewardItem(
+            icon: AppAssets.tvuCash,
+            label: 'TVUCash',
+            value: virtualBalance,
+            color: AppColors.green,
+          ),
+        ],
+        iconAsset: AppAssets.tvuCash,
+        glowColor: AppColors.green,
       ),
       barrierDismissible: true,
     );
@@ -92,21 +337,24 @@ class DuoRewardDialog extends StatelessWidget {
     String? subtitle,
     bool leveledUp = false,
     int? newLevel,
+    String? iconAsset,
+    Color? glowColor,
   }) async {
     await Get.dialog(
       DuoRewardDialog(
-        tenMon: subtitle ?? '',
-        earnedCoins: 0,
-        earnedDiamonds: 0,
-        earnedXp: 0,
-        customTitle: title,
-        customRewards: rewards,
+        title: title,
+        subtitle: subtitle,
+        rewards: rewards,
         leveledUp: leveledUp,
-        newLevel: newLevel ?? 1,
+        newLevel: newLevel,
+        iconAsset: iconAsset,
+        glowColor: glowColor,
       ),
       barrierDismissible: true,
     );
   }
+
+  // ============ BUILD ============
 
   @override
   Widget build(BuildContext context) {
@@ -117,15 +365,20 @@ class DuoRewardDialog extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.backgroundWhite,
           borderRadius: AppStyles.rounded2xl,
+          boxShadow: [
+            BoxShadow(
+              color: (glowColor ?? AppColors.yellow).withValues(alpha: 0.3),
+              blurRadius: 20,
+              spreadRadius: 2,
+            ),
+          ],
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _buildSuccessIcon(),
+            _buildIcon(),
             SizedBox(height: AppStyles.space4),
             _buildTitle(),
-            SizedBox(height: AppStyles.space2),
-            _buildSubjectName(),
             SizedBox(height: AppStyles.space4),
             _buildRewardsSection(),
             if (leveledUp) ...[
@@ -140,89 +393,94 @@ class DuoRewardDialog extends StatelessWidget {
     );
   }
 
-  Widget _buildSuccessIcon() {
-    return Container(
-      padding: EdgeInsets.all(AppStyles.space4),
-      decoration: BoxDecoration(
-        color: AppColors.greenSoft,
-        shape: BoxShape.circle,
-      ),
-      child: Icon(
-        Icons.check_circle_rounded,
-        color: AppColors.green,
-        size: 48.w,
-      ),
-    ).animate().scale(duration: 400.ms, curve: Curves.elasticOut);
-  }
+  Widget _buildIcon() {
+    final effectiveGlowColor = glowColor ?? AppColors.yellow;
+    final effectiveIconAsset = iconAsset ?? AppAssets.chest;
 
-  Widget _buildTitle() {
-    return Text(
-      customTitle ?? 'Điểm danh thành công!',
-      style: TextStyle(
-        fontSize: AppStyles.textXl,
-        fontWeight: AppStyles.fontBold,
-        color: AppColors.green,
-      ),
-      textAlign: TextAlign.center,
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        // Glow effect
+        Container(
+          width: 100.w,
+          height: 100.w,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: RadialGradient(
+              colors: [
+                effectiveGlowColor.withValues(alpha: 0.3),
+                effectiveGlowColor.withValues(alpha: 0),
+              ],
+            ),
+          ),
+        )
+            .animate(onPlay: (c) => c.repeat(reverse: true))
+            .scale(
+                duration: 1500.ms,
+                begin: const Offset(0.9, 0.9),
+                end: const Offset(1.1, 1.1)),
+        // Icon
+        Container(
+          padding: EdgeInsets.all(AppStyles.space4),
+          decoration: BoxDecoration(
+            color: effectiveGlowColor.withValues(alpha: 0.15),
+            shape: BoxShape.circle,
+            boxShadow:
+                AppColors.cardBoxShadow(color: effectiveGlowColor, offset: 4),
+          ),
+          child: Image.asset(
+            effectiveIconAsset,
+            width: 48.w,
+            height: 48.w,
+            errorBuilder: (_, __, ___) => Icon(
+              Icons.card_giftcard_rounded,
+              size: 48.w,
+              color: effectiveGlowColor,
+            ),
+          ),
+        ).animate().scale(duration: 500.ms, curve: Curves.elasticOut),
+      ],
     );
   }
 
-  Widget _buildSubjectName() {
-    return Text(
-      tenMon,
-      style: TextStyle(
-        fontSize: AppStyles.textBase,
-        color: AppColors.textSecondary,
-      ),
-      textAlign: TextAlign.center,
+  Widget _buildTitle() {
+    return Column(
+      children: [
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: AppStyles.textXl,
+            fontWeight: AppStyles.fontBold,
+            color: glowColor ?? AppColors.yellow,
+          ),
+          textAlign: TextAlign.center,
+        ).animate().fadeIn(delay: 200.ms),
+        if (subtitle != null && subtitle!.isNotEmpty) ...[
+          SizedBox(height: AppStyles.space1),
+          Text(
+            subtitle!,
+            style: TextStyle(
+              fontSize: AppStyles.textSm,
+              color: AppColors.textSecondary,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ).animate().fadeIn(delay: 300.ms),
+        ],
+      ],
     );
   }
 
   Widget _buildRewardsSection() {
-    // Nếu có custom rewards thì hiển thị custom
-    if (customRewards != null && customRewards!.isNotEmpty) {
-      return Container(
-        padding: EdgeInsets.all(AppStyles.space4),
-        decoration: BoxDecoration(
-          color: AppColors.background,
-          borderRadius: AppStyles.roundedXl,
-        ),
-        child: Column(
-          children: [
-            Text(
-              'Phần thưởng',
-              style: TextStyle(
-                fontSize: AppStyles.textSm,
-                fontWeight: AppStyles.fontBold,
-                color: AppColors.textSecondary,
-              ),
-            ),
-            SizedBox(height: AppStyles.space3),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: customRewards!.map((item) => Padding(
-                  padding: EdgeInsets.symmetric(horizontal: AppStyles.space2),
-                  child: _DuoRewardItem(
-                    assetPath: item.icon,
-                    value: '+${_formatNumber(item.value)}',
-                    label: item.label,
-                  ),
-                )).toList(),
-              ),
-            ),
-          ],
-        ),
-      ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.2);
-    }
+    if (rewards.isEmpty) return const SizedBox.shrink();
 
-    // Default rewards cho check-in
     return Container(
       padding: EdgeInsets.all(AppStyles.space4),
       decoration: BoxDecoration(
         color: AppColors.background,
         borderRadius: AppStyles.roundedXl,
+        border: Border.all(color: AppColors.border),
       ),
       child: Column(
         children: [
@@ -237,41 +495,83 @@ class DuoRewardDialog extends StatelessWidget {
           SizedBox(height: AppStyles.space3),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Flexible(
-                child: _DuoRewardItem(
-                  assetPath: AppAssets.coin,
-                  value: '+${_formatNumber(earnedCoins)}',
-                  label: 'Coins',
-                ),
-              ),
-              Flexible(
-                child: _DuoRewardItem(
-                  assetPath: AppAssets.diamond,
-                  value: '+${_formatNumber(earnedDiamonds)}',
-                  label: 'Diamonds',
-                ),
-              ),
-              Flexible(
-                child: _DuoRewardItem(
-                  assetPath: AppAssets.xpStar,
-                  value: '+${_formatNumber(earnedXp)}',
-                  label: 'XP',
-                ),
-              ),
-            ],
+            children: rewards.asMap().entries.map((entry) {
+              final index = entry.key;
+              final item = entry.value;
+              return _buildRewardItem(
+                item.icon,
+                '+${_formatNumber(item.value)}',
+                item.label,
+                index * 100,
+              );
+            }).toList(),
           ),
         ],
       ),
-    ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.2);
+    ).animate().fadeIn(delay: 400.ms).slideY(begin: 0.2);
+  }
+
+  Widget _buildRewardItem(
+      String asset, String value, String label, int delayMs) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 56.w,
+          height: 56.w,
+          decoration: BoxDecoration(
+            color: AppColors.backgroundWhite,
+            borderRadius: AppStyles.roundedLg,
+            boxShadow: AppColors.cardBoxShadow(offset: 2),
+          ),
+          child: Center(
+            child: Image.asset(
+              asset,
+              width: 36.w,
+              height: 36.w,
+              errorBuilder: (_, __, ___) => Icon(
+                Icons.star_rounded,
+                size: 36.w,
+                color: AppColors.yellow,
+              ),
+            ),
+          ),
+        )
+            .animate()
+            .scale(
+                delay: Duration(milliseconds: 400 + delayMs),
+                duration: 400.ms,
+                curve: Curves.elasticOut),
+        SizedBox(height: AppStyles.space2),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: AppStyles.textLg,
+            fontWeight: AppStyles.fontBold,
+            color: AppColors.textPrimary,
+          ),
+        ).animate().fadeIn(delay: Duration(milliseconds: 500 + delayMs)),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: AppStyles.textXs,
+            color: AppColors.textTertiary,
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _buildLevelUpBadge() {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: AppStyles.space4, vertical: AppStyles.space2),
+      padding: EdgeInsets.symmetric(
+        horizontal: AppStyles.space4,
+        vertical: AppStyles.space2,
+      ),
       decoration: BoxDecoration(
         gradient: AppColors.purpleGradient,
         borderRadius: AppStyles.roundedFull,
+        boxShadow: AppColors.buttonBoxShadow(AppColors.purpleDark, offset: 3),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -288,78 +588,23 @@ class DuoRewardDialog extends StatelessWidget {
           ),
         ],
       ),
-    ).animate().scale(delay: 400.ms, duration: 400.ms, curve: Curves.elasticOut);
+    )
+        .animate()
+        .scale(delay: 600.ms, duration: 400.ms, curve: Curves.elasticOut);
   }
 
   Widget _buildCloseButton() {
     return Builder(
       builder: (context) => DuoButton(
-        text: 'Tuyệt vời!',
-        variant: DuoButtonVariant.success,
+        text: buttonText,
+        variant: buttonVariant,
         onPressed: () => Navigator.of(context).pop(),
         fullWidth: true,
       ),
-    );
+    ).animate().fadeIn(delay: 600.ms).slideY(begin: 0.2);
   }
 
   String _formatNumber(int number) {
     return NumberFormatter.compact(number);
   }
 }
-
-/// Widget hiển thị một item reward
-class _DuoRewardItem extends StatelessWidget {
-  final String assetPath;
-  final String value;
-  final String label;
-
-  const _DuoRewardItem({
-    required this.assetPath,
-    required this.value,
-    required this.label,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Image.asset(
-          assetPath,
-          width: 32.w,
-          height: 32.w,
-          errorBuilder: (_, _, _) => Icon(
-            Icons.card_giftcard,
-            size: 32.w,
-            color: AppColors.yellow,
-          ),
-        ),
-        SizedBox(height: AppStyles.space1),
-        FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Text(
-            value,
-            style: TextStyle(
-              fontSize: AppStyles.textLg,
-              fontWeight: AppStyles.fontBold,
-              color: AppColors.textPrimary,
-            ),
-          ),
-        ),
-        FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: AppStyles.textXs,
-              color: AppColors.textTertiary,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-
-

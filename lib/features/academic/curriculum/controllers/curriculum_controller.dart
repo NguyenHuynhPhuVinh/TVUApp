@@ -155,15 +155,13 @@ class CurriculumController extends GetxController {
       );
 
       if (result != null && result['claimedCount'] > 0) {
-        DuoRewardDialog.showSubjectReward(
-          tenMon: '${result['claimedCount']} môn học',
-          rewards: {
-            'earnedCoins': result['earnedCoins'],
-            'earnedDiamonds': result['earnedDiamonds'],
-            'earnedXp': result['earnedXp'],
-            'leveledUp': result['leveledUp'],
-            'newLevel': result['newLevel'],
-          },
+        DuoRewardDialog.showBulkSubjectReward(
+          count: result['claimedCount'] ?? 0,
+          totalCoins: result['earnedCoins'] ?? 0,
+          totalDiamonds: result['earnedDiamonds'] ?? 0,
+          totalXp: result['earnedXp'] ?? 0,
+          leveledUp: result['leveledUp'] ?? false,
+          newLevel: result['newLevel'],
         );
       }
     } finally {

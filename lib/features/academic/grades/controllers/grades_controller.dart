@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../../core/constants/app_assets.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../features/auth/data/auth_service.dart';
 import '../../../../features/gamification/core/game_service.dart';
@@ -215,29 +214,11 @@ class GradesController extends GetxController {
       );
 
       if (result != null) {
-        DuoRewardDialog.showCustom(
-          title: 'Nhận thưởng Rank!',
-          subtitle: RankHelper.getRankNameFromIndex(rankIdx),
-          rewards: [
-            RewardItem(
-              icon: AppAssets.coin,
-              label: 'Coins',
-              value: result['earnedCoins'],
-              color: AppColors.yellow,
-            ),
-            RewardItem(
-              icon: AppAssets.xpStar,
-              label: 'XP',
-              value: result['earnedXp'],
-              color: AppColors.purple,
-            ),
-            RewardItem(
-              icon: AppAssets.diamond,
-              label: 'Diamonds',
-              value: result['earnedDiamonds'],
-              color: AppColors.primary,
-            ),
-          ],
+        DuoRewardDialog.showRankReward(
+          rankName: RankHelper.getRankNameFromIndex(rankIdx),
+          coins: result['earnedCoins'] ?? 0,
+          diamonds: result['earnedDiamonds'] ?? 0,
+          xp: result['earnedXp'] ?? 0,
           leveledUp: result['leveledUp'] ?? false,
           newLevel: result['newLevel'],
         );
@@ -261,29 +242,11 @@ class GradesController extends GetxController {
       if (result != null) {
         Get.back();
 
-        DuoRewardDialog.showCustom(
-          title: 'Nhận tất cả thưởng!',
-          subtitle: '${result['claimedCount']} rank',
-          rewards: [
-            RewardItem(
-              icon: AppAssets.coin,
-              label: 'Coins',
-              value: result['earnedCoins'],
-              color: AppColors.yellow,
-            ),
-            RewardItem(
-              icon: AppAssets.xpStar,
-              label: 'XP',
-              value: result['earnedXp'],
-              color: AppColors.purple,
-            ),
-            RewardItem(
-              icon: AppAssets.diamond,
-              label: 'Diamonds',
-              value: result['earnedDiamonds'],
-              color: AppColors.primary,
-            ),
-          ],
+        DuoRewardDialog.showBulkRankReward(
+          count: result['claimedCount'] ?? 0,
+          totalCoins: result['earnedCoins'] ?? 0,
+          totalDiamonds: result['earnedDiamonds'] ?? 0,
+          totalXp: result['earnedXp'] ?? 0,
           leveledUp: result['leveledUp'] ?? false,
           newLevel: result['newLevel'],
         );

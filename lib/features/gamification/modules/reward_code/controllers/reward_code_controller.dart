@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../models/reward_code_model.dart';
 import '../services/reward_code_service.dart';
-import '../widgets/duo_reward_code_success_dialog.dart';
+import '../../../shared/widgets/duo_reward_dialog.dart';
 
 class RewardCodeController extends GetxController {
   final RewardCodeService _service = Get.find<RewardCodeService>();
@@ -45,7 +45,11 @@ class RewardCodeController extends GetxController {
         codeFocusNode.unfocus();
         
         // Hiện dialog thành công
-        await DuoRewardCodeSuccessDialog.show(reward: reward);
+        await DuoRewardDialog.showRewardCode(
+          coins: reward.coins,
+          diamonds: reward.diamonds,
+          xp: reward.xp,
+        );
       } else {
         errorMessage.value = message;
       }

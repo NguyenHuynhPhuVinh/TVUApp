@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
-import '../../../../core/constants/app_assets.dart';
 import '../../../../core/enums/reward_claim_status.dart';
 import '../../../../core/extensions/animation_extensions.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -137,16 +136,9 @@ class _TuitionItem extends StatelessWidget {
   Future<void> _claimBonus(BuildContext context) async {
     final result = await controller.claimSemesterBonus(item);
     if (result != null) {
-      await DuoRewardDialog.showCustom(
-        title: 'Nhận thưởng thành công!',
-        rewards: [
-          RewardItem(
-            icon: AppAssets.tvuCash,
-            label: 'TVUCash',
-            value: result['virtualBalance'],
-            color: AppColors.green,
-          ),
-        ],
+      await DuoRewardDialog.showTuitionBonus(
+        virtualBalance: result['virtualBalance'] ?? 0,
+        semesterName: item.tenHocKy,
       );
     }
   }

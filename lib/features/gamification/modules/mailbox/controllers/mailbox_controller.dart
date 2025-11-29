@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../models/mail_item.dart';
 import '../services/mailbox_service.dart';
-import '../widgets/duo_mail_reward_dialog.dart';
+import '../../../shared/widgets/duo_reward_dialog.dart';
 
 class MailboxController extends GetxController {
   final MailboxService _mailboxService = Get.find<MailboxService>();
@@ -75,7 +75,7 @@ class MailboxController extends GetxController {
 
       if (count > 0) {
         // Hiện reward dialog
-        await DuoMailRewardDialog.showBulk(
+        await DuoRewardDialog.showBulkMailReward(
           count: count,
           totalCoins: totalCoins,
           totalDiamonds: totalDiamonds,

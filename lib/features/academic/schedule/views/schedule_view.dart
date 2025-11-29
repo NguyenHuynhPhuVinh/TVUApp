@@ -251,7 +251,7 @@ class _ScheduleCardItem extends StatelessWidget {
   void _handleCheckIn(BuildContext context) async {
     final rewards = await controller.checkInLesson(lesson);
     if (rewards != null) {
-      DuoRewardDialog.show(
+      DuoRewardDialog.showCheckIn(
         tenMon: lesson.tenMon,
         rewards: rewards,
       );

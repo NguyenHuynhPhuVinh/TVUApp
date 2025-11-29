@@ -301,34 +301,25 @@ class AchievementsController extends GetxController {
     final leveledUp = result['leveledUp'] ?? false;
     final newLevel = result['newLevel'];
 
-    DuoRewardDialog.showCustom(
-      title: isMultiple
-          ? 'Nhận thưởng thành công!'
-          : result['achievementName'] ?? 'Thành tựu',
-      subtitle: isMultiple ? 'Đã nhận ${result['claimedCount']} thành tựu' : null,
-      rewards: [
-        RewardItem(
-          icon: AppAssets.coin,
-          label: 'Coins',
-          value: coins,
-          color: AppColors.yellow,
-        ),
-        RewardItem(
-          icon: AppAssets.diamond,
-          label: 'Diamonds',
-          value: diamonds,
-          color: AppColors.primary,
-        ),
-        RewardItem(
-          icon: AppAssets.xpStar,
-          label: 'XP',
-          value: xp,
-          color: AppColors.purple,
-        ),
-      ],
-      leveledUp: leveledUp,
-      newLevel: newLevel,
-    );
+    if (isMultiple) {
+      DuoRewardDialog.showBulkAchievementReward(
+        count: result['claimedCount'] ?? 0,
+        totalCoins: coins,
+        totalDiamonds: diamonds,
+        totalXp: xp,
+        leveledUp: leveledUp,
+        newLevel: newLevel,
+      );
+    } else {
+      DuoRewardDialog.showAchievementReward(
+        achievementName: result['achievementName'] ?? 'Thành tựu',
+        coins: coins,
+        diamonds: diamonds,
+        xp: xp,
+        leveledUp: leveledUp,
+        newLevel: newLevel,
+      );
+    }
   }
 
   /// Lấy icon cho category (không dùng emoji)

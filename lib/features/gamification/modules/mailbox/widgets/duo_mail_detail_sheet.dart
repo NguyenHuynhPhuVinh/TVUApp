@@ -5,7 +5,7 @@ import '../../../../../core/constants/app_assets.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/theme/app_styles.dart';
 import '../models/mail_item.dart';
-import 'duo_mail_reward_dialog.dart';
+import '../../../shared/widgets/duo_reward_dialog.dart';
 
 /// Bottom sheet hiển thị chi tiết thư - Duo style
 class DuoMailDetailSheet extends StatefulWidget {
@@ -63,9 +63,11 @@ class _DuoMailDetailSheetState extends State<DuoMailDetailSheet> {
           _isClaiming = false;
         });
         // Hiện dialog nhận quà (sheet vẫn ở phía sau)
-        await DuoMailRewardDialog.show(
-          title: widget.mail.title,
-          reward: widget.mail.reward!,
+        await DuoRewardDialog.showMailReward(
+          mailTitle: widget.mail.title,
+          coins: widget.mail.reward!.coins,
+          diamonds: widget.mail.reward!.diamonds,
+          xp: widget.mail.reward!.xp,
         );
         // Đóng sheet sau khi đóng dialog
         if (mounted) {
