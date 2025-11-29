@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 // App features
 import '../features/app/splash/bindings/splash_binding.dart';
 import '../features/app/splash/views/splash_view.dart';
-import '../features/app/home/home_binding.dart';
+import '../features/app/home/bindings/home_binding.dart';
 import '../features/app/home/views/home_view.dart';
 import '../features/app/main/bindings/main_binding.dart';
 import '../features/app/main/views/main_view.dart';
